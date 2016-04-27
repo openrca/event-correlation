@@ -1,0 +1,35 @@
+[
+    {
+        "trigger": {
+            "eventType": "A",
+            "timestamp": "-1"
+        },
+        "response": {
+            "eventType": "B"
+        },
+        "dist": {
+            "name": "Uniform",
+            "param": [0, 1]
+        },
+        "confidence": 1
+    },
+    {
+        "trigger": {
+            "eventType": "A",
+            "timestamp": "-1"
+        },
+        "response": {
+            "eventType": "0"
+        },
+        "dist": {
+            "name": "Exp",
+            "param": [0.5]
+        },
+        "confidence": 0.9
+    },
+    {
+        "trigger": {
+            "eventType": "A"
+        }
+    }
+]
