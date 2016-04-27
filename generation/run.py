@@ -2,10 +2,9 @@
 """ Automatically generated documentation for run """
 
 import argparse
-import sys
 import logging
+import sys
 
-import time
 from PySide import QtGui
 
 import generation
@@ -54,11 +53,9 @@ if (args.output is None):
     app = QtGui.QApplication(sys.argv)
 
     v = Visualizer()
-    v.setSequence(sequences[0])
     v.show()
 
-    v.sequenceWidget.paintCorrelations()
-
+    v.paintSeq.emit(sequences[0])
     sys.exit(app.exec_())
 
 else:

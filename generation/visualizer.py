@@ -2,17 +2,29 @@
 import logging
 
 from PyQt5.QtCore import Qt
-from PySide.QtGui import QMainWindow, QWidget, QLabel, QVBoxLayout, QHBoxLayout
+from PySide.QtCore import Signal, QPoint
+from PySide.QtGui import QMainWindow, QWidget, QLabel, QVBoxLayout, QPainter, QPainterPath
+
+from core.sequence import Sequence
 
 
 class EventWidget(QLabel):
-    def __init__(self, event, width, parent=None):
+    def __init__(self, event, parent=None):
         super().__init__(parent)
         self.eventType = event
 
-        self.setFixedHeight(40)
         self.setText(str(event.getEventType()))
         self.setAlignment(Qt.AlignCenter)
+
+        self.maxSize = 50
+        self.minSize = 10
+
+    def paint(self, width):
+        width = min(width, self.maxSize)
+        width = max(width, self.minSize)
+
+        self.setFixedSize(width, width)
+        self.setStyleSheet("border: 1px solid black; border-radius: {}px".format(str(width // 2)))
 
     def mousePressEvent(self, event):
         logging.debug("EventWidget clicked")
@@ -30,24 +42,17 @@ class SequenceWidget(QLabel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.sequence = None
-        self.setStyleSheet("border: 1px solid black")
-        self.layout = QHBoxLayout()
-        self.layout.setSpacing(1)
-        self.layout.setAlignment(Qt.AlignBottom)
-        self.setLayout(self.layout)
         self.eventWidgets = {}
 
-    def paint(self):
-        width = self.geometry().width()
-        eventWidth = width // self.sequence.getLength() - 1
+        self.offset = 1
+        self.eventY = 70
+        self.arcOffset = 50
+        self.triangleSize = 5
 
-        for i in range(0, self.sequence.getLength()):
-            event = self.sequence.getEvent(i)
-            eventWidget = EventWidget(event, eventWidth)
-            self.layout.addWidget(eventWidget)
-            self.eventWidgets[event] = eventWidget
+    def paintEvent(self, event):
+        painter = QPainter()
+        painter.begin(self)
 
-    def paintCorrelations(self):
         for event, widget in self.eventWidgets.items():
             response = event.getTriggered()
 
@@ -55,17 +60,47 @@ class SequenceWidget(QLabel):
                 continue
 
             triggeredWidget = self.eventWidgets[event.getTriggered()]
+            self.__paintArrow(widget, triggeredWidget, painter)
+        painter.end()
 
-            startPos = widget.pos()
-            endPos = triggeredWidget.pos()
+    def __paintArrow(self, start, end, painter):
+        startPos = start.pos()
+        startPos.setX(startPos.x() + start.width() / 2)
+        endPos = end.pos()
+        endPos.setX(endPos.x() + start.width() / 2)
+        vertex = QPoint(startPos.x() + (endPos.x() - startPos.x()) / 2, startPos.y() - self.arcOffset)
 
-            logging.debug("Drawing correlation between {}({}) and {}({})".format(event, startPos, response, endPos))
+        triangle1 = QPoint(endPos.x() - self.triangleSize, endPos.y() - self.triangleSize)
+        triangle2 = QPoint(endPos.x() + self.triangleSize, endPos.y() - self.triangleSize)
 
-    def setSequence(self, sequence):
+        path = QPainterPath()
+        path.moveTo(startPos)
+        path.cubicTo(vertex, vertex, endPos)
+        path.lineTo(triangle1)
+        path.lineTo(triangle2)
+        path.lineTo(endPos)
+
+        painter.drawPath(path)
+
+    def paint(self, sequence):
         self.sequence = sequence
+        width = self.geometry().width()
+        eventWidth = width // self.sequence.getLength() - self.offset
+
+        for i in range(0, self.sequence.getLength()):
+            event = self.sequence.getEvent(i)
+            widget = EventWidget(event, self)
+
+            widget.move(i * (eventWidth + self.offset), self.eventY)
+            widget.paint(eventWidth)
+            widget.show()
+
+            self.eventWidgets[event] = widget
 
 
 class Visualizer(QMainWindow):
+    paintSeq = Signal(Sequence)
+
     def __init__(self):
         super().__init__()
         self.sequenceWidget = None
@@ -84,7 +119,4 @@ class Visualizer(QMainWindow):
         self.layout.addWidget(self.sequenceWidget, 0, 0)
 
         self.setCentralWidget(widget)
-
-    def setSequence(self, sequence):
-        self.sequenceWidget.setSequence(sequence)
-        self.sequenceWidget.paint()
+        self.paintSeq.connect(self.sequenceWidget.paint)
