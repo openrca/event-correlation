@@ -54,8 +54,8 @@ if (args.output is None):
 
     v = Visualizer()
     v.show()
+    v.setSequence(sequences[0])
 
-    v.paintSeq.emit(sequences[0])
     sys.exit(app.exec_())
 
 else:
