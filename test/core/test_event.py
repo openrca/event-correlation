@@ -1,4 +1,4 @@
-import datetime
+import json
 import unittest
 
 import core.event
@@ -37,6 +37,25 @@ class TestScript(unittest.TestCase):
         self.assertNotEqual(event4, self.event)
 
         self.assertNotEqual("a", self.event)
+
+    def test_asJson(self):
+        event = core.event.Event("a", 0)
+        event2 = core.event.Event("b", 0)
+        event2.setOccurred(False)
+        event.setTriggered(event2)
+
+        d = {
+            "eventType": "a",
+            "timestamp": "0",
+            "occurred": "True",
+            "triggered": {
+                "eventType": "b",
+                "timestamp": "0",
+                "occurred": "False"
+            }
+        }
+
+        self.assertEqual(d, json.loads(json.dumps(event.asJson())))
 
 
 if __name__ == '__main__':

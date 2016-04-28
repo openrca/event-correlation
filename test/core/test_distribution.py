@@ -4,16 +4,8 @@ import core.distribution
 
 
 class TestScript(unittest.TestCase):
-    def setUp(self):
-        """ Set up before test case """
-        pass
-
-    def tearDown(self):
-        """ Tear down after test case """
-        pass
-
     def test_abstract(self):
-        dist = core.distribution.Distribution()
+        dist = core.distribution.Distribution(None, None)
         self.assertEqual(dist.getPDFValue(), None)
 
     def test_static(self):

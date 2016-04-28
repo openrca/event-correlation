@@ -29,9 +29,15 @@ distributions = {
 class Distribution:
     """ Base class for all distributions """
 
-    def __init__(self):
+    def __init__(self, distType, param):
+        self.distType = distType
+        self.param = param
+
         d = datetime.datetime.now()
         self.seed(int(time.mktime(d.timetuple())))
+
+    def asJson(self):
+        return {"name": distributions[self.distType], "param": self.param}
 
     @staticmethod
     def seed(seed):
@@ -54,7 +60,12 @@ class StaticDistribution(Distribution):
     This distribution will allways return the values provided by the setters
     """
 
-    def __init__(self, pdf=[0.5], cdf=[0.5]):
+    def __init__(self, pdf=None, cdf=None):
+        if pdf is None:
+            pdf = [0.5]
+        if cdf is None:
+            cdf = [0.5]
+        super().__init__(distType=STATIC, param=[pdf, cdf])
         self.pdfIdx = 0
         self.cdfIdx = 0
         self.pdf = pdf
@@ -70,17 +81,18 @@ class StaticDistribution(Distribution):
         self.cdfIdx = t[0]
         return t[1]
 
-    def __get(self, idx, lst):
+    @staticmethod
+    def __get(idx, lst):
         if (idx >= len(lst)):
-            idx = 0;
+            idx = 0
         return (idx + 1, lst[idx])
 
 
 class NormalDistribution(Distribution):
     """ Creates random samples based on a normal distribution """
 
-    def __init__(self, mu=1, sigma=1):
-        super().__init__()
+    def __init__(self, mu=1.0, sigma=1.0):
+        super().__init__(distType=NORMAL, param=[mu, sigma])
         self.mu = mu
         self.sigma = sigma
         self.__checkParam()
@@ -99,8 +111,8 @@ class NormalDistribution(Distribution):
 class UniformDistribution(Distribution):
     """ Creates random samples based on a uniform distribution """
 
-    def __init__(self, lower=0, upper=1):
-        super().__init__()
+    def __init__(self, lower=0.0, upper=1.0):
+        super().__init__(distType=UNIFORM, param=[lower, upper])
         self.lower = lower
         self.upper = upper
         self.__checkParam()
@@ -114,7 +126,11 @@ class UniformDistribution(Distribution):
         return np.random.uniform(self.lower, self.upper)
 
     def getCDFValue(self, x):
-        raise NotImplementedError("Not implemented yet")
+        if (x <= self.lower):
+            return 0
+        elif (x >= self.upper):
+            return 1
+        return (x - self.lower) / (self.upper - self.lower)
 
 
 class PowerLawDistribution(Distribution):
@@ -125,7 +141,7 @@ class PowerLawDistribution(Distribution):
     """
 
     def __init__(self, exponent):
-        super().__init__()
+        super().__init__(distType=POWER, param=[exponent])
         self.exponent = exponent
         self.__checkParam()
 
@@ -147,8 +163,8 @@ class ExponentialDistribution(Distribution):
         P(x) = le^(-lx), x >= 0, l > 0
     """
 
-    def __init__(self, lam=1):
-        super().__init__()
+    def __init__(self, lam=1.0):
+        super().__init__(distType=EXP, param=[lam])
         self.lam = lam
         self.__checkParam()
 
@@ -179,7 +195,7 @@ def load(value):
     try:
         dist = value["name"]
         param = value["param"]
-    except KeyError as ex:
+    except KeyError:
         raise ValueError("Missing attributes 'name' and/or 'param' in '{}'".format(str(value)))
 
     try:
@@ -193,5 +209,5 @@ def load(value):
             return ExponentialDistribution(float(param[0]))
         else:
             raise ValueError("Unknown distribution '{}'".format(dist))
-    except (IndexError, ValueError) as ex:
+    except (IndexError, ValueError):
         raise ValueError("Unknown parameters '{}' for distribution '{}'".format(param, dist))

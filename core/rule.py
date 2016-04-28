@@ -7,7 +7,7 @@ import core.event
 
 
 class Rule:
-    def __init__(self, trigger, response, distribution, confidence=1):
+    def __init__(self, trigger, response, distribution, confidence=1.0):
         """ Represents a single rule
 
         Parameters:
@@ -35,6 +35,14 @@ class Rule:
 
     def getConfidence(self):
         return self.confidence
+
+    def asJson(self):
+        return {
+            "trigger": self.trigger.asJson(),
+            "response": self.trigger.asJson(),
+            "dist": self.distribution.asJson(),
+            "confidence": self.confidence
+        }
 
     @staticmethod
     def load(value):
@@ -82,7 +90,7 @@ def load(value):
         dist = core.distribution.load(value["dist"])
 
         return Rule(trigger, response, dist, confidence)
-    except KeyError as ex:
+    except KeyError:
         raise ValueError("Missing parameter 'trigger', 'response', 'confidence' and/or 'dist'")
 
 
@@ -93,10 +101,10 @@ def loadFromFile(filename):
     with open(filename, "r") as file:
         content = json.loads("".join(file.readlines()))
 
-    for i in range(0, len(content)):
-        logging.debug("Processing line '{}'".format(content[i]))
+    for item in content:
+        logging.debug("Processing line '{}'".format(item))
         try:
-            entry = load(content[i])
+            entry = load(item)
             rules.append(entry)
         except ValueError as ex:
             logging.warning(ex)

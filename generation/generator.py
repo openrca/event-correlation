@@ -81,7 +81,6 @@ class Generator:
 
             entry.lastTime = t
             trigger.setTriggered(response)
-            response.setTriggeredBy(trigger)
 
             self.__addPendingEvent(entry, t, response)
         return Sequence(timeline, self.length)

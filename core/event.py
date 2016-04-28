@@ -34,6 +34,7 @@ class Event:
 
     def setTriggered(self, event):
         self.triggered = event
+        event.setTriggeredBy(self)
 
     def setTimestamp(self, timestamp):
         self.timestamp = timestamp
@@ -61,19 +62,27 @@ class Event:
     def __copy__(self):
         return Event(self.eventType, self.timestamp)
 
+    def asJson(self):
+        d = {"eventType": str(self.eventType),
+             "occurred": str(self.occurred),
+             "timestamp": str(self.timestamp)}
+        if (self.triggered is not None):
+            d["triggered"] = self.triggered.asJson()
+        return d
+
 
 def load(value):
     """ Load an event from a json string"""
 
     try:
-        e = Event(value["eventType"])
+        event = Event(value["eventType"])
 
         if ("timestamp" in value):
-            e.setTimestamp(int(value["timestamp"]))
+            event.setTimestamp(int(value["timestamp"]))
+        if ("occurred" in value):
+            event.setOccurred(bool(value["occurred"]))
         if ("triggered" in value):
-            e.setTriggered(load(value["triggered"]))
-        if ("triggeredBy" in value):
-            e.setTriggeredBy(load(value["triggeredBy"]))
-        return e
-    except KeyError as ex:
+            event.setTriggered(load(value["triggered"]))
+        return event
+    except KeyError:
         raise ValueError("Missing parameter 'eventType'")

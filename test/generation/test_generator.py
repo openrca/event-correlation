@@ -51,9 +51,7 @@ class TestScript(unittest.TestCase):
         eventA1 = Event("A", 1)
         eventA2 = Event("A", 5)
         eventB1 = Event("B", 4)
-        eventB1.setTriggeredBy(eventA1)
         eventB2 = Event("B", 8)
-        eventB2.setTriggeredBy(eventA2)
         eventA1.setTriggered(eventB1)
         eventA2.setTriggered(eventB2)
 
@@ -71,7 +69,7 @@ class TestScript(unittest.TestCase):
 
         self.assertEqual(1, len(sequences))
         seq = sequences[0]
-        self.assertEqual("_A__BA__B_", generation.printSequence(seq))
+        self.assertEqual("_A__BA__B_", str(seq))
         self.assertEqual(eventA1, seq.getEvent(1))
         self.assertEqual(eventB1, seq.getEvent(1).getTriggered())
         self.assertEqual(eventB1, seq.getEvent(4))

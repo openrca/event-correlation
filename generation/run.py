@@ -47,7 +47,7 @@ sequences = Generator() \
 if (args.output is None):
     for i in range(0, args.count):
         print("Sequence {}".format(str(i)))
-        print(generation.printSequence(sequences[i]))
+        print(str(sequences[i]))
         print("\n")
 
     app = QtGui.QApplication(sys.argv)
