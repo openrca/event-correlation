@@ -5,8 +5,9 @@ Dependencies
 --------------
 - python-3.5
 - numpy-1.11.0
-- pyqt-5
+- Qt-4.8.7
+- pyside-1.2.2
 
-_Info_: I have used and tested the above libraries in the stated version for project creation.
- It may be possible to use older versions of these libraries as well as I haven't used any specific features added in the above versions.
+_Info_: I have used and tested the above libraries in the stated version for project development.
+ To my knowledge I have not used any specific features introduced in these versions. Consequently, it may be possible to use older versions of these libraries as well.
 
