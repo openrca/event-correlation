@@ -16,12 +16,12 @@ class TestScript(unittest.TestCase):
         self.assertEqual(Event('B'), rules[0].getResponse())
         self.assertEqual(0, rules[0].distribution.lower)
         self.assertEqual(1, rules[0].distribution.upper)
-        self.assertEqual(1, rules[0].getConfidence())
+        self.assertEqual(1, rules[0].getResponseConfidence())
 
         self.assertEqual(Event('A'), rules[1].getTrigger())
         self.assertEqual(Event('0'), rules[1].getResponse())
         self.assertEqual(0.5, rules[1].distribution.lam)
-        self.assertEqual(0.9, rules[1].getConfidence())
+        self.assertEqual(0.9, rules[1].getResponseConfidence())
 
 
 if __name__ == '__main__':

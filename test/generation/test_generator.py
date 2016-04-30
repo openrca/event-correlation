@@ -32,17 +32,18 @@ class TestScript(unittest.TestCase):
     def test_pendingEventHandling(self):
         r = rule.Rule(event.Event('A'), event.Event('B'), distri.StaticDistribution([0], [0]))
 
-        response = event.Event("B")
+        response1 = event.Event("B")
+        response2 = event.Event("B")
 
         entry = generation.generator.Entry(r, 10)
         gen = generation.generator.Generator()
-        gen._Generator__addPendingEvent(entry, 0, response)
-        gen._Generator__addPendingEvent(entry, 10, response)
+        gen._Generator__addPendingEvent(entry, 0, response1)
+        gen._Generator__addPendingEvent(entry, 10, response2)
 
-        self.assertEqual(event.Event('B'), gen._Generator__getPendingEvent(0))
+        self.assertEqual(generation.generator.PendingEvent(0, event.Event('B', 0), 1), gen._Generator__getPendingEvent(0))
         self.assertIsNone(gen._Generator__getPendingEvent(5))
         self.assertEqual(10, gen.pendingEvents[0][0])
-        self.assertEqual(event.Event('B'), gen._Generator__getPendingEvent(11))
+        self.assertEqual(generation.generator.PendingEvent(10, event.Event('B', 10), 1), gen._Generator__getPendingEvent(11))
         self.assertIsNone(gen._Generator__getPendingEvent(1000))
 
     def test_createSequence(self):
@@ -58,7 +59,7 @@ class TestScript(unittest.TestCase):
         # @formatter:off
         sequences = generation.generator.Generator() \
             .setSeqLength(length) \
-            .setRndNumber(distri.StaticDistribution([1, 0, 1, 1, 0, 0, 1, 1, 0, 1])) \
+            .setRndNumber(distri.StaticDistribution([1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1])) \
             .setRules([
                 (rule.Rule(event.Event('A', distri.StaticDistribution()), event.Event('B'),
                            distri.StaticDistribution([3],)),

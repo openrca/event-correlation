@@ -68,7 +68,7 @@ class Generator:
         for t in range(0, self.length):
             pendingEvent = self.__getPendingEvent(t)
             if (pendingEvent is not None):
-                self.__addEvent(timeline, pendingEvent, t)
+                self.__addEvent(timeline, PendingEvent(t, pendingEvent.event, pendingEvent.confidence))
                 continue
 
             entry = self.__findNextEntry(t)
@@ -77,7 +77,7 @@ class Generator:
 
             trigger = entry.rule.getTrigger()
             response = entry.rule.getResponse()
-            self.__addEvent(timeline, trigger, t)
+            self.__addEvent(timeline, PendingEvent(t, trigger, entry.rule.getTriggerConfidence()))
 
             entry.lastTime = t
             trigger.setTriggered(response)
@@ -97,21 +97,18 @@ class Generator:
     def __getPendingEvent(self, t):
         if (len(self.pendingEvents) == 0):
             return None
-        pendingEvent = self.pendingEvents[0]
-        if (pendingEvent.timestamp <= t):
-            self.pendingEvents.pop(0)
-
-            if (self.rndNumber.getPDFValue() > pendingEvent.confidence):
-                pendingEvent.event.setOccurred(False)
-            return pendingEvent.event
+        if (self.pendingEvents[0].event.getTimestamp() <= t):
+            return self.pendingEvents.pop(0)
         return None
 
     def __addPendingEvent(self, entry, t, response):
-        pendingEvent = PendingEvent(timestamp=t + entry.rule.getResponseTimestamp(), event=response,
-                                    confidence=entry.rule.confidence)
+        response.setTimestamp(int(t + entry.rule.getResponseTimestamp()))
+        pendingEvent = PendingEvent(timestamp=response.getTimestamp(), event=response,
+                                    confidence=entry.rule.getResponseConfidence())
         bisect.insort(self.pendingEvents, pendingEvent)
 
-    @staticmethod
-    def __addEvent(timeline, event, t):
-        event.setTimestamp(t)
-        timeline.append(event)
+    def __addEvent(self, timeline, pendingEvent):
+        if (self.rndNumber.getPDFValue() > pendingEvent.confidence):
+            pendingEvent.event.setOccurred(False)
+        pendingEvent.event.setTimestamp(pendingEvent.timestamp)
+        timeline.append(pendingEvent.event)

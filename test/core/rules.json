@@ -11,7 +11,8 @@
             "name": "Uniform",
             "param": [0, 1]
         },
-        "confidence": 1
+        "triggerConfidence": "1",
+        "responseConfidence": "1"
     },
     {
         "trigger": {
@@ -25,7 +26,8 @@
             "name": "Exp",
             "param": [0.5]
         },
-        "confidence": 0.9
+        "triggerConfidence": "0.9",
+        "responseConfidence": "0.9"
     },
     {
         "trigger": {

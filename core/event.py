@@ -59,6 +59,9 @@ class Event:
     def __repr__(self):
         return self.__str__()
 
+    def __lt__(self, other):
+        return self.timestamp < other.timestamp
+
     def __copy__(self):
         return Event(self.eventType, self.timestamp)
 

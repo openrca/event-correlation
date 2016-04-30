@@ -1,10 +1,9 @@
 """ Automatically generated documentation for Visualizer """
 import logging
 
-from PyQt5.QtCore import Qt
 from PySide.QtCore import Signal, QPoint, QRectF
 from PySide.QtGui import QMainWindow, QWidget, QVBoxLayout, QPainter, QPainterPath, QGraphicsScene, QGraphicsView, \
-    QPen, QGraphicsItem, QFont, QFontMetrics, QBrush
+    QGraphicsItem, QFont, QFontMetrics, QBrush, QColor
 
 from core.sequence import Sequence
 
@@ -22,10 +21,6 @@ class EventWidget(QGraphicsItem):
         return QRectF(self.pos.x(), self.pos.y(), self.size, self.size)
 
     def paint(self, painter: QPainter, option, widget):
-        pen = QPen(Qt.red)
-        pen.setWidth(1)
-        painter.setPen(pen)
-
         size = self.getTextSize()
         painter.drawText(self.pos.x() + (self.size - size[0]) // 2, self.pos.y() + (self.size + size[1]) // 2,
                          self.eventType.getExternalRepresentation())
@@ -90,7 +85,7 @@ class ArrowWidget(QGraphicsItem):
         painter.save()
         painter.translate(endPos)
         painter.rotate(270 - angle)
-        painter.fillPath(path, QBrush(Qt.black))
+        painter.fillPath(path, QBrush(QColor(0, 0, 0)))
         painter.restore()
 
 
@@ -114,7 +109,7 @@ class SequenceWidget(QGraphicsScene):
 
         for event, widget in self.eventWidgets.items():
             response = event.getTriggered()
-            if (response is None or response.getTimestamp() == -1):
+            if (response is None or response.getTimestamp() >= self.sequence.getLength()):
                 continue
 
             triggeredWidget = self.eventWidgets[event.getTriggered()]
