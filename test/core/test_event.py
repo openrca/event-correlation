@@ -15,7 +15,14 @@ class TestScript(unittest.TestCase):
     def test_constructor2(self):
         event = core.event.Event("a")
 
-        self.assertEqual("a", event.eventType, "a")
+        self.assertEqual("a", event.eventType)
+        self.assertIsNotNone(event.timestamp)
+        self.assertEqual(-1, event.timestamp)
+
+    def test_constructor3(self):
+        event = core.event.Event()
+
+        self.assertEqual("-", event.eventType)
         self.assertIsNotNone(event.timestamp)
         self.assertEqual(-1, event.timestamp)
 

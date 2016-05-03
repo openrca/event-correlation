@@ -2,7 +2,7 @@
 
 
 class Event:
-    def __init__(self, eventType, timestamp=None):
+    def __init__(self, eventType="-", timestamp=None):
         self.eventType = eventType
         if (timestamp is None):
             timestamp = -1

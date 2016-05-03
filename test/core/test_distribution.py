@@ -22,11 +22,13 @@ class TestScript(unittest.TestCase):
         self.assertEqual(3, dist.getCDFValue(0))
         self.assertEqual(4, dist.getCDFValue(0))
         self.assertEqual(3, dist.getCDFValue(0))
+        self.assertEqual("Static: pdf: [1, 2]\t cdf: [3, 4]", str(dist))
 
     def test_normal(self):
         dist = core.distribution.NormalDistribution(0, 1)
         self.assertTrue(isinstance(dist, core.distribution.Distribution))
         self.assertIsNotNone(dist.getPDFValue())
+        self.assertEqual("Normal: Mu: 0\t Sigma: 1", str(dist))
 
     def test_normal_invalid(self):
         with self.assertRaises(ValueError):
@@ -36,6 +38,7 @@ class TestScript(unittest.TestCase):
         dist = core.distribution.UniformDistribution(0, 1)
         self.assertTrue(isinstance(dist, core.distribution.Distribution))
         self.assertIsNotNone(dist.getPDFValue())
+        self.assertEqual("Uniform: Lower: 0\t Upper: 1", str(dist))
 
     def test_uniform_invalid(self):
         with self.assertRaises(ValueError):
@@ -45,6 +48,7 @@ class TestScript(unittest.TestCase):
         dist = core.distribution.PowerLawDistribution(1)
         self.assertTrue(isinstance(dist, core.distribution.Distribution))
         self.assertIsNotNone(dist.getPDFValue())
+        self.assertEqual("Power: Exponent: 1", str(dist))
 
     def test_powerlaw_invalid(self):
         with self.assertRaises(ValueError):
@@ -53,6 +57,7 @@ class TestScript(unittest.TestCase):
     def test_exponential(self):
         dist = core.distribution.ExponentialDistribution(1 / 4)
         self.assertAlmostEqual(0.63212055, dist.getCDFValue(4))
+        self.assertEqual("Exp: Lambda: 0.25", str(dist))
 
 
 if __name__ == '__main__':

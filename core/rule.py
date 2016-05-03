@@ -41,6 +41,9 @@ class Rule:
     def getTriggerConfidence(self):
         return self.triggerConfidence
 
+    def getDistribution(self):
+        return self.distribution
+
     def asJson(self):
         return {
             "trigger": self.trigger.asJson(),

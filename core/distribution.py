@@ -87,6 +87,9 @@ class StaticDistribution(Distribution):
             idx = 0
         return (idx + 1, lst[idx])
 
+    def __str__(self):
+        return "{}: pdf: {}\t cdf: {}".format(distributions[STATIC], self.pdf, self.cdf)
+
 
 class NormalDistribution(Distribution):
     """ Creates random samples based on a normal distribution """
@@ -106,6 +109,9 @@ class NormalDistribution(Distribution):
 
     def getCDFValue(self, x):
         raise NotImplementedError("Not implemented yet")
+
+    def __str__(self):
+        return "{}: Mu: {}\t Sigma: {}".format(distributions[NORMAL], self.mu, self.sigma)
 
 
 class UniformDistribution(Distribution):
@@ -132,6 +138,9 @@ class UniformDistribution(Distribution):
             return 1
         return (x - self.lower) / (self.upper - self.lower)
 
+    def __str__(self):
+        return "{}: Lower: {}\t Upper: {}".format(distributions[UNIFORM], self.lower, self.upper)
+
 
 class PowerLawDistribution(Distribution):
     """ Creates random samples based on a Power Law distribution
@@ -154,6 +163,9 @@ class PowerLawDistribution(Distribution):
 
     def getCDFValue(self, x):
         raise NotImplementedError("Not implemented yet")
+
+    def __str__(self):
+        return "{}: Exponent: {}".format(distributions[POWER], self.exponent)
 
 
 class ExponentialDistribution(Distribution):
@@ -179,6 +191,9 @@ class ExponentialDistribution(Distribution):
         if (x < 0):
             return 0
         return 1 - math.exp(-self.lam * x)
+
+    def __str__(self):
+        return "{}: Lambda: {}".format(distributions[EXP], self.lam)
 
 
 def load(value):
