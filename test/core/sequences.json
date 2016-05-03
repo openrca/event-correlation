@@ -1,19 +1,17 @@
-[
-	{
-		"length": "10",
-		"events": [
-			{
-				"eventType": "A",
-				"timestamp": "0",
-				"triggered": {
-					"eventType": "B",
-					"timestamp": "2"
-				}
-			},
-			{
-				"eventType": "C",
-				"timestamp": "1"
-			}
-		]
-	}
-]
+{
+    "length": "10",
+    "events": [
+        {
+            "eventType": "A",
+            "timestamp": "0",
+            "triggered": {
+                "eventType": "B",
+                "timestamp": "2"
+            }
+        },
+        {
+            "eventType": "C",
+            "timestamp": "1"
+        }
+    ]
+}

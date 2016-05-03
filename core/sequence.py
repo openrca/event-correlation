@@ -2,6 +2,8 @@ import copy
 import json
 import logging
 
+import numpy as np
+
 from core import event
 from core.event import Event
 
@@ -14,8 +16,12 @@ class Sequence:
     def getLength(self):
         return self.length
 
-    def getEvents(self):
-        return self.events
+    def getEvents(self, eventType=None):
+        res = []
+        for e in self.events:
+            if (eventType is None or e.getEventType() == eventType):
+                res.append(e)
+        return res
 
     def getEvent(self, index):
         for e in self.events:
@@ -23,7 +29,16 @@ class Sequence:
                 break
             if (e.getTimestamp() == index):
                 return e
-        return Event("-", index)
+        return Event(timestamp=index)
+
+    def asVector(self, eventType):
+        l = [e for e in self.getEvents(eventType) if e.hasOccurred()]
+        v = np.zeros(len(l))
+        i = 0
+        for e in l:
+            v[i] = e.getTimestamp()
+            i += 1
+        return v
 
     def __str__(self):
         tokens = []
@@ -46,6 +61,10 @@ class Sequence:
             "events": events
         }
 
+    def store(self, filename):
+        with open(filename, "w+") as file:
+            file.write(json.dumps(self.asJson()))
+
 
 def load(value):
     events = []
@@ -61,26 +80,19 @@ def load(value):
                 events.append(e)
 
         events.sort(key=lambda x: x.timestamp)
-        return Sequence(events, length)
+        seq = Sequence(events, length)
+        print("Loaded sequence: " + str(seq))
+        return seq
     except KeyError:
         raise ValueError("Missing parameter 'length' and/or 'events'")
 
 
 def loadFromFile(filename):
-    sequences = []
     with open(filename, "r") as file:
         content = json.loads("".join(file.readlines()))
 
-    for line in content:
-        logging.debug("Processing line '{}'".format(line))
         try:
-            entry = load(line)
-            sequences.append(entry)
+            entry = load(content)
+            return entry
         except ValueError as ex:
             logging.warning(ex)
-
-    return sequences
-
-
-def store(sequence):
-    return json.dumps(sequence)

@@ -33,6 +33,7 @@ class Event:
         self.triggeredBy = event
 
     def setTriggered(self, event):
+        """ Sets the triggered event by this event. Also sets triggered by."""
         self.triggered = event
         event.setTriggeredBy(self)
 
