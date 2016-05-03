@@ -3,6 +3,7 @@
 
 import argparse
 import logging
+import os
 import sys
 
 from PySide import QtGui
@@ -45,12 +46,12 @@ sequences = Generator() \
     .createSequence(args.count)
 
 if (args.output is None):
-    for i in range(0, args.count):
-        print("Sequence {}".format(str(i)))
-        print(str(sequences[i]))
-        print("\n")
-
     app = QtGui.QApplication(sys.argv)
+    i = 0
+    for seq in sequences:
+        print("Sequence {}".format(str(i)))
+        print(str(seq))
+        print("\n")
 
     v = Visualizer()
     v.show()
@@ -59,4 +60,11 @@ if (args.output is None):
     sys.exit(app.exec_())
 
 else:
-    raise NotImplementedError("Not implemented yet")
+    if not os.path.exists(args.output):
+        os.makedirs(args.output)
+
+    i = 0
+    for seq in sequences:
+        seq.store(args.output + "sequence-" + str(i) + ".seq")
+        print(str(seq))
+        print("\n")

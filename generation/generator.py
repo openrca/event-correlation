@@ -1,5 +1,5 @@
 """ Automatically generated documentation for Generator """
-
+import argparse
 import bisect
 import collections
 
@@ -34,8 +34,18 @@ class Generator:
         return self
 
     def setSeqLength(self, length):
+        """ Set the total length of the sequence
+        The number of occurrences is calculated dynamically such that
+        """
         self.length = length
         return self
+
+    def setNumberOfOccurrences(self, count):
+        """ Set the number of occurrences per rule
+        The sequence length is calculated dynamically such that all occurrences are fulfilled
+        """
+        # TODO implement
+        raise NotImplementedError("Not implemented yet")
 
     def setRules(self, rules):
         """ Add rules to this generator
