@@ -18,21 +18,6 @@ class lagEM(Matcher):
         self.eventB = kwargs["eventB"]
         self.threshold = kwargs["threshold"]
 
-    def maximization(self, a, b, r):
-        delta = self.getDelta(a, b)
-        mu = np.sum(np.sum(r * delta, axis=1), axis=0) / len(b)
-
-        delta = np.power(delta - mu, 2)
-        sigma = np.sum(np.sum(r * delta, axis=1), axis=0) / len(b)
-        return (mu, sigma)
-
-    def expectation(self, a, b, r, mu, sigma):
-        dist = self.getDist(a, b, mu, sigma)
-
-        tmp = np.multiply(r, dist)
-        denominator = np.sum(tmp, axis=0)
-        return tmp / denominator
-
     def match(self, **kwargs):
         self.parseArgs(kwargs)
         self.logger.info("Matching event {} against {}".format(self.eventA, self.eventB))
@@ -42,24 +27,23 @@ class lagEM(Matcher):
         result = np.zeros([10, 2])
         for i in range(0, 10):
             self.logger.info("Processing batch {}".format(i))
-            likelihood = np.zeros(20)
-            tmp = np.zeros([20, 2])
+            tmp = np.zeros([20, 3])
             for j in range(0, 20):
-                tmp[j][0], tmp[j][1], likelihood[j] = self.calculate(a, b)
+                tmp[j] = self.calculate(a, b)
 
-            idx = np.argmax(likelihood)
-            result[i][0] = tmp[idx][0]
-            result[i][1] = tmp[idx][1]
-        print(result)
+            result[i] = tmp[np.argmax(tmp[:, 2]), [0, 1]]
+            print(result)
         return (result[0][0], result[0][1])
 
     def calculate(self, a, b):
-        r = np.ones([len(b), len(a)]) * 1 / len(a)
-        mu = np.random.uniform()
-        sigma = np.random.uniform()
+        r = np.ones([a.size, b.size]) / b.size
+        mu = np.random.uniform(5, 7)
+        sigma = np.random.uniform(5, 7)
 
         while True:
             self.logger.debug("Current parameters: Mu: {}\t Sigma:{}".format(mu, sigma))
+            print(np.sum(r, axis=1))
+
             r = self.expectation(a, b, r, mu, sigma)
             newMu, newSigma = self.maximization(a, b, r)
 
@@ -76,18 +60,30 @@ class lagEM(Matcher):
             if (deltaMu < self.threshold and deltaSigma < self.threshold):
                 break
 
-        dist = self.getDist(a, b, mu, sigma)
-        likelihood = np.sum(np.reshape(r, [1, r.size]) * np.reshape(dist, [1, dist.size]))
-        return (mu, sigma, likelihood)
+        return (mu, sigma, np.random.uniform())
 
     @staticmethod
-    def getDelta(a, b):
+    def expectation(a, b, r, mu, sigma):
+        tmp = np.zeros(r.shape)
+        for i in range(0, a.size):
+            for j in range(0, b.size):
+                tmp[i][j] = r[i][j] * (1 / math.sqrt(2 * math.pi * sigma)) \
+                            * math.exp(-(b[j] - a[i] - mu) ** 2 / (2 * sigma))
+
+        c = tmp / tmp.sum(axis=1)[:, None]
+        for i in range(0, a.size):
+            for j in range(0, b.size):
+                if (math.isnan(c[i][j])):
+                    asdf = 0
+
+        return c
+
+    @staticmethod
+    def maximization(a, b, r):
         A, B = np.meshgrid(a, b)
-        return B - A
+        delta = (B - A).T
 
-    def getDist(self, a, b, mu, sigma):
-        delta = self.getDelta(a, b)
-        scalar = np.math.log(1 / np.math.sqrt(2 * np.math.pi * sigma))
+        mu = (delta * r).sum() / b.size
+        sigma = ((delta - mu) ** 2 * r).sum() / b.size
 
-        dist = -1 * np.power(delta - mu, 2) / (2 * sigma) + scalar
-        return np.power(np.math.e, dist)
+        return (mu, sigma)

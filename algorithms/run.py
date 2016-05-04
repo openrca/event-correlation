@@ -23,6 +23,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-r", "--rules", action="store", type=str, help="Path to files containing correct rules")
 parser.add_argument("-i", "--input", action="store", type=str, help="Path to files containing sequences")
 parser.add_argument("-a", "--algorithm", action="store", type=str, required=True, help="Algorithm to use for alignment")
+parser.add_argument("-l", "--length", action="store", type=int, help="Length of to be generated sequence")
 
 args = parser.parse_args()
 print(args)
@@ -33,10 +34,13 @@ if (args.input is None):
         print("Neither rules nor input specified. Please provide at least one")
         exit(1)
     else:
-        print("Creating new sequence from {} with length XXX".format(args.rules))
+        if (args.length is None):
+            args.length = 20
+
+        print("Creating new sequence from {} with length {}".format(args.rules, args.length))
         entries = generation.loadEntries(args.rules)
         seq = Generator() \
-            .setSeqLength(20) \
+            .setSeqLength(args.length) \
             .setRules(entries) \
             .createSequence(1)[0]
 else:

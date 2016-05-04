@@ -112,7 +112,7 @@ class Generator:
         return None
 
     def __addPendingEvent(self, entry, t, response):
-        response.setTimestamp(int(t + entry.rule.getResponseTimestamp()))
+        response.setTimestamp(round(t + entry.rule.getResponseTimestamp()))
         pendingEvent = PendingEvent(timestamp=response.getTimestamp(), event=response,
                                     confidence=entry.rule.getResponseConfidence())
         bisect.insort(self.pendingEvents, pendingEvent)
