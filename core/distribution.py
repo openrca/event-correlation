@@ -32,6 +32,7 @@ class Distribution:
     def __init__(self, distType, param):
         self.distType = distType
         self.param = param
+        self.dist = None
 
         d = datetime.datetime.now()
         self.seed(int(time.mktime(d.timetuple())))
@@ -44,7 +45,7 @@ class Distribution:
         np.random.seed(seed)
 
     @abc.abstractmethod
-    def getRandom(self):
+    def getRandom(self, n=None):
         """ Return random value """
         return
 
@@ -76,7 +77,7 @@ class StaticDistribution(Distribution):
         self.pdf = pdf
         self.cdf = cdf
 
-    def getRandom(self):
+    def getRandom(self, n=None):
         t = self.__get(self.pdfIdx, self.pdf)
         self.pdfIdx = t[0]
         return t[1]
@@ -113,8 +114,8 @@ class NormalDistribution(Distribution):
         if (self.sigma <= 0):
             raise ValueError("Variance is not positive. Sigma: {}".format(self.sigma))
 
-    def getRandom(self):
-        return self.dist.rvs()
+    def getRandom(self, n=None):
+        return self.dist.rvs(n)
 
     def getPDFValue(self, x):
         return self.dist.pdf(x)
@@ -141,8 +142,8 @@ class UniformDistribution(Distribution):
             raise ValueError("Lower border is greater or equal to upper border. Lower: {}, Upper: {}"
                              .format(self.lower, self.upper))
 
-    def getRandom(self):
-        return self.dist.rvs()
+    def getRandom(self, n=None):
+        return self.dist.rvs(n)
 
     def getPDFValue(self, x):
         return self.dist.pdf(x)
@@ -171,8 +172,8 @@ class PowerLawDistribution(Distribution):
         if (self.exponent <= 0):
             raise ValueError("Exponent is not positive. Exponent: {}".format(self.exponent))
 
-    def getRandom(self):
-        return self.dist.rvs()
+    def getRandom(self, n=None):
+        return self.dist.rvs(n)
 
     def getPDFValue(self, x):
         return self.dist.pdf(x)
@@ -201,8 +202,8 @@ class ExponentialDistribution(Distribution):
         if (self.lam <= 0):
             raise ValueError("Exponent is not positive. Exponent: {}".format(self.lam))
 
-    def getRandom(self):
-        return self.dist.rvs()
+    def getRandom(self, n=None):
+        return self.dist.rvs(n)
 
     def getPDFValue(self, x):
         return self.dist.pdf(x)
@@ -244,3 +245,41 @@ def load(value):
             raise ValueError("Unknown distribution '{}'".format(dist))
     except (IndexError, ValueError):
         raise ValueError("Unknown parameters '{}' for distribution '{}'".format(param, dist))
+
+
+def kstest(dist1, dist2, n=20):
+    if (not isinstance(dist1, Distribution)):
+        raise TypeError("dist1 is not an instance of core.distribution.Distribution")
+    if (not isinstance(dist2, Distribution)):
+        raise TypeError("dist2 is not an instance of core.distribution.Distribution")
+
+    return stats.kstest(dist1.dist.rvs, dist2.dist.cdf, n).statistic
+
+
+def approximateIntervalBorders(dist, alpha, lower=-10):
+    prevArea = dist.getCDFValue(lower)
+    i = lower
+    while True:
+        area = dist.getCDFValue(i)
+        if area - prevArea >= alpha or area == 1:
+            return i
+        i += 0.01
+
+
+def chi2test(dist1, dist2, n=2000):
+    nrBins = int(n / 5)
+    if (n >= 35):
+        nrBins = int(1.88 * n ** 0.4)
+
+    a = np.sort(dist1.getRandom(n))
+    bins = np.zeros(nrBins)
+
+    lower = -10
+    percent = 1 / nrBins
+    for i in range(nrBins):
+        upper = approximateIntervalBorders(dist2, percent, lower)
+        bins[i] = upper
+        lower = upper
+
+    counts = np.bincount(np.digitize(a, bins))
+    return stats.chisquare(counts).statistic
