@@ -99,7 +99,7 @@ class Generator:
         entries = self.entries
         # entries = np.random.permutation(self.entries)
         for entry in entries:
-            value = self.rndNumber.getPDFValue()
+            value = self.rndNumber.getRandom()
             if (value < entry.getOccurrenceProb(t)):
                 return entry
         return None
@@ -118,7 +118,7 @@ class Generator:
         bisect.insort(self.pendingEvents, pendingEvent)
 
     def __addEvent(self, timeline, pendingEvent):
-        if (self.rndNumber.getPDFValue() > pendingEvent.confidence):
+        if (self.rndNumber.getRandom() > pendingEvent.confidence):
             pendingEvent.event.setOccurred(False)
         pendingEvent.event.setTimestamp(pendingEvent.timestamp)
         timeline.append(pendingEvent.event)

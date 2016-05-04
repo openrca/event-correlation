@@ -5,6 +5,7 @@ Dependencies
 --------------
 - python-3.5
 - numpy-1.11.0
+- scipy-0.17.0
 - Qt-4.8.7
 - pyside-1.2.2
 

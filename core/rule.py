@@ -27,7 +27,7 @@ class Rule:
         self.responseConfidence = responseConfidence
 
     def getResponseTimestamp(self):
-        return self.distribution.getPDFValue()
+        return self.distribution.getRandom()
 
     def getResponse(self):
         return copy.copy(self.response)

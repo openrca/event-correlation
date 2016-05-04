@@ -6,10 +6,10 @@ This module contains a collection of distributions for creation of random sequen
 import abc
 import datetime
 import json
-import math
 import time
 
 import numpy as np
+from scipy import stats
 
 STATIC = 1
 NORMAL = 2
@@ -44,8 +44,13 @@ class Distribution:
         np.random.seed(seed)
 
     @abc.abstractmethod
-    def getPDFValue(self):
-        """ Fetch the next random value """
+    def getRandom(self):
+        """ Return random value """
+        return
+
+    @abc.abstractmethod
+    def getPDFValue(self, x):
+        """ Calculate PDF for value x """
         return
 
     @abc.abstractmethod
@@ -71,10 +76,13 @@ class StaticDistribution(Distribution):
         self.pdf = pdf
         self.cdf = cdf
 
-    def getPDFValue(self):
+    def getRandom(self):
         t = self.__get(self.pdfIdx, self.pdf)
         self.pdfIdx = t[0]
         return t[1]
+
+    def getPDFValue(self, x):
+        return 1
 
     def getCDFValue(self, x):
         t = self.__get(self.cdfIdx, self.cdf)
@@ -99,16 +107,20 @@ class NormalDistribution(Distribution):
         self.mu = mu
         self.sigma = sigma
         self.__checkParam()
+        self.dist = stats.norm(mu, sigma)
 
     def __checkParam(self):
         if (self.sigma <= 0):
             raise ValueError("Variance is not positive. Sigma: {}".format(self.sigma))
 
-    def getPDFValue(self):
-        return np.random.normal(self.mu, self.sigma)
+    def getRandom(self):
+        return self.dist.rvs()
+
+    def getPDFValue(self, x):
+        return self.dist.pdf(x)
 
     def getCDFValue(self, x):
-        raise NotImplementedError("Not implemented yet")
+        return self.dist.cdf(x)
 
     def __str__(self):
         return "{}: Mu: {}\t Sigma: {}".format(distributions[NORMAL], self.mu, self.sigma)
@@ -122,21 +134,21 @@ class UniformDistribution(Distribution):
         self.lower = lower
         self.upper = upper
         self.__checkParam()
+        self.dist = stats.uniform(lower, upper)
 
     def __checkParam(self):
         if (self.lower >= self.upper):
             raise ValueError("Lower border is greater or equal to upper border. Lower: {}, Upper: {}"
                              .format(self.lower, self.upper))
 
-    def getPDFValue(self):
-        return np.random.uniform(self.lower, self.upper)
+    def getRandom(self):
+        return self.dist.rvs()
+
+    def getPDFValue(self, x):
+        return self.dist.pdf(x)
 
     def getCDFValue(self, x):
-        if (x <= self.lower):
-            return 0
-        elif (x >= self.upper):
-            return 1
-        return (x - self.lower) / (self.upper - self.lower)
+        return self.dist.cdf(x)
 
     def __str__(self):
         return "{}: Lower: {}\t Upper: {}".format(distributions[UNIFORM], self.lower, self.upper)
@@ -153,16 +165,20 @@ class PowerLawDistribution(Distribution):
         super().__init__(distType=POWER, param=[exponent])
         self.exponent = exponent
         self.__checkParam()
+        self.dist = stats.powerlaw(exponent)
 
     def __checkParam(self):
         if (self.exponent <= 0):
             raise ValueError("Exponent is not positive. Exponent: {}".format(self.exponent))
 
-    def getPDFValue(self):
-        return np.random.power(self.exponent)
+    def getRandom(self):
+        return self.dist.rvs()
+
+    def getPDFValue(self, x):
+        return self.dist.pdf(x)
 
     def getCDFValue(self, x):
-        raise NotImplementedError("Not implemented yet")
+        return self.dist.cdf(x)
 
     def __str__(self):
         return "{}: Exponent: {}".format(distributions[POWER], self.exponent)
@@ -179,18 +195,20 @@ class ExponentialDistribution(Distribution):
         super().__init__(distType=EXP, param=[lam])
         self.lam = lam
         self.__checkParam()
+        self.dist = stats.expon(lam)
 
     def __checkParam(self):
         if (self.lam <= 0):
             raise ValueError("Exponent is not positive. Exponent: {}".format(self.lam))
 
-    def getPDFValue(self):
-        return np.random.exponential(self.lam)
+    def getRandom(self):
+        return self.dist.rvs()
+
+    def getPDFValue(self, x):
+        return self.dist.pdf(x)
 
     def getCDFValue(self, x):
-        if (x < 0):
-            return 0
-        return 1 - math.exp(-self.lam * x)
+        return self.dist.cdf(x)
 
     def __str__(self):
         return "{}: Lambda: {}".format(distributions[EXP], self.lam)
