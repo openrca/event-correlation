@@ -1,5 +1,6 @@
-import numpy as np
 import math
+
+import numpy as np
 
 from algorithms import Matcher
 
@@ -32,8 +33,8 @@ class lagEM(Matcher):
                 tmp[j] = self.calculate(a, b)
 
             result[i] = tmp[np.argmax(tmp[:, 2]), [0, 1]]
-            print(result)
-        return (result[0][0], result[0][1])
+            self.logger.debug("Current result:\n {}".format(result))
+        return result.sum(axis=0) / result.shape[0]
 
     def calculate(self, a, b):
         r = np.ones([a.size, b.size]) / b.size
@@ -41,8 +42,7 @@ class lagEM(Matcher):
         sigma = np.random.uniform(5, 7)
 
         while True:
-            self.logger.debug("Current parameters: Mu: {}\t Sigma:{}".format(mu, sigma))
-            print(np.sum(r, axis=1))
+            self.logger.trace("Current parameters: Mu: {}\t Sigma:{}".format(mu, sigma))
 
             r = self.expectation(a, b, r, mu, sigma)
             newMu, newSigma = self.maximization(a, b, r)
@@ -65,18 +65,13 @@ class lagEM(Matcher):
     @staticmethod
     def expectation(a, b, r, mu, sigma):
         tmp = np.zeros(r.shape)
+
+        scalar = 1 / math.sqrt(2 * math.pi * sigma)
         for i in range(0, a.size):
             for j in range(0, b.size):
-                tmp[i][j] = r[i][j] * (1 / math.sqrt(2 * math.pi * sigma)) \
-                            * math.exp(-(b[j] - a[i] - mu) ** 2 / (2 * sigma))
+                tmp[i][j] = r[i][j] * scalar * math.exp(-(b[j] - a[i] - mu) ** 2 / (2 * sigma))
 
-        c = tmp / tmp.sum(axis=1)[:, None]
-        for i in range(0, a.size):
-            for j in range(0, b.size):
-                if (math.isnan(c[i][j])):
-                    asdf = 0
-
-        return c
+        return tmp / tmp.sum(axis=1)[:, None]
 
     @staticmethod
     def maximization(a, b, r):
