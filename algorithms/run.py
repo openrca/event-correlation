@@ -2,11 +2,18 @@
 """ Automatically generated documentation for run """
 
 import argparse
+import sys
 
+from PySide import QtGui
+
+import core.distribution
 import generation
 from algorithms import munkresAssign, lagEM
 from core import sequence
+from core.distribution import NormalDistribution
+from core.rule import Rule
 from generation.generator import Generator
+from generation.visualizer import Visualizer
 
 
 def printResult(result, rules):
@@ -29,6 +36,7 @@ args = parser.parse_args()
 print(args)
 
 seq = None
+baseDistributions = []
 if (args.input is None):
     if (args.rules is None):
         print("Neither rules nor input specified. Please provide at least one")
@@ -39,10 +47,14 @@ if (args.input is None):
 
         print("Creating new sequence from {} with length {}".format(args.rules, args.length))
         entries = generation.loadEntries(args.rules)
+        for entry in entries:
+            baseDistributions.append(entry[0].getDistribution())
+
         seq = Generator() \
             .setSeqLength(args.length) \
             .setRules(entries) \
             .createSequence(1)[0]
+
 else:
     print("Loading sequence from {}".format(args.input))
     seq = sequence.loadFromFile(args.input)
@@ -57,6 +69,20 @@ elif (args.algorithm == 'lagEM'):
     mu, sigma = algorithm.match(sequence=seq, eventA="A", eventB="B", threshold=0.01)
     print("Mu: {}".format(mu))
     print("Sigma: {}".format(sigma))
+
+    dist = NormalDistribution(mu, sigma)
+    rule = Rule("A", "B", dist)
+    seq.setRules([rule])
+
+    print("Distance:")
+    print("\tKS Test: " + str(core.distribution.kstest(dist, baseDistributions[0])))
+    print("\t Chi2 Test: " + str(core.distribution.chi2test(dist, baseDistributions[0])))
+
+    app = QtGui.QApplication(sys.argv)
+    v = Visualizer()
+    v.show()
+    v.setSequence(seq)
+    sys.exit(app.exec_())
 else:
     print("Unknown algorithm: '{}'".format(args.algorithm))
     exit(1)
