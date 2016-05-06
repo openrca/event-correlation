@@ -1,11 +1,10 @@
 """ Automatically generated documentation for Generator """
-import argparse
 import bisect
 import collections
 
 import core.distribution
-import core.event
 import core.rule
+from core.event import Event
 from core.sequence import Sequence
 
 PendingEvent = collections.namedtuple("PendingEvent", ["timestamp", "event", "confidence"])
@@ -85,8 +84,8 @@ class Generator:
             if (entry is None):
                 continue
 
-            trigger = entry.rule.getTrigger()
-            response = entry.rule.getResponse()
+            trigger = Event(entry.rule.getTrigger())
+            response = Event(entry.rule.getResponse())
             self.__addEvent(timeline, PendingEvent(t, trigger, entry.rule.getTriggerConfidence()))
 
             entry.lastTime = t

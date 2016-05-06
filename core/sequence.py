@@ -9,9 +9,10 @@ from core.event import Event
 
 
 class Sequence:
-    def __init__(self, events, length):
+    def __init__(self, events, length, rules=None):
         self.events = events
         self.length = length
+        self.rules = rules
 
     def getLength(self):
         return self.length
@@ -30,6 +31,15 @@ class Sequence:
             if (e.getTimestamp() == index):
                 return e
         return Event(timestamp=index)
+
+    def setRules(self, rules):
+        self.rules = rules
+
+    def getRule(self, trigger, response):
+        for rule in self.rules:
+            if (rule.getTrigger() == trigger.getEventType() and rule.getResponse() == response.getEventType()):
+                return rule
+        return None
 
     def asVector(self, eventType):
         l = [e for e in self.getEvents(eventType) if e.hasOccurred()]

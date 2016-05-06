@@ -59,11 +59,16 @@ class Distribution:
         """ Calculate CDF with offset x """
         return
 
+    @abc.abstractmethod
+    def getMaximumPDF(self):
+        """ Calculate the maximum PDF for normalization """
+        return self.dist.pdf(self.dist.mean())
+
 
 class StaticDistribution(Distribution):
     """ Mock distribution used for testing
 
-    This distribution will allways return the values provided by the setters
+    This distribution will always return the values provided by the setters
     """
 
     def __init__(self, pdf=None, cdf=None):
@@ -89,6 +94,9 @@ class StaticDistribution(Distribution):
         t = self.__get(self.cdfIdx, self.cdf)
         self.cdfIdx = t[0]
         return t[1]
+
+    def getMaximumPDF(self):
+        return 1
 
     @staticmethod
     def __get(idx, lst):
@@ -253,7 +261,7 @@ def kstest(dist1, dist2, n=20):
     if (not isinstance(dist2, Distribution)):
         raise TypeError("dist2 is not an instance of core.distribution.Distribution")
 
-    return stats.kstest(dist1.dist.rvs, dist2.dist.cdf, n).statistic
+    return stats.kstest(dist1.dist.rvs(n), dist2.dist.cdf).statistic
 
 
 def approximateIntervalBorders(dist, alpha, lower=-10):

@@ -39,6 +39,9 @@ if (args.count is None):
     args.count = 1
 
 entries = generation.loadEntries(args.rules)
+rules = []
+for entry in entries:
+    rules.append(entry[0])
 
 sequences = Generator() \
     .setSeqLength(args.length) \
@@ -49,6 +52,7 @@ if (args.output is None):
     app = QtGui.QApplication(sys.argv)
     i = 0
     for seq in sequences:
+        seq.setRules(rules)
         print("Sequence {}".format(str(i)))
         print(str(seq))
         print("\n")

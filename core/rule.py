@@ -1,4 +1,3 @@
-import copy
 import json
 import logging
 
@@ -11,17 +10,20 @@ class Rule:
         """ Represents a single rule
 
         Parameters:
-            trigger: An event that causes this rule to trigger
-            response: An event that follows after the tirgger
+            trigger: An event type that causes this rule to trigger
+            response: An event type that follows after the trigger
             distribution: The distribution used to calculate the time lag between trigger and response
             triggerConfidence: Probability that the trigger is really triggered
             responseConfidence: Probability that the response really follows the trigger
         """
-
-        # TODO probability that response arises without trigger is missing
-
-        self.trigger = trigger
-        self.response = response
+        if (isinstance(trigger, core.event.Event)):
+            self.trigger = trigger.getEventType()
+        else:
+            self.trigger = trigger
+        if (isinstance(response, core.event.Event)):
+            self.response = response.getEventType()
+        else:
+            self.response = response
         self.distribution = distribution
         self.triggerConfidence = triggerConfidence
         self.responseConfidence = responseConfidence
@@ -30,10 +32,10 @@ class Rule:
         return self.distribution.getRandom()
 
     def getResponse(self):
-        return copy.copy(self.response)
+        return self.response
 
     def getTrigger(self):
-        return copy.copy(self.trigger)
+        return self.trigger
 
     def getResponseConfidence(self):
         return self.responseConfidence
@@ -66,8 +68,8 @@ def load(value):
         value = json.loads(value)
 
     try:
-        trigger = core.event.load(value["trigger"])
-        response = core.event.load(value["response"])
+        trigger = value["trigger"]
+        response = value["response"]
         triggerConfidence = float(value["triggerConfidence"])
         responseConfidence = float(value["responseConfidence"])
         dist = core.distribution.load(value["dist"])

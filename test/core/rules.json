@@ -1,12 +1,7 @@
 [
     {
-        "trigger": {
-            "eventType": "A",
-            "timestamp": "-1"
-        },
-        "response": {
-            "eventType": "B"
-        },
+        "trigger": "A",
+        "response": "B",
         "dist": {
             "name": "Uniform",
             "param": [0, 1]
@@ -15,13 +10,8 @@
         "responseConfidence": "1"
     },
     {
-        "trigger": {
-            "eventType": "A",
-            "timestamp": "-1"
-        },
-        "response": {
-            "eventType": "0"
-        },
+        "trigger": "A",
+        "response": "0",
         "dist": {
             "name": "Exp",
             "param": [0.5]
@@ -30,8 +20,6 @@
         "responseConfidence": "0.9"
     },
     {
-        "trigger": {
-            "eventType": "A"
-        }
+        "trigger":  "A"
     }
 ]
