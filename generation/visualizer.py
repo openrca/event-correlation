@@ -3,7 +3,7 @@ import logging
 
 from PySide.QtCore import Signal, QPoint, QRectF
 from PySide.QtGui import QMainWindow, QWidget, QVBoxLayout, QPainter, QPainterPath, QGraphicsScene, QGraphicsView, \
-    QGraphicsItem, QFont, QFontMetrics, QBrush, QColor
+    QGraphicsItem, QFont, QFontMetrics, QBrush, QColor, QPen
 
 from core.sequence import Sequence
 
@@ -46,10 +46,11 @@ class EventWidget(QGraphicsItem):
 
 
 class ArrowWidget(QGraphicsItem):
-    def __init__(self, start, end):
+    def __init__(self, start, end, rule):
         super().__init__()
         self.start = start
         self.end = end
+        self.rule = rule
         self.arcOffset = 50
         self.triangleSize = 5
 
@@ -61,6 +62,15 @@ class ArrowWidget(QGraphicsItem):
         return self.rect
 
     def paint(self, painter: QPainter, option, widget):
+        color = 0
+        if (self.rule is not None):
+            distance = self.end.eventType.getTimestamp() - self.start.eventType.getTimestamp()
+            prob = self.rule.getDistribution().getPDFValue(distance) / self.rule.getDistribution().getMaximumPDF()
+            color = (1 - prob) * 256
+        color = QColor(color, color, color)
+
+        painter.setPen(QPen(color))
+
         startRect = self.start.boundingRect()
         endRect = self.end.boundingRect()
 
@@ -85,7 +95,7 @@ class ArrowWidget(QGraphicsItem):
         painter.save()
         painter.translate(endPos)
         painter.rotate(270 - angle)
-        painter.fillPath(path, QBrush(QColor(0, 0, 0)))
+        painter.fillPath(path, QBrush(color))
         painter.restore()
 
 
@@ -112,8 +122,9 @@ class SequenceWidget(QGraphicsScene):
             if (response is None or response.getTimestamp() >= self.sequence.getLength()):
                 continue
 
+            rule = sequence.getRule(event, response)
             triggeredWidget = self.eventWidgets[event.getTriggered()]
-            self.addItem(ArrowWidget(widget, triggeredWidget))
+            self.addItem(ArrowWidget(widget, triggeredWidget, rule))
 
     def cleanUp(self):
         self.sequence = None
