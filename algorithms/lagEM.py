@@ -60,17 +60,15 @@ class lagEM(Matcher):
             if (deltaMu < self.threshold and deltaSigma < self.threshold):
                 break
 
-        return (mu, sigma, np.random.uniform())
+        likelihood = 1
+        tmp = self.calculateNormalMatrix(a, b, r, mu, sigma).sum(axis=0)
+        for j in range(b.size):
+            likelihood *= tmp[j]
+        return (mu, sigma, likelihood)
 
     @staticmethod
     def expectation(a, b, r, mu, sigma):
-        tmp = np.zeros(r.shape)
-
-        scalar = 1 / math.sqrt(2 * math.pi * sigma)
-        for i in range(0, a.size):
-            for j in range(0, b.size):
-                tmp[i][j] = r[i][j] * scalar * math.exp(-(b[j] - a[i] - mu) ** 2 / (2 * sigma))
-
+        tmp = lagEM.calculateNormalMatrix(a, b, r, mu, sigma)
         return tmp / tmp.sum(axis=1)[:, None]
 
     @staticmethod
@@ -82,3 +80,12 @@ class lagEM(Matcher):
         sigma = ((delta - mu) ** 2 * r).sum() / b.size
 
         return (mu, sigma)
+
+    @staticmethod
+    def calculateNormalMatrix(a, b, r, mu, sigma):
+        tmp = np.zeros(r.shape)
+        scalar = 1 / math.sqrt(2 * math.pi * sigma)
+        for i in range(0, a.size):
+            for j in range(0, b.size):
+                tmp[i][j] = r[i][j] * scalar * math.exp(-(b[j] - a[i] - mu) ** 2 / (2 * sigma))
+        return tmp
