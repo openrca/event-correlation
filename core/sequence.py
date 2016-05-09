@@ -1,6 +1,5 @@
 import copy
 import json
-import logging
 
 import numpy as np
 
@@ -78,6 +77,9 @@ class Sequence:
 
 def load(value):
     events = []
+    if (isinstance(value, str)):
+        value = json.loads(value)
+
     try:
         length = int(value["length"])
 
@@ -101,8 +103,5 @@ def loadFromFile(filename):
     with open(filename, "r") as file:
         content = json.loads("".join(file.readlines()))
 
-        try:
-            entry = load(content)
-            return entry
-        except ValueError as ex:
-            logging.warning(ex)
+        entry = load(content)
+        return entry

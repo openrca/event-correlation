@@ -48,12 +48,23 @@ class Rule:
 
     def asJson(self):
         return {
-            "trigger": self.trigger.asJson(),
-            "response": self.trigger.asJson(),
+            "trigger": self.trigger,
+            "response": self.response,
             "dist": self.distribution.asJson(),
             "triggerConfidence": self.triggerConfidence,
             "responseConfidence": self.responseConfidence
         }
+
+    def __eq__(self, other):
+        if (not isinstance(other, Rule)):
+            return False
+        return self.trigger == other.trigger and self.response == other.response \
+               and self.distribution == other.distribution and self.triggerConfidence == other.triggerConfidence \
+               and self.responseConfidence == other.responseConfidence
+
+    def __hash__(self):
+        return hash(self.trigger) + hash(self.response) + hash(self.distribution) + hash(self.triggerConfidence) \
+               + hash(self.responseConfidence)
 
 
 def load(value):

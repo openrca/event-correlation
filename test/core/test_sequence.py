@@ -2,7 +2,9 @@ import os
 import unittest
 
 from core import sequence
+from core.distribution import NormalDistribution
 from core.event import Event
+from core.rule import Rule
 from core.sequence import Sequence
 
 INPUT_FILE = os.path.join(os.path.dirname(__file__), 'sequences.json')
@@ -34,6 +36,28 @@ class TestScript(unittest.TestCase):
         self.assertEqual(eventB, events[0].getTriggered())
         self.assertEqual(eventA, events[2].getTriggeredBy())
         self.assertIsNone(events[1].getTriggered())
+
+        with self.assertRaises(ValueError):
+            sequence.load("{\"length\": 10}")
+
+    def test_rules(self):
+        seq = sequence.loadFromFile(INPUT_FILE)
+        rule = Rule("A", "B", NormalDistribution())
+        seq.setRules([rule])
+        self.assertEqual(rule, seq.getRule(Event("A"), Event("B")))
+        self.assertIsNone(seq.getRule(Event("A"), Event("C")))
+
+    def test_getEvent(self):
+        seq = sequence.loadFromFile(INPUT_FILE)
+        self.assertIsNotNone(seq.getEvent(-1))
+        self.assertEqual(Event("A", 0), seq.getEvent(0))
+        self.assertEqual(Event(timestamp=3), seq.getEvent(3))
+
+    def test_asVector(self):
+        seq = sequence.loadFromFile(INPUT_FILE)
+        vec = seq.asVector("A")
+        self.assertEqual(1, len(vec))
+        self.assertEqual(0, vec[0])
 
     def test_storeAndLoad(self):
         eventA = Event("A", 0)

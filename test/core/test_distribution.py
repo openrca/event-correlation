@@ -1,15 +1,19 @@
 import unittest
 
 import core.distribution
+from core.distribution import NormalDistribution, PowerLawDistribution, UniformDistribution
 
 
 class TestScript(unittest.TestCase):
     def test_abstract(self):
         dist = core.distribution.Distribution(None, None)
-        self.assertEqual(dist.getRandom(), None)
+        self.assertIsNone(dist.getRandom())
+        self.assertIsNone(dist.getCDFValue(0))
+        self.assertIsNone(dist.getPDFValue(0))
 
     def test_static(self):
         dist = core.distribution.StaticDistribution()
+        self.assertEqual(1, dist.getPDFValue(0))
         self.assertEqual(0.5, dist.getRandom())
         self.assertEqual(0.5, dist.getRandom())
         self.assertEqual(0.5, dist.getCDFValue(0))
@@ -29,6 +33,8 @@ class TestScript(unittest.TestCase):
         self.assertTrue(isinstance(dist, core.distribution.Distribution))
         self.assertIsNotNone(dist.getRandom())
         self.assertEqual("Normal: Mu: 0\t Sigma: 1", str(dist))
+        self.assertEqual(0.3989422804014327, dist.getPDFValue(0))
+        self.assertEqual(0.5, dist.getCDFValue(0))
 
     def test_normal_invalid(self):
         with self.assertRaises(ValueError):
@@ -39,6 +45,8 @@ class TestScript(unittest.TestCase):
         self.assertTrue(isinstance(dist, core.distribution.Distribution))
         self.assertIsNotNone(dist.getRandom())
         self.assertEqual("Uniform: Lower: 0\t Upper: 1", str(dist))
+        self.assertEqual(1, dist.getPDFValue(1))
+        self.assertEqual(0.5, dist.getCDFValue(0.5))
 
     def test_uniform_invalid(self):
         with self.assertRaises(ValueError):
@@ -49,6 +57,8 @@ class TestScript(unittest.TestCase):
         self.assertTrue(isinstance(dist, core.distribution.Distribution))
         self.assertIsNotNone(dist.getRandom())
         self.assertEqual("Power: Exponent: 1", str(dist))
+        self.assertEqual(1, dist.getPDFValue(1))
+        self.assertEqual(0.5, dist.getCDFValue(0.5))
 
     def test_powerlaw_invalid(self):
         with self.assertRaises(ValueError):
@@ -57,6 +67,60 @@ class TestScript(unittest.TestCase):
     def test_exponential(self):
         dist = core.distribution.ExponentialDistribution(0.25)
         self.assertEqual("Exp: Lambda: 0.25", str(dist))
+        self.assertEqual(0.47236655274101469, dist.getPDFValue(1))
+        self.assertEqual(0.22119921692859515, dist.getCDFValue(0.5))
+        self.assertIsNotNone(dist.getRandom())
+
+    def test_exponential_invalid(self):
+        with self.assertRaises(ValueError):
+            core.distribution.ExponentialDistribution(-1)
+
+    def test_asJson(self):
+        dist = core.distribution.UniformDistribution(0, 1)
+        expected = {"name": "Uniform", "param": (0, 1)}
+        result = dist.asJson()
+        self.assertEqual(expected, result)
+
+    def test_getMaximumPDF(self):
+        dist = core.distribution.NormalDistribution()
+        self.assertEqual(0.3989422804014327, dist.getMaximumPDF())
+
+    def test___eq__(self):
+        dist1 = NormalDistribution()
+        dist2 = NormalDistribution(2, 3)
+        self.assertEqual(dist1, dist1)
+        self.assertNotEqual(dist1, dist2)
+        self.assertNotEqual(dist1, "a")
+
+    def test_load(self):
+        with self.assertRaises(ValueError):
+            core.distribution.load("{\"name\": \"Normal\"}")
+        with self.assertRaises(ValueError):
+            core.distribution.load({"name": "foo", "param": [0]})
+
+        normal = core.distribution.load({"name": "Normal", "param": [0, 1]})
+        self.assertEqual(NormalDistribution(0, 1), normal)
+        power = core.distribution.load({"name": "Power", "param": [1]})
+        self.assertEqual(PowerLawDistribution(1), power)
+
+    def test_kstest(self):
+        dist1 = NormalDistribution()
+        dist2 = NormalDistribution()
+        with self.assertRaises(TypeError):
+            core.distribution.kstest("a", dist2)
+        with self.assertRaises(TypeError):
+            core.distribution.kstest(dist1, "a")
+        self.assertLess(core.distribution.kstest(dist1, dist2), 1)
+
+    def test_approximateIntervalBorders(self):
+        dist = UniformDistribution()
+        lower, upper = core.distribution.approximateIntervalBorders(dist, 0.1)
+        self.assertEqual(-10, lower)
+        self.assertAlmostEqual(0.10, upper, delta=0.01)
+
+    def test_chi2test(self):
+        dist = NormalDistribution()
+        self.assertLess(core.distribution.chi2test(dist, dist), 100000)
 
 
 if __name__ == '__main__':

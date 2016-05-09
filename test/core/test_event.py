@@ -1,7 +1,9 @@
+import copy
 import json
 import unittest
 
 import core.event
+from core.event import Event
 
 
 class TestScript(unittest.TestCase):
@@ -63,6 +65,35 @@ class TestScript(unittest.TestCase):
         }
 
         self.assertEqual(d, json.loads(json.dumps(event.asJson())))
+
+    def test_hasOccurred(self):
+        self.assertEqual(True, self.event.hasOccurred())
+
+    def test_getExternalRepresentation(self):
+        self.assertEqual("a", self.event.getExternalRepresentation())
+
+        e = Event()
+        self.assertEqual("-", e.getExternalRepresentation())
+        e.setOccurred(False)
+        self.assertEqual("*", e.getExternalRepresentation())
+
+    def test___str__(self):
+        self.assertEqual("Event: a (10)", str(self.event))
+
+    def test___lt__(self):
+        self.assertEqual(True, Event("a", 5) < self.event)
+
+    def test_copy(self):
+        event1 = Event("a", 0)
+        event2 = copy.copy(event1)
+        self.assertEqual(event1, event2)
+
+        event2.eventType = "b"
+        self.assertNotEqual(event1, event2)
+
+    def test_load(self):
+        with self.assertRaises(ValueError):
+            core.event.load({"timestamp": 0})
 
 
 if __name__ == '__main__':

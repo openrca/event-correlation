@@ -57,9 +57,6 @@ class Event:
     def __str__(self):
         return "Event: {} ({})".format(str(self.eventType), str(self.timestamp))
 
-    def __repr__(self):
-        return self.__str__()
-
     def __lt__(self, other):
         return self.timestamp < other.timestamp
 

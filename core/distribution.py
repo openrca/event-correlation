@@ -40,6 +40,18 @@ class Distribution:
     def asJson(self):
         return {"name": distributions[self.distType], "param": self.param}
 
+    def getMaximumPDF(self):
+        """ Calculate the maximum PDF for normalization """
+        return self.dist.pdf(self.dist.mean())
+
+    def __eq__(self, other):
+        if (not isinstance(other, Distribution)):
+            return False
+        return self.param == other.param
+
+    def __hash__(self):
+        return hash(self.param)
+
     @staticmethod
     def seed(seed):
         np.random.seed(seed)
@@ -59,11 +71,6 @@ class Distribution:
         """ Calculate CDF with offset x """
         return
 
-    @abc.abstractmethod
-    def getMaximumPDF(self):
-        """ Calculate the maximum PDF for normalization """
-        return self.dist.pdf(self.dist.mean())
-
 
 class StaticDistribution(Distribution):
     """ Mock distribution used for testing
@@ -76,7 +83,7 @@ class StaticDistribution(Distribution):
             pdf = [0.5]
         if cdf is None:
             cdf = [0.5]
-        super().__init__(distType=STATIC, param=[pdf, cdf])
+        super().__init__(distType=STATIC, param=(pdf, cdf))
         self.pdfIdx = 0
         self.cdfIdx = 0
         self.pdf = pdf
@@ -95,9 +102,6 @@ class StaticDistribution(Distribution):
         self.cdfIdx = t[0]
         return t[1]
 
-    def getMaximumPDF(self):
-        return 1
-
     @staticmethod
     def __get(idx, lst):
         if (idx >= len(lst)):
@@ -111,8 +115,8 @@ class StaticDistribution(Distribution):
 class NormalDistribution(Distribution):
     """ Creates random samples based on a normal distribution """
 
-    def __init__(self, mu=1.0, sigma=1.0):
-        super().__init__(distType=NORMAL, param=[mu, sigma])
+    def __init__(self, mu=0.0, sigma=1.0):
+        super().__init__(distType=NORMAL, param=(mu, sigma))
         self.mu = mu
         self.sigma = sigma
         self.__checkParam()
@@ -139,7 +143,7 @@ class UniformDistribution(Distribution):
     """ Creates random samples based on a uniform distribution """
 
     def __init__(self, lower=0.0, upper=1.0):
-        super().__init__(distType=UNIFORM, param=[lower, upper])
+        super().__init__(distType=UNIFORM, param=(lower, upper))
         self.lower = lower
         self.upper = upper
         self.__checkParam()
@@ -171,7 +175,7 @@ class PowerLawDistribution(Distribution):
     """
 
     def __init__(self, exponent):
-        super().__init__(distType=POWER, param=[exponent])
+        super().__init__(distType=POWER, param=(exponent))
         self.exponent = exponent
         self.__checkParam()
         self.dist = stats.powerlaw(exponent)
@@ -201,7 +205,7 @@ class ExponentialDistribution(Distribution):
     """
 
     def __init__(self, lam=1.0):
-        super().__init__(distType=EXP, param=[lam])
+        super().__init__(distType=EXP, param=(lam))
         self.lam = lam
         self.__checkParam()
         self.dist = stats.expon(lam)
@@ -270,7 +274,7 @@ def approximateIntervalBorders(dist, alpha, lower=-10):
     while True:
         area = dist.getCDFValue(i)
         if area - prevArea >= alpha or area == 1:
-            return i
+            return (lower, i)
         i += 0.01
 
 
@@ -285,9 +289,7 @@ def chi2test(dist1, dist2, n=2000):
     lower = -10
     percent = 1 / nrBins
     for i in range(nrBins):
-        upper = approximateIntervalBorders(dist2, percent, lower)
-        bins[i] = upper
-        lower = upper
+        lower, bins[i] = approximateIntervalBorders(dist2, percent, lower)
 
     counts = np.bincount(np.digitize(a, bins))
     return stats.chisquare(counts).statistic
