@@ -34,7 +34,8 @@ class lagEM(Matcher):
 
             result[i] = tmp[np.argmax(tmp[:, 2]), [0, 1]]
             self.logger.debug("Current result:\n {}".format(result))
-        return result.sum(axis=0) / result.shape[0]
+        tmp = result.sum(axis=0) / result.shape[0]
+        return {"Mu": tmp[0], "Sigma": tmp[1]}
 
     def calculate(self, a, b):
         r = np.ones([a.size, b.size]) / b.size

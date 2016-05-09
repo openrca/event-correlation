@@ -4,6 +4,8 @@
 import argparse
 import sys
 
+import numpy as np
+import matplotlib.pyplot as plt
 from PySide import QtGui
 
 import core.distribution
@@ -16,14 +18,30 @@ from generation.generator import Generator
 from generation.visualizer import Visualizer
 
 
-def printResult(result, rules):
+def printResult(result, distributions):
     print("Final parameters:")
-    for key, value in result:
+    for key, value in result.items():
         print("\t {}: {}".format(key, value))
-    if (rules is not None):
+    if (distributions is not None):
         print("True parameters:")
-        for r in rules:
-            print("\t {}".format(str(r.getDistribution())))
+        for d in distributions:
+            print("\t {}".format(str(d)))
+
+
+def printDistance(dist1, dist2):
+    print("Distance:")
+    print("\tKS Test: " + str(core.distribution.kstest(dist1, dist2)))
+    print("\tChi2 Test: " + str(core.distribution.chi2test(dist1, dist2)))
+
+
+def showDistributions(dist1, dist2):
+    borders1 = dist1.dist.interval(0.99)
+    borders2 = dist2.dist.interval(0.99)
+    x = np.linspace(min(borders1[0], borders2[0]), max(borders1[1], borders2[1]), 500)
+    plt.plot(x, dist1.dist.pdf(x), "b", label="Estimated distribution")
+    plt.plot(x, dist2.dist.pdf(x), "r", label="True distribution")
+    plt.legend()
+    plt.show()
 
 
 parser = argparse.ArgumentParser()
@@ -61,28 +79,25 @@ else:
 
 print("Processing sequence:")
 print(str(seq))
+app = QtGui.QApplication(sys.argv)
 
 if (args.algorithm == 'munkresAssign'):
     munkresAssign.munkresAssign(seq, "A", "B")
 elif (args.algorithm == 'lagEM'):
     algorithm = lagEM.lagEM()
-    mu, sigma = algorithm.match(sequence=seq, eventA="A", eventB="B", threshold=0.01)
-    print("Mu: {}".format(mu))
-    print("Sigma: {}".format(sigma))
+    param = algorithm.match(sequence=seq, eventA="A", eventB="B", threshold=0.01)
 
-    dist = NormalDistribution(mu, sigma)
+    dist = NormalDistribution(param["Mu"], param["Sigma"])
     rule = Rule("A", "B", dist)
     seq.setRules([rule])
 
-    print("Distance:")
-    print("\tKS Test: " + str(core.distribution.kstest(dist, baseDistributions[0])))
-    print("\t Chi2 Test: " + str(core.distribution.chi2test(dist, baseDistributions[0])))
-
-    app = QtGui.QApplication(sys.argv)
+    printResult(param, baseDistributions)
+    printDistance(dist, baseDistributions[0])
+    showDistributions(dist, baseDistributions[0])
     v = Visualizer()
     v.show()
     v.setSequence(seq)
-    sys.exit(app.exec_())
 else:
     print("Unknown algorithm: '{}'".format(args.algorithm))
     exit(1)
+sys.exit(app.exec_())
