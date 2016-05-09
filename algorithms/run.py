@@ -4,12 +4,12 @@
 import argparse
 import sys
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from PySide import QtGui
 
 import core.distribution
-import generation
+import generation.entry
 from algorithms import munkresAssign, lagEM
 from core import sequence
 from core.distribution import NormalDistribution
@@ -64,13 +64,13 @@ if (args.input is None):
             args.length = 20
 
         print("Creating new sequence from {} with length {}".format(args.rules, args.length))
-        entries = generation.loadEntries(args.rules)
+        entries = generation.entry.loadEntries(args.rules)
         for entry in entries:
-            baseDistributions.append(entry[0].getDistribution())
+            baseDistributions.append(entry.rule.getDistribution())
 
         seq = Generator() \
             .setSeqLength(args.length) \
-            .setRules(entries) \
+            .setEntries(entries) \
             .createSequence(1)[0]
 
 else:

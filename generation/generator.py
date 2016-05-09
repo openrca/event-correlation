@@ -10,23 +10,14 @@ from core.sequence import Sequence
 PendingEvent = collections.namedtuple("PendingEvent", ["timestamp", "event", "confidence"])
 
 
-class Entry:
-    def __init__(self, rule: core.rule.Rule, dist=core.distribution.ExponentialDistribution(), scale=1):
-        self.rule = rule
-        self.lastTime = -1
-        self.dist = dist
-        self.scale = scale
-
-    def getOccurrenceProb(self, t):
-        return self.dist.getCDFValue(t - self.lastTime) * self.scale
-
-
 class Generator:
     def __init__(self):
-        self.length = 100
+        self.length = -1
+        self.numberEvents = -1
         self.entries = []
         self.rndNumber = core.distribution.UniformDistribution()
         self.pendingEvents = []
+        self.__create = None
 
     def setRndNumber(self, dist):
         self.rndNumber = dist
@@ -39,30 +30,30 @@ class Generator:
         self.length = length
         return self
 
-    def setNumberOfOccurrences(self, count):
-        """ Set the number of occurrences per rule
-        The sequence length is calculated dynamically such that all occurrences are fulfilled
+    def setNumberOfEvents(self, count):
+        """ Set the number of events
+
+        The sequence length is calculated dynamically such that enough events occurred
         """
-        # TODO implement
-        raise NotImplementedError("Not implemented yet")
+        self.numberEvents = count
+        return self
 
-    def setRules(self, rules):
-        """ Add rules to this generator
-
-        Rules have to be a list of tuples with the following entries
-            rule: A core.rule.Rule
-            dist: A subclass of generation.distribution.Distribution. This distribution is used to determine the next
-                occurrence of rule.trigger
-            scale: An optional scale to influence the occurrence probability. Scale > 1 increases the probability and
-                scale < 1 vice versa
-        """
-
-        for rule, dist, scale in rules:
-            self.entries.append(Entry(rule, dist, scale))
+    def setEntries(self, entries):
+        """ Add entries to this generator """
+        for entry in entries:
+            self.entries.append(entry)
         return self
 
     def createSequence(self, count=1):
-        # TODO validate configuration
+        if (self.length != -1):
+            self.__create = self.__createByLength
+        elif (self.numberEvents != -1):
+            self.__create = self.__createByNumberEvents
+        else:
+            raise RuntimeError("Configuration not valid. Please set either numberEvents or sequence length")
+
+        if (len(self.entries) == 0):
+            raise RuntimeError("Configuration not valid. Please provide entries")
 
         if (count == 1):
             return [self.__create()]
@@ -72,7 +63,27 @@ class Generator:
             sequences.append(self.__create())
         return sequences
 
-    def __create(self):
+    def __createByNumberEvents(self):
+        timeline = []
+        while len(timeline) < self.numberEvents:
+            for entry in self.entries:
+                if (len(timeline) >= self.numberEvents):
+                    break
+                timeTrigger = entry.dist.getRandom() + entry.lastTime
+                entry.lastTime = timeTrigger
+                trigger = Event(entry.rule.getTrigger())
+                self.__addEvent(timeline, PendingEvent(timeTrigger, trigger, entry.rule.getTriggerConfidence()))
+
+                if (len(timeline) >= self.numberEvents):
+                    break
+                timeResponse = entry.rule.getDistribution().getRandom() + entry.lastTime
+                response = Event(entry.rule.getResponse())
+                trigger.setTriggered(response)
+                self.__addEvent(timeline, PendingEvent(timeResponse, response, entry.rule.getResponseConfidence()))
+        timeline.sort()
+        return Sequence(timeline, timeline[-1].getTimestamp() + 1)
+
+    def __createByLength(self):
         timeline = []
         for t in range(0, self.length):
             pendingEvent = self.__getPendingEvent(t)

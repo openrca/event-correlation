@@ -1,0 +1,36 @@
+[
+    {
+        "rule": {
+            "trigger": "A",
+            "response": "B",
+            "dist": {
+                "name": "Uniform",
+                "param": [0, 1]
+            },
+            "triggerConfidence": 1,
+            "responseConfidence": 1
+        },
+        "dist": {
+            "name": "Normal",
+            "param": [0, 1]
+        },
+        "scale": 0.5
+    },
+    {
+        "rule": {
+            "trigger": "C",
+            "response": "D",
+            "dist": {
+                "name": "Normal",
+                "param": [0, 1]
+            },
+            "triggerConfidence": 0.9,
+            "responseConfidence": 0.5
+        },
+        "dist": {
+            "name": "Exp",
+            "param": [1]
+        },
+        "scale": 1
+    }
+]

@@ -90,17 +90,15 @@ class StaticDistribution(Distribution):
         self.cdf = cdf
 
     def getRandom(self, n=None):
-        t = self.__get(self.pdfIdx, self.pdf)
-        self.pdfIdx = t[0]
-        return t[1]
+        self.pdfIdx, value = self.__get(self.pdfIdx, self.pdf)
+        return value
 
     def getPDFValue(self, x):
         return 1
 
     def getCDFValue(self, x):
-        t = self.__get(self.cdfIdx, self.cdf)
-        self.cdfIdx = t[0]
-        return t[1]
+        self.cdfIdx, value = self.__get(self.cdfIdx, self.cdf)
+        return value
 
     @staticmethod
     def __get(idx, lst):

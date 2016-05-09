@@ -8,7 +8,7 @@ import sys
 
 from PySide import QtGui
 
-import generation
+import generation.entry
 from generation.generator import Generator
 from generation.visualizer import Visualizer
 
@@ -38,14 +38,14 @@ if (args.count is None):
     print("Number of sequences not defined. Assuming 1")
     args.count = 1
 
-entries = generation.loadEntries(args.rules)
+entries = generation.entry.loadEntries(args.rules)
 rules = []
 for entry in entries:
-    rules.append(entry[0])
+    rules.append(entry.rule)
 
 sequences = Generator() \
     .setSeqLength(args.length) \
-    .setRules(entries) \
+    .setEntries(entries) \
     .createSequence(args.count)
 
 if (args.output is None):

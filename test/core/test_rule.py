@@ -25,15 +25,15 @@ class TestScript(unittest.TestCase):
         self.assertEqual(0.9, rules[1].getResponseConfidence())
 
     def test_load(self):
-        rule = core.rule.load("""{ \
-            \"trigger\": \"A\", \
-            \"response\": \"B\",
-            \"dist\": {
-                \"name\": \"Uniform\",
-                \"param": [0, 1]
+        rule = core.rule.load("""{
+            "trigger": "A",
+            "response": "B",
+            "dist": {
+                "name": "Uniform",
+                "param": [0, 1]
             },
-            \"triggerConfidence\": \"1\",
-            \"responseConfidence\": \"1\"
+            "triggerConfidence": "1",
+            "responseConfidence": "1"
         }""")
 
         self.assertEqual('A', rule.getTrigger())

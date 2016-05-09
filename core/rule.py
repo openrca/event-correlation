@@ -70,7 +70,7 @@ class Rule:
 def load(value):
     """ Load a rule from a json string
     Parameter:
-        trigger, response, dist, confidence
+        trigger, response, dist, triggerConfidence, responseConfidence
     Throws:
         ValueException
     """
