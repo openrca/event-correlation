@@ -1,13 +1,11 @@
 """ Automatically generated documentation for Generator """
-import bisect
-import collections
+import copy
+import math
 
 import core.distribution
 import core.rule
 from core.event import Event
 from core.sequence import Sequence
-
-PendingEvent = collections.namedtuple("PendingEvent", ["timestamp", "event", "confidence"])
 
 
 class Generator:
@@ -16,7 +14,7 @@ class Generator:
         self.numberEvents = -1
         self.entries = []
         self.rndNumber = core.distribution.UniformDistribution()
-        self.pendingEvents = []
+        self.discrete = False
         self.__create = None
 
     def setRndNumber(self, dist):
@@ -44,6 +42,11 @@ class Generator:
             self.entries.append(entry)
         return self
 
+    def setDiscrete(self):
+        """ Call this function to create discrete sequences """
+        self.discrete = True
+        return self
+
     def createSequence(self, count=1):
         if (self.length != -1):
             self.__create = self.__createByLength
@@ -64,71 +67,68 @@ class Generator:
         return sequences
 
     def __createByNumberEvents(self):
-        timeline = []
+        timeline = {}
         while len(timeline) < self.numberEvents:
             for entry in self.entries:
                 if (len(timeline) >= self.numberEvents):
                     break
-                timeTrigger = entry.dist.getRandom() + entry.lastTime
+
+                timeTrigger = self.__getTimeStamp(entry.dist, entry.lastTime, timeline)
                 entry.lastTime = timeTrigger
                 trigger = Event(entry.rule.getTrigger())
-                self.__addEvent(timeline, PendingEvent(timeTrigger, trigger, entry.rule.getTriggerConfidence()))
+                self.__addEvent(timeline, timeTrigger, trigger, entry.rule.getTriggerConfidence())
 
                 if (len(timeline) >= self.numberEvents):
                     break
-                timeResponse = entry.rule.getDistribution().getRandom() + entry.lastTime
+
+                timeResponse = self.__getTimeStamp(entry.rule.getDistribution(), entry.lastTime, timeline)
                 response = Event(entry.rule.getResponse())
                 trigger.setTriggered(response)
-                self.__addEvent(timeline, PendingEvent(timeResponse, response, entry.rule.getResponseConfidence()))
-        timeline.sort()
-        return Sequence(timeline, timeline[-1].getTimestamp() + 1)
+                self.__addEvent(timeline, timeResponse, response, entry.rule.getResponseConfidence())
+        return self.__asSequence(timeline)
 
     def __createByLength(self):
-        timeline = []
-        for t in range(0, self.length):
-            pendingEvent = self.__getPendingEvent(t)
-            if (pendingEvent is not None):
-                self.__addEvent(timeline, PendingEvent(t, pendingEvent.event, pendingEvent.confidence))
-                continue
+        timeline = {}
 
-            entry = self.__findNextEntry(t)
-            if (entry is None):
-                continue
+        entries = copy.copy(self.entries)
+        while (len(entries) > 0):
+            for entry in self.entries:
+                timeTrigger = self.__getTimeStamp(entry.dist, entry.lastTime, timeline)
+                if (timeTrigger >= self.length):
+                    entries.remove(entry)
+                    continue
 
-            trigger = Event(entry.rule.getTrigger())
-            response = Event(entry.rule.getResponse())
-            self.__addEvent(timeline, PendingEvent(t, trigger, entry.rule.getTriggerConfidence()))
+                entry.lastTime = timeTrigger
+                trigger = Event(entry.rule.getTrigger())
+                self.__addEvent(timeline, timeTrigger, trigger, entry.rule.getTriggerConfidence())
 
-            entry.lastTime = t
-            trigger.setTriggered(response)
+                timeResponse = self.__getTimeStamp(entry.rule.getDistribution(), entry.lastTime, timeline)
+                if (timeResponse >= self.length):
+                    continue
 
-            self.__addPendingEvent(entry, t, response)
-        return Sequence(timeline, self.length)
+                response = Event(entry.rule.getResponse())
+                trigger.setTriggered(response)
+                self.__addEvent(timeline, timeResponse, response, entry.rule.getResponseConfidence())
+        return self.__asSequence(timeline, self.length)
 
-    def __findNextEntry(self, t):
-        entries = self.entries
-        # entries = np.random.permutation(self.entries)
-        for entry in entries:
-            value = self.rndNumber.getRandom()
-            if (value < entry.getOccurrenceProb(t)):
-                return entry
-        return None
+    def __getTimeStamp(self, dist, lastTime, timeline):
+        time = dist.getRandom() + lastTime
+        stepSize = 0.01
+        if (self.discrete):
+            time = round(time)
+            stepSize = 1
+        while (time in timeline):
+            time += stepSize
+        return time
 
-    def __getPendingEvent(self, t):
-        if (len(self.pendingEvents) == 0):
-            return None
-        if (self.pendingEvents[0].event.getTimestamp() <= t):
-            return self.pendingEvents.pop(0)
-        return None
+    def __addEvent(self, timeline, timestamp, event, confidence):
+        if (self.rndNumber.getRandom() > confidence):
+            event.setOccurred(False)
+        event.setTimestamp(timestamp)
+        timeline[timestamp] = event
 
-    def __addPendingEvent(self, entry, t, response):
-        response.setTimestamp(round(t + entry.rule.getResponseTimestamp()))
-        pendingEvent = PendingEvent(timestamp=response.getTimestamp(), event=response,
-                                    confidence=entry.rule.getResponseConfidence())
-        bisect.insort(self.pendingEvents, pendingEvent)
-
-    def __addEvent(self, timeline, pendingEvent):
-        if (self.rndNumber.getRandom() > pendingEvent.confidence):
-            pendingEvent.event.setOccurred(False)
-        pendingEvent.event.setTimestamp(pendingEvent.timestamp)
-        timeline.append(pendingEvent.event)
+    @staticmethod
+    def __asSequence(dictionary, length=-1):
+        seq = list(dictionary.values())
+        seq.sort()
+        return Sequence(seq, length if length != -1 else math.ceil(seq[-1].getTimestamp()) + 1)

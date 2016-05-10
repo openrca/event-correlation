@@ -50,8 +50,8 @@ class TestScript(unittest.TestCase):
     def test_getEvent(self):
         seq = sequence.loadFromFile(INPUT_FILE)
         self.assertIsNotNone(seq.getEvent(-1))
-        self.assertEqual(Event("A", 0), seq.getEvent(0))
-        self.assertEqual(Event(timestamp=3), seq.getEvent(3))
+        self.assertEqual(Event("A", 0), seq.getEvent(0)[0])
+        self.assertEqual(Event(timestamp=3), seq.getEvent(3)[0])
 
     def test_asVector(self):
         seq = sequence.loadFromFile(INPUT_FILE)

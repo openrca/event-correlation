@@ -1,5 +1,6 @@
 import copy
 import json
+import math
 
 import numpy as np
 
@@ -24,12 +25,15 @@ class Sequence:
         return res
 
     def getEvent(self, index):
+        result = []
         for e in self.events:
-            if (index < e.getTimestamp()):
+            if (index < math.floor(e.getTimestamp())):
                 break
-            if (e.getTimestamp() == index):
-                return e
-        return Event(timestamp=index)
+            if (math.floor(e.getTimestamp()) == index):
+                result.append(e)
+        if (len(result) == 0):
+            result.append(Event(timestamp=index))
+        return result
 
     def setRules(self, rules):
         self.rules = rules
@@ -54,9 +58,10 @@ class Sequence:
 
         seq = copy.copy(self.getEvents())
         for i in range(0, self.getLength()):
-            if (len(seq) > 0 and seq[0].timestamp == i):
-                e = seq.pop(0)
-                tokens.append(e.getExternalRepresentation())
+            if (len(seq) > 0 and seq[0].timestamp <= i):
+                while (len(seq) > 0 and seq[0].timestamp <= i):
+                    e = seq.pop(0)
+                    tokens.append(e.getExternalRepresentation())
             else:
                 tokens.append("_")
         return "".join(tokens)

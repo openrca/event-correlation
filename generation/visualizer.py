@@ -111,11 +111,13 @@ class SequenceWidget(QGraphicsScene):
 
     def paint(self, sequence):
         self.sequence = sequence
+        eventCount = 0
         for i in range(0, self.sequence.getLength()):
-            event = self.sequence.getEvent(i)
-            widget = EventWidget(event, QPoint(i * (self.eventWidth + self.offset), self.eventY), self.eventWidth)
-            self.addItem(widget)
-            self.eventWidgets[event] = widget
+            for event in self.sequence.getEvent(i):
+                widget = EventWidget(event, QPoint(eventCount * (self.eventWidth + self.offset), self.eventY), self.eventWidth)
+                self.addItem(widget)
+                self.eventWidgets[event] = widget
+                eventCount += 1
 
         for event, widget in self.eventWidgets.items():
             response = event.getTriggered()

@@ -2,7 +2,7 @@ import os
 import unittest
 
 import core
-from core.distribution import NormalDistribution
+from core.distribution import NormalDistribution, StaticDistribution
 from core.rule import Rule
 
 INPUT_FILE = os.path.join(os.path.dirname(__file__), 'rules.json')
@@ -58,6 +58,10 @@ class TestScript(unittest.TestCase):
     def test___hash__(self):
         rule1 = Rule("a", "b", NormalDistribution(0, 1))
         self.assertTrue(isinstance(hash(rule1), int))
+
+    def test_getResponseTimestamp(self):
+        rule = Rule("a", "b", StaticDistribution([1]))
+        self.assertEqual(1, rule.getResponseTimestamp())
 
 
 if __name__ == '__main__':
