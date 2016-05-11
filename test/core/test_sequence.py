@@ -63,8 +63,10 @@ class TestScript(unittest.TestCase):
         eventA = Event("A", 0)
         eventB = Event("B", 2)
         eventC = Event("C", 1)
+        eventA.setTriggered(eventB)
+        rule = Rule("A", "B", NormalDistribution())
 
-        seq = Sequence([eventA, eventC, eventB], 5)
+        seq = Sequence([eventA, eventC, eventB], 5, [rule])
 
         try:
             seq.store(TMP_FILE_NAME)
@@ -72,19 +74,20 @@ class TestScript(unittest.TestCase):
 
             self.assertEqual(seq.getLength(), seq2.getLength())
             self.assertEqual(len(seq.getEvents()), len(seq2.getEvents()))
-            for i in range(0, len(seq.getEvents())):
+            for i in range(len(seq.getEvents())):
                 event1 = seq.getEvents()[i]
                 event2 = seq2.getEvents()[i]
 
                 self.assertEqual(event1, event2)
                 self.assertEqual(event1.getTriggered(), event2.getTriggered())
                 self.assertEqual(event1.getTriggeredBy(), event2.getTriggeredBy())
+            self.assertEqual(len(seq.rules), len(seq2.rules))
+            for i in range(len(seq.rules)):
+                self.assertEqual(seq.rules[i], seq2.rules[i])
 
         except (OSError, IOError) as ex:
             print("Unable to open tmp file. Maybe you have to change TMP_FILE_NAME: {}".format(ex))
-
-        eventA.setTriggered(eventB)
-
+        os.remove(TMP_FILE_NAME)
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,10 +1,11 @@
 import copy
 import json
+import logging
 import math
 
 import numpy as np
 
-from core import event
+from core import event, rule
 from core.event import Event
 
 
@@ -39,9 +40,9 @@ class Sequence:
         self.rules = rules
 
     def getRule(self, trigger, response):
-        for rule in self.rules:
-            if (rule.getTrigger() == trigger.getEventType() and rule.getResponse() == response.getEventType()):
-                return rule
+        for r in self.rules:
+            if (r.getTrigger() == trigger.getEventType() and r.getResponse() == response.getEventType()):
+                return r
         return None
 
     def asVector(self, eventType):
@@ -70,9 +71,13 @@ class Sequence:
         events = []
         for e in self.getEvents():
             events.append(e.asJson())
+        rules = []
+        for r in self.rules:
+            rules.append(r.asJson())
         return {
             "length": self.getLength(),
-            "events": events
+            "events": events,
+            "rules": rules
         }
 
     def store(self, filename):
@@ -81,24 +86,31 @@ class Sequence:
 
 
 def load(value):
-    events = []
     if (isinstance(value, str)):
         value = json.loads(value)
 
     try:
         length = int(value["length"])
 
+        events = []
         for item in value["events"]:
             e = event.load(item)
-
-            events.append(e)
+            if (e not in events):
+                events.append(e)
             while (e.getTriggered() is not None):
                 e = e.getTriggered()
-                events.append(e)
-
+                if (e not in events):
+                    events.append(e)
         events.sort(key=lambda x: x.timestamp)
-        seq = Sequence(events, length)
-        print("Loaded sequence: " + str(seq))
+
+        rules = []
+        if ("rules" in value):
+            for item in value["rules"]:
+                r = rule.load(item)
+                rules.append(r)
+
+        seq = Sequence(events, length, rules)
+        logging.debug("Loaded sequence: " + str(seq))
         return seq
     except KeyError:
         raise ValueError("Missing parameter 'length' and/or 'events'")
