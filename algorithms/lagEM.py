@@ -39,37 +39,37 @@ class lagEM(Matcher):
 
     def calculate(self, a, b):
         r = np.ones([a.size, b.size]) / b.size
-        mu = np.random.uniform(5, 7)
-        sigma = np.random.uniform(5, 7)
+        mu = np.random.uniform(76, 78)
+        variance = np.random.uniform(5, 7)
 
         while True:
-            self.logger.trace("Current parameters: Mu: {}\t Sigma:{}".format(mu, sigma))
+            self.logger.trace("Current parameters: Mu: {}\t Sigma:{}".format(mu, math.sqrt(variance)))
 
-            r = self.expectation(a, b, r, mu, sigma)
-            newMu, newSigma = self.maximization(a, b, r)
+            r = self.expectation(a, b, r, mu, variance)
+            newMu, newVariance = self.maximization(a, b, r)
 
             deltaMu = abs(mu - newMu)
-            deltaSigma = abs(sigma - newSigma)
+            deltaVariance = abs(variance - newVariance)
 
             mu = newMu
-            sigma = newSigma
+            variance = newVariance
 
-            if (math.isnan(mu) or math.isnan(sigma)):
-                self.logger.warn("Mu or sigma is NaN")
+            if (math.isnan(mu) or math.isnan(variance)):
+                self.logger.warn("Mu or Variance is NaN")
                 break
 
-            if (deltaMu < self.threshold and deltaSigma < self.threshold):
+            if (deltaMu < self.threshold and deltaVariance < self.threshold):
                 break
 
         likelihood = 1
-        tmp = self.calculateNormalMatrix(a, b, r, mu, sigma).sum(axis=0)
+        tmp = self.calculateNormalMatrix(a, b, r, mu, variance).sum(axis=0)
         for j in range(b.size):
             likelihood *= tmp[j]
-        return (mu, sigma, likelihood)
+        return (mu, math.sqrt(variance), likelihood)
 
     @staticmethod
-    def expectation(a, b, r, mu, sigma):
-        tmp = lagEM.calculateNormalMatrix(a, b, r, mu, sigma)
+    def expectation(a, b, r, mu, variance):
+        tmp = lagEM.calculateNormalMatrix(a, b, r, mu, variance)
         return tmp / tmp.sum(axis=1)[:, None]
 
     @staticmethod
@@ -78,15 +78,15 @@ class lagEM(Matcher):
         delta = (B - A).T
 
         mu = (delta * r).sum() / b.size
-        sigma = ((delta - mu) ** 2 * r).sum() / b.size
+        variance = ((delta - mu) ** 2 * r).sum() / b.size
 
-        return (mu, sigma)
+        return (mu, variance)
 
     @staticmethod
-    def calculateNormalMatrix(a, b, r, mu, sigma):
+    def calculateNormalMatrix(a, b, r, mu, variance):
         tmp = np.zeros(r.shape)
-        scalar = 1 / math.sqrt(2 * math.pi * sigma)
+        scalar = 1 / math.sqrt(2 * math.pi * variance)
         for i in range(0, a.size):
             for j in range(0, b.size):
-                tmp[i][j] = r[i][j] * scalar * math.exp(-(b[j] - a[i] - mu) ** 2 / (2 * sigma))
+                tmp[i][j] = r[i][j] * scalar * math.exp(-(b[j] - a[i] - mu) ** 2 / (2 * variance))
         return tmp
