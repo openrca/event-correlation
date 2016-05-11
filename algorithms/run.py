@@ -2,6 +2,7 @@
 """ Automatically generated documentation for run """
 
 import argparse
+import math
 import sys
 
 import matplotlib.pyplot as plt
@@ -27,6 +28,20 @@ def printResult(result, distributions):
         for d in distributions:
             print("\t {}".format(str(d)))
 
+    # TODO remove again
+    eventsA = seq.getEvents('A')
+    eventsB = seq.getEvents('B')
+    mean = 0
+    for i in range(len(eventsB)):
+        mean += eventsB[i].timestamp - eventsA[i].timestamp
+    mean /= len(eventsB)
+
+    var = 0
+    for i in range(len(eventsB)):
+        var += (eventsB[i].timestamp - eventsA[i].timestamp - mean) ** 2
+    var = math.sqrt(var / len(eventsB))
+    print("Empirical parameters:\n\tMu: {}\n\tSigma: {}".format(mean, var))
+
 
 def printDistance(dist1, dist2):
     print("Distance:")
@@ -49,6 +64,8 @@ parser.add_argument("-r", "--rules", action="store", type=str, help="Path to fil
 parser.add_argument("-i", "--input", action="store", type=str, help="Path to files containing sequences")
 parser.add_argument("-a", "--algorithm", action="store", type=str, required=True, help="Algorithm to use for alignment")
 parser.add_argument("-l", "--length", action="store", type=int, help="Length of to be generated sequence")
+parser.add_argument("-c", "--count", action="store", type=int, help="Number of events in generated sequence")
+parser.add_argument("-t", "--threshold", action="store", type=float, help="Threshold for convergence", default=0.01)
 
 args = parser.parse_args()
 print(args)
@@ -60,19 +77,23 @@ if (args.input is None):
         print("Neither rules nor input specified. Please provide at least one")
         exit(1)
     else:
-        if (args.length is None):
-            args.length = 20
+        if (args.length is None and args.count is None):
+            print("Neither sequence length nor event count specified. Please provide at exactly one")
+            exit(1)
+        if (args.length is not None and args.count is not None):
+            print("Sequence length and event count specified. Please provide exactly one")
+            exit(1)
 
         print("Creating new sequence from {} with length {}".format(args.rules, args.length))
         entries = generation.entry.loadEntries(args.rules)
         for entry in entries:
             baseDistributions.append(entry.rule.getDistribution())
 
-        seq = Generator() \
-            .setSeqLength(args.length) \
-            .setEntries(entries) \
-            .createSequence(1)[0]
-
+        gen = Generator().setEntries(entries)
+        if (args.length is not None):
+            seq = gen.setSeqLength(args.length).createSequence(1)[0]
+        if (args.count is not None):
+            seq = gen.setNumberOfEvents(args.count).createSequence(1)[0]
 else:
     print("Loading sequence from {}".format(args.input))
     seq = sequence.loadFromFile(args.input)
@@ -85,7 +106,7 @@ if (args.algorithm == 'munkresAssign'):
     munkresAssign.munkresAssign(seq, "A", "B")
 elif (args.algorithm == 'lagEM'):
     algorithm = lagEM.lagEM()
-    param = algorithm.match(sequence=seq, eventA="A", eventB="B", threshold=0.01)
+    param = algorithm.match(sequence=seq, eventA="A", eventB="B", threshold=args.threshold)
 
     dist = NormalDistribution(param["Mu"], param["Sigma"])
     rule = Rule("A", "B", dist)
