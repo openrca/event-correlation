@@ -3,20 +3,15 @@
 
 import argparse
 import math
-import sys
-
-import matplotlib.pyplot as plt
-import numpy as np
-from PySide import QtGui
 
 import core.distribution
 import generation.entry
+import visualization
 from algorithms import munkresAssign, lagEM
 from core import sequence
 from core.distribution import NormalDistribution
 from core.rule import Rule
 from generation.generator import Generator
-from generation.visualizer import Visualizer
 
 
 def printResult(result, distributions):
@@ -47,16 +42,6 @@ def printDistance(dist1, dist2):
     print("Distance:")
     print("\tKS Test: " + str(core.distribution.kstest(dist1, dist2)))
     print("\tChi2 Test: " + str(core.distribution.chi2test(dist1, dist2)))
-
-
-def showDistributions(dist1, dist2):
-    borders1 = dist1.dist.interval(0.99)
-    borders2 = dist2.dist.interval(0.99)
-    x = np.linspace(min(borders1[0], borders2[0]), max(borders1[1], borders2[1]), 500)
-    plt.plot(x, dist1.dist.pdf(x), "b", label="Estimated distribution")
-    plt.plot(x, dist2.dist.pdf(x), "r", label="True distribution")
-    plt.legend()
-    plt.show()
 
 
 parser = argparse.ArgumentParser()
@@ -100,7 +85,6 @@ else:
 
 print("Processing sequence:")
 print(str(seq))
-app = QtGui.QApplication(sys.argv)
 
 if (args.algorithm == 'munkresAssign'):
     munkresAssign.munkresAssign(seq, "A", "B")
@@ -114,11 +98,8 @@ elif (args.algorithm == 'lagEM'):
 
     printResult(param, baseDistributions)
     printDistance(dist, baseDistributions[0])
-    showDistributions(dist, baseDistributions[0])
-    v = Visualizer()
-    v.show()
-    v.setSequence(seq)
+    visualization.showDistributions(dist, baseDistributions[0])
+    visualization.showVisualizer(seq)
 else:
     print("Unknown algorithm: '{}'".format(args.algorithm))
     exit(1)
-sys.exit(app.exec_())

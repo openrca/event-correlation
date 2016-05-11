@@ -2,8 +2,9 @@
 """ Automatically generated documentation for run """
 import os
 
-from generation import createSequences, args
+from generation import createSequences, parser
 
+args = parser.parse_args()
 sequences = createSequences()
 i = 0
 for seq in sequences:

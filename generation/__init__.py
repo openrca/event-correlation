@@ -11,10 +11,10 @@ parser.add_argument("-c", "--count", action="store", type=int, help="Number of s
 parser.add_argument("-n", "--length", action="store", type=int, required=True, help="Length of one sequence")
 parser.add_argument("-r", "--rules", action="store", type=str, required=True, help="Path to files containing all rules")
 parser.add_argument("-o", "--output", action="store", type=str, help="Pattern for output files")
-args = parser.parse_args()
 
 
 def createSequences():
+    args = parser.parse_args()
     print("Creating sequence based on " + str(args))
 
     if (args.length is None):
