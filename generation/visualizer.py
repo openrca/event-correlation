@@ -1,10 +1,13 @@
 """ Automatically generated documentation for Visualizer """
 import logging
 
+import sys
 from PySide.QtCore import Signal, QPoint, QRectF
 from PySide.QtGui import QMainWindow, QWidget, QVBoxLayout, QPainter, QPainterPath, QGraphicsScene, QGraphicsView, \
-    QGraphicsItem, QFont, QFontMetrics, QBrush, QColor, QPen
+    QGraphicsItem, QFont, QFontMetrics, QBrush, QColor, QPen, QAction, QFileDialog, QMessageBox, QApplication
 
+import core
+import generation
 from core.sequence import Sequence
 
 
@@ -114,7 +117,8 @@ class SequenceWidget(QGraphicsScene):
         eventCount = 0
         for i in range(0, self.sequence.getLength()):
             for event in self.sequence.getEvent(i):
-                widget = EventWidget(event, QPoint(eventCount * (self.eventWidth + self.offset), self.eventY), self.eventWidth)
+                widget = EventWidget(event, QPoint(eventCount * (self.eventWidth + self.offset), self.eventY),
+                                     self.eventWidth)
                 self.addItem(widget)
                 self.eventWidgets[event] = widget
                 eventCount += 1
@@ -143,6 +147,7 @@ class Visualizer(QMainWindow):
         self.layout = None
         self.view = None
         self.initGui()
+        self.initActions()
 
     def initGui(self):
         self.setGeometry(100, 300, 1200, 250)
@@ -164,7 +169,87 @@ class Visualizer(QMainWindow):
 
         self.statusBar().showMessage("Sequence Visualizer")
 
+    # noinspection PyUnresolvedReferences
+    def initActions(self):
+        menuBar = self.menuBar()
+        fileMenu = menuBar.addMenu('File')
+        sequenceMenu = menuBar.addMenu('Sequence')
+
+        generateAction = QAction('Generate Sequence', self)
+        generateAction.setShortcut('Ctrl+G')
+        generateAction.setStatusTip('Generate new sequence')
+        generateAction.triggered.connect(self.createSequence)
+        sequenceMenu.addAction(generateAction)
+
+        loadAction = QAction('Load Sequence', self)
+        loadAction.setShortcut('Ctrl+O')
+        loadAction.setStatusTip('Load sequence')
+        loadAction.triggered.connect(self.loadSequence)
+        sequenceMenu.addAction(loadAction)
+
+        saveAction = QAction('Save Sequence', self)
+        saveAction.setShortcut('Ctrl+S')
+        saveAction.setStatusTip('Save current sequence')
+        saveAction.triggered.connect(self.saveSequence)
+        sequenceMenu.addAction(saveAction)
+
+        exitAction = QAction('Exit', self)
+        exitAction.setShortcut('Ctrl+Q')
+        exitAction.setStatusTip('Exit application')
+        exitAction.triggered.connect(self.close)
+        fileMenu.addAction(exitAction)
+
+    def loadSequence(self):
+        fileName = QFileDialog.getOpenFileName(self, "Load Sequence", "/home/")[0]
+        if (len(fileName) == 0):
+            return
+
+        print("Loading sequence from file " + fileName)
+        try:
+            seq = core.sequence.loadFromFile(fileName)
+            self.statusBar().showMessage("Loaded sequence " + fileName)
+        except ValueError as ex:
+            msg = "Unable to load sequence: " + str(ex)
+            print(msg)
+            messageBox = QMessageBox()
+            messageBox.setText(msg)
+            messageBox.exec()
+            return
+        self.setSequence(seq)
+
+    def saveSequence(self):
+        fileName = QFileDialog.getSaveFileName(self, "Load Sequence", "/home/")[0]
+        if (len(fileName) == 0):
+            return
+        if (fileName[-4:] != ".seq"):
+            fileName += ".seq"
+
+        print("Saving sequence to file " + fileName)
+        try:
+            self.sequenceWidget.sequence.store(fileName)
+            self.statusBar().showMessage("Stored sequence in " + fileName)
+        except (OSError, IOError) as ex:
+            msg = "Unable to store sequence: " + str(ex)
+            print(msg)
+            messageBox = QMessageBox()
+            messageBox.setText(msg)
+            messageBox.exec()
+            return
+
+    def createSequence(self):
+        sequence = generation.createSequences()[0]
+        self.setSequence(sequence)
+
     def setSequence(self, sequence):
         self.view.items().clear()
+        self.sequenceWidget.cleanUp()
         self.paintSeq.emit(sequence)
+        self.sequenceWidget.update()
         self.statusBar().showMessage("Loaded sequence")
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    v = Visualizer()
+    v.show()
+    sys.exit(app.exec_())
