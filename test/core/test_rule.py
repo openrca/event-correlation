@@ -60,7 +60,7 @@ class TestScript(unittest.TestCase):
         self.assertTrue(isinstance(hash(rule1), int))
 
     def test_getResponseTimestamp(self):
-        rule = Rule("a", "b", StaticDistribution([1]))
+        rule = Rule("a", "b", StaticDistribution([1], rvs=[1]))
         self.assertEqual(1, rule.getResponseTimestamp())
 
 

@@ -13,26 +13,29 @@ class TestScript(unittest.TestCase):
 
     def test_static(self):
         dist = core.distribution.StaticDistribution()
-        self.assertEqual(1, dist.getPDFValue(0))
+        self.assertEqual(0.5, dist.getPDFValue(0))
         self.assertEqual(0.5, dist.getRandom())
         self.assertEqual(0.5, dist.getRandom())
         self.assertEqual(0.5, dist.getCDFValue(0))
         self.assertEqual(0.5, dist.getCDFValue(0))
 
-        dist = core.distribution.StaticDistribution([1, 2], [3, 4])
-        self.assertEqual(1, dist.getRandom())
-        self.assertEqual(2, dist.getRandom())
-        self.assertEqual(1, dist.getRandom())
+        dist = core.distribution.StaticDistribution([1, 2], [3, 4], [5, 6])
+        self.assertEqual(1, dist.getPDFValue(0))
+        self.assertEqual(2, dist.getPDFValue(0))
+        self.assertEqual(1, dist.getPDFValue(0))
         self.assertEqual(3, dist.getCDFValue(0))
         self.assertEqual(4, dist.getCDFValue(0))
         self.assertEqual(3, dist.getCDFValue(0))
-        self.assertEqual("Static: pdf: [1, 2]\t cdf: [3, 4]", str(dist))
+        self.assertEqual(5, dist.getRandom())
+        self.assertEqual(6, dist.getRandom())
+        self.assertEqual(5, dist.getRandom())
+        self.assertEqual("Static: pdf: [1, 2]\t cdf: [3, 4]\t rvs: [5, 6]", str(dist))
 
     def test_normal(self):
         dist = core.distribution.NormalDistribution(0, 1)
         self.assertTrue(isinstance(dist, core.distribution.Distribution))
         self.assertIsNotNone(dist.getRandom())
-        self.assertEqual("Normal: Mu: 0\t Sigma: 1", str(dist))
+        self.assertEqual("Norm: Mu: 0\t Sigma: 1", str(dist))
         self.assertEqual(0.3989422804014327, dist.getPDFValue(0))
         self.assertEqual(0.5, dist.getCDFValue(0))
 
@@ -56,7 +59,7 @@ class TestScript(unittest.TestCase):
         dist = core.distribution.PowerLawDistribution(1)
         self.assertTrue(isinstance(dist, core.distribution.Distribution))
         self.assertIsNotNone(dist.getRandom())
-        self.assertEqual("Power: Exponent: 1", str(dist))
+        self.assertEqual("Powerlaw: Exponent: 1", str(dist))
         self.assertEqual(1, dist.getPDFValue(1))
         self.assertEqual(0.5, dist.getCDFValue(0.5))
 
@@ -66,7 +69,7 @@ class TestScript(unittest.TestCase):
 
     def test_exponential(self):
         dist = core.distribution.ExponentialDistribution(0.25)
-        self.assertEqual("Exp: Lambda: 0.25", str(dist))
+        self.assertEqual("Expon: Lambda: 0.25", str(dist))
         self.assertEqual(0.47236655274101469, dist.getPDFValue(1))
         self.assertEqual(0.22119921692859515, dist.getCDFValue(0.5))
         self.assertIsNotNone(dist.getRandom())
@@ -94,13 +97,13 @@ class TestScript(unittest.TestCase):
 
     def test_load(self):
         with self.assertRaises(ValueError):
-            core.distribution.load("{\"name\": \"Normal\"}")
+            core.distribution.load("{\"name\": \"Norm\"}")
         with self.assertRaises(ValueError):
             core.distribution.load({"name": "foo", "param": [0]})
 
-        normal = core.distribution.load({"name": "Normal", "param": [0, 1]})
+        normal = core.distribution.load({"name": "Norm", "param": [0, 1]})
         self.assertEqual(NormalDistribution(0, 1), normal)
-        power = core.distribution.load({"name": "Power", "param": [1]})
+        power = core.distribution.load({"name": "Powerlaw", "param": [1]})
         self.assertEqual(PowerLawDistribution(1), power)
 
     def test_kstest(self):

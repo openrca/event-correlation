@@ -13,7 +13,7 @@
         "trigger": "A",
         "response": "0",
         "dist": {
-            "name": "Exp",
+            "name": "Expon",
             "param": [0.5]
         },
         "triggerConfidence": "0.9",

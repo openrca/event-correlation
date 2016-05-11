@@ -12,7 +12,7 @@ class TestScript(unittest.TestCase):
     def test_getTimestamp(self):
         timeline = {}
         gen = generation.generator.Generator()
-        dist = StaticDistribution([5])
+        dist = StaticDistribution([5], rvs=[5])
         self.assertEqual(5, gen._Generator__getTimeStamp(dist, 0, timeline))
         timeline[5] = None
         self.assertEqual(5.01, gen._Generator__getTimeStamp(dist, 0, timeline))
@@ -37,10 +37,10 @@ class TestScript(unittest.TestCase):
         # @formatter:off
         sequences = generation.generator.Generator() \
             .setSeqLength(length) \
-            .setRndNumber(StaticDistribution([1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1])) \
+            .setRndNumber(StaticDistribution(rvs=[1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1])) \
             .setEntries([Entry(
-                Rule(Event('A'), Event('B'), StaticDistribution([3]), responseConfidence=0.9),
-                StaticDistribution([2, 4, 5]))
+                Rule(Event('A'), Event('B'), StaticDistribution(rvs=[3]), responseConfidence=0.9),
+                StaticDistribution(rvs=[2, 4, 5]))
             ]) \
             .createSequence()
         # @formatter:on
@@ -79,10 +79,10 @@ class TestScript(unittest.TestCase):
         # @formatter:off
         sequences = generation.generator.Generator() \
             .setNumberOfEvents(numberEvents) \
-            .setRndNumber(StaticDistribution([0, 0, 1, 0, 0, 1, 0, 0, 0])) \
+            .setRndNumber(StaticDistribution(rvs=[0, 0, 1, 0, 0, 1, 0, 0, 0])) \
             .setEntries([Entry(
-                Rule(Event('A'), Event('B'), StaticDistribution([3]), triggerConfidence=0.9, responseConfidence=0.9),
-                StaticDistribution([2, 4]))
+                Rule(Event('A'), Event('B'), StaticDistribution(rvs=[3]), triggerConfidence=0.9, responseConfidence=0.9),
+                StaticDistribution(rvs=[2, 4]))
             ]) \
             .createSequence()
         # @formatter:on

@@ -46,7 +46,7 @@ class TestScript(unittest.TestCase):
                 "responseConfidence": 1
            },
             "dist": {
-                "name": "Normal",
+                "name": "Norm",
                 "param": [0, 1]
             },
             "scale": 0.5}
