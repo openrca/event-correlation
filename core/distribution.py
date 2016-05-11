@@ -21,8 +21,8 @@ distributions = {
     STATIC: 'Static',
     NORMAL: 'Normal',
     UNIFORM: 'Uniform',
-    POWER: 'Powerlaw',
-    EXP: 'Expon',
+    POWER: 'Power',
+    EXP: 'Exp',
 }
 
 
@@ -78,41 +78,23 @@ class StaticDistribution(Distribution):
     This distribution will always return the values provided by the setters
     """
 
-    def __init__(self, pdf=None, cdf=None, rvs=None):
-        """
-        :param pdf: Values to be returned by 'getPDFValue()'
-        :param cdf: Values to be returned by 'getPDFValue()'
-        :param rvs: Values to be returned by 'getPDFValue()'
-        """
-        if (pdf is None):
+    def __init__(self, pdf=None, cdf=None):
+        if pdf is None:
             pdf = [0.5]
-        if (cdf is None):
+        if cdf is None:
             cdf = [0.5]
-        if (rvs is None):
-            rvs = [0.5]
-        super().__init__(distType=STATIC, param=(pdf, cdf, rvs))
+        super().__init__(distType=STATIC, param=(pdf, cdf))
         self.pdfIdx = 0
         self.cdfIdx = 0
-        self.rvsIdx = 0
         self.pdf = pdf
         self.cdf = cdf
-        self.rvs = rvs
 
     def getRandom(self, n=None):
-        if (n is None):
-            n = 1
-        result = []
-        for i in range(n):
-            self.rvsIdx, value = self.__get(self.rvsIdx, self.rvs)
-            result.append(value)
-
-        if (n == 1):
-            return result[0]
-        return result
-
-    def getPDFValue(self, x):
         self.pdfIdx, value = self.__get(self.pdfIdx, self.pdf)
         return value
+
+    def getPDFValue(self, x):
+        return 1
 
     def getCDFValue(self, x):
         self.cdfIdx, value = self.__get(self.cdfIdx, self.cdf)
@@ -132,10 +114,6 @@ class NormalDistribution(Distribution):
     """ Creates random samples based on a normal distribution """
 
     def __init__(self, mu=0.0, sigma=1.0):
-        """
-        :param mu: Expectation value
-        :param sigma: Standard deviation
-        """
         super().__init__(distType=NORMAL, param=(mu, sigma))
         self.mu = mu
         self.sigma = sigma
@@ -163,10 +141,6 @@ class UniformDistribution(Distribution):
     """ Creates random samples based on a uniform distribution """
 
     def __init__(self, lower=0.0, upper=1.0):
-        """
-        :param lower: Lower bound
-        :param upper: Upper bound
-        """
         super().__init__(distType=UNIFORM, param=(lower, upper))
         self.lower = lower
         self.upper = upper
@@ -195,23 +169,18 @@ class PowerLawDistribution(Distribution):
     """ Creates random samples based on a Power Law distribution
 
     Distribution:
-        P(x; a, b) = ax^(a - 1) + b, 0 <= x <= 1, a > 0
+        P(x; a) = ax^(a - 1), 0 <= x <= 1, a > 0
     """
 
-    def __init__(self, a, b=0):
-        """
-        :param a: Shape of function
-        :param b: Offset for values
-        """
-        super().__init__(distType=POWER, param=(a, b))
-        self.a = a
-        self.b = b
+    def __init__(self, exponent):
+        super().__init__(distType=POWER, param=(exponent))
+        self.exponent = exponent
         self.__checkParam()
-        self.dist = stats.powerlaw(a, b)
+        self.dist = stats.powerlaw(exponent)
 
     def __checkParam(self):
-        if (self.a <= 0):
-            raise ValueError("A is not positive. A: {}".format(self.a))
+        if (self.exponent <= 0):
+            raise ValueError("Exponent is not positive. Exponent: {}".format(self.exponent))
 
     def getRandom(self, n=None):
         return self.dist.rvs(n)
@@ -223,7 +192,7 @@ class PowerLawDistribution(Distribution):
         return self.dist.cdf(x)
 
     def __str__(self):
-        return "{}: Exponent: {}".format(distributions[POWER], self.a)
+        return "{}: Exponent: {}".format(distributions[POWER], self.exponent)
 
 
 class ExponentialDistribution(Distribution):
@@ -233,14 +202,11 @@ class ExponentialDistribution(Distribution):
         P(x) = le^(-lx), x >= 0, l > 0
     """
 
-    def __init__(self, beta=1.0):
-        """
-        :param beta: 1 / lambda
-        """
-        super().__init__(distType=EXP, param=(beta))
-        self.lam = beta
+    def __init__(self, lam=1.0):
+        super().__init__(distType=EXP, param=(lam))
+        self.lam = lam
         self.__checkParam()
-        self.dist = stats.expon(beta)
+        self.dist = stats.expon(lam)
 
     def __checkParam(self):
         if (self.lam <= 0):
