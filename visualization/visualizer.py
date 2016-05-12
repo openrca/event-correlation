@@ -1,6 +1,7 @@
 """ Automatically generated documentation for Visualizer """
 import logging
 import sys
+import threading
 
 from PySide.QtCore import Signal, QPoint, QRectF
 from PySide.QtGui import QMainWindow, QWidget, QVBoxLayout, QPainter, QPainterPath, QGraphicsScene, QGraphicsView, \
@@ -8,6 +9,7 @@ from PySide.QtGui import QMainWindow, QWidget, QVBoxLayout, QPainter, QPainterPa
 
 import core
 import generation
+import visualization
 from core.sequence import Sequence
 
 
@@ -128,7 +130,10 @@ class SequenceWidget(QGraphicsScene):
             if (response is None or response.timestamp >= self.sequence.length):
                 continue
 
-            rule = sequence.getRule(event, response)
+            rule = sequence.getCalculatedRule(event, response)
+            if (rule is None):
+                rule = sequence.getRule(event, response)
+
             triggeredWidget = self.eventWidgets[event.triggered]
             self.addItem(ArrowWidget(widget, triggeredWidget, rule))
 
@@ -207,6 +212,9 @@ class Visualizer(QMainWindow):
         print("Loading sequence from file " + fileName)
         try:
             seq = core.sequence.loadFromFile(fileName)
+
+            threading.Thread(target=visualization.showAllDistributions, args=(seq,)).start()
+
             self.statusBar().showMessage("Loaded sequence " + fileName)
         except ValueError as ex:
             msg = "Unable to load sequence: " + str(ex)

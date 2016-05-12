@@ -10,10 +10,11 @@ from core.event import Event
 
 
 class Sequence:
-    def __init__(self, events, length, rules=None):
+    def __init__(self, events, length, rules=[]):
         self.events = events
         self.length = length
         self.rules = rules
+        self.calculatedRules = []
 
     def getEvents(self, eventType=None):
         res = []
@@ -33,9 +34,21 @@ class Sequence:
             result.append(Event(timestamp=index))
         return result
 
+    def getCalculatedRule(self, trigger, response):
+        return self._getRule(trigger, response, self.calculatedRules)
+
     def getRule(self, trigger, response):
-        for r in self.rules:
-            if (r.trigger == trigger.eventType and r.response == response.eventType):
+        return self._getRule(trigger, response, self.rules)
+
+    @staticmethod
+    def _getRule(trigger, response, rules):
+        if (isinstance(trigger, Event)):
+            trigger = trigger.eventType
+        if (isinstance(response, Event)):
+            response = response.eventType
+
+        for r in rules:
+            if (r.trigger == trigger and r.response == response):
                 return r
         return None
 
@@ -68,10 +81,14 @@ class Sequence:
         rules = []
         for r in self.rules:
             rules.append(r.asJson())
+        calculatedRules = []
+        for r in self.calculatedRules:
+            calculatedRules.append(r.asJson())
         return {
             "length": self.length,
             "events": events,
-            "rules": rules
+            "rules": rules,
+            "calculatedRules": calculatedRules
         }
 
     def store(self, filename):
@@ -103,7 +120,14 @@ def load(value):
                 r = rule.load(item)
                 rules.append(r)
 
+        calculatedRules = []
+        if ("rules" in value):
+            for item in value["calculatedRules"]:
+                r = rule.load(item)
+                calculatedRules.append(r)
+
         seq = Sequence(events, length, rules)
+        seq.calculatedRules = calculatedRules
         logging.debug("Loaded sequence: " + str(seq))
         return seq
     except KeyError:

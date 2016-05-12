@@ -56,7 +56,9 @@ args = parser.parse_args()
 print(args)
 
 seq = None
+baseRules = []
 baseDistributions = []
+
 if (args.input is None):
     if (args.rules is None):
         print("Neither rules nor input specified. Please provide at least one")
@@ -72,6 +74,7 @@ if (args.input is None):
         print("Creating new sequence from {} with length {}".format(args.rules, args.length))
         entries = generation.entry.loadEntries(args.rules)
         for entry in entries:
+            baseRules.append(entry.rule)
             baseDistributions.append(entry.rule.distribution)
 
         gen = Generator().setEntries(entries)
@@ -79,6 +82,7 @@ if (args.input is None):
             seq = gen.setSeqLength(args.length).createSequence(1)[0]
         if (args.count is not None):
             seq = gen.setNumberOfEvents(args.count).createSequence(1)[0]
+        seq.rules = baseRules
 else:
     print("Loading sequence from {}".format(args.input))
     seq = sequence.loadFromFile(args.input)
@@ -94,7 +98,7 @@ elif (args.algorithm == 'lagEM'):
 
     dist = NormalDistribution(param["Mu"], param["Sigma"])
     rule = Rule("A", "B", dist)
-    seq.rules = [rule]
+    seq.calculatedRules = [rule]
 
     printResult(param, baseDistributions)
     printDistance(dist, baseDistributions[0])

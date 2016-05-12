@@ -2,7 +2,7 @@ import os
 import unittest
 
 from core import sequence
-from core.distribution import NormalDistribution
+from core.distribution import NormalDistribution, UniformDistribution
 from core.event import Event
 from core.rule import Rule
 from core.sequence import Sequence
@@ -47,6 +47,13 @@ class TestScript(unittest.TestCase):
         self.assertEqual(rule, seq.getRule(Event("A"), Event("B")))
         self.assertIsNone(seq.getRule(Event("A"), Event("C")))
 
+    def test_calculatedRules(self):
+        seq = sequence.loadFromFile(INPUT_FILE)
+        rule = Rule("A", "B", NormalDistribution())
+        seq.calculatedRules = [rule]
+        self.assertEqual(rule, seq.getCalculatedRule(Event("A"), Event("B")))
+        self.assertIsNone(seq.getCalculatedRule(Event("A"), Event("C")))
+
     def test_getEvent(self):
         seq = sequence.loadFromFile(INPUT_FILE)
         self.assertIsNotNone(seq.getEvent(-1))
@@ -65,8 +72,10 @@ class TestScript(unittest.TestCase):
         eventC = Event("C", 1)
         eventA.setTriggered(eventB)
         rule = Rule("A", "B", NormalDistribution())
+        calculatedRule = Rule("A", "B", UniformDistribution())
 
         seq = Sequence([eventA, eventC, eventB], 5, [rule])
+        seq.calculatedRules = [calculatedRule]
 
         try:
             seq.store(TMP_FILE_NAME)
@@ -84,6 +93,10 @@ class TestScript(unittest.TestCase):
             self.assertEqual(len(seq.rules), len(seq2.rules))
             for i in range(len(seq.rules)):
                 self.assertEqual(seq.rules[i], seq2.rules[i])
+
+            self.assertEqual(len(seq.calculatedRules), len(seq2.calculatedRules))
+            for i in range(len(seq.calculatedRules)):
+                self.assertEqual(seq.calculatedRules[i], seq2.calculatedRules[i])
 
         except (OSError, IOError) as ex:
             print("Unable to open tmp file. Maybe you have to change TMP_FILE_NAME: {}".format(ex))

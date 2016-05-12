@@ -29,6 +29,7 @@ class TestScript(unittest.TestCase):
         self.assertEqual(5, dist.getRandom())
         self.assertEqual(6, dist.getRandom())
         self.assertEqual(5, dist.getRandom())
+        self.assertEqual([6, 5], dist.getRandom(2))
         self.assertEqual("Static: pdf: [1, 2]\t cdf: [3, 4]\t rvs: [5, 6]", str(dist))
 
     def test_normal(self):
