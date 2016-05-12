@@ -13,16 +13,16 @@ class TestScript(unittest.TestCase):
         rules = core.rule.loadFromFile(INPUT_FILE)
 
         self.assertEqual(2, len(rules))
-        self.assertEqual('A', rules[0].getTrigger())
-        self.assertEqual('B', rules[0].getResponse())
-        self.assertEqual(0, rules[0].getDistribution().lower)
-        self.assertEqual(1, rules[0].getDistribution().upper)
-        self.assertEqual(1, rules[0].getResponseConfidence())
+        self.assertEqual('A', rules[0].trigger)
+        self.assertEqual('B', rules[0].response)
+        self.assertEqual(0, rules[0].distribution.lower)
+        self.assertEqual(1, rules[0].distribution.upper)
+        self.assertEqual(1, rules[0].responseConfidence)
 
-        self.assertEqual('A', rules[1].getTrigger())
-        self.assertEqual('0', rules[1].getResponse())
+        self.assertEqual('A', rules[1].trigger)
+        self.assertEqual('0', rules[1].response)
         self.assertEqual(0.5, rules[1].distribution.lam)
-        self.assertEqual(0.9, rules[1].getResponseConfidence())
+        self.assertEqual(0.9, rules[1].responseConfidence)
 
     def test_load(self):
         rule = core.rule.load("""{
@@ -36,11 +36,11 @@ class TestScript(unittest.TestCase):
             "responseConfidence": "1"
         }""")
 
-        self.assertEqual('A', rule.getTrigger())
-        self.assertEqual('B', rule.getResponse())
-        self.assertEqual(0, rule.getDistribution().lower)
-        self.assertEqual(1, rule.getDistribution().upper)
-        self.assertEqual(1, rule.getResponseConfidence())
+        self.assertEqual('A', rule.trigger)
+        self.assertEqual('B', rule.response)
+        self.assertEqual(0, rule.distribution.lower)
+        self.assertEqual(1, rule.distribution.upper)
+        self.assertEqual(1, rule.responseConfidence)
 
     def test_asJson(self):
         rule = Rule("a", "b", NormalDistribution(0, 1))

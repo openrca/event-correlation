@@ -17,11 +17,11 @@ class Rule:
             responseConfidence: Probability that the response really follows the trigger
         """
         if (isinstance(trigger, core.event.Event)):
-            self.trigger = trigger.getEventType()
+            self.trigger = trigger.eventType
         else:
             self.trigger = trigger
         if (isinstance(response, core.event.Event)):
-            self.response = response.getEventType()
+            self.response = response.eventType
         else:
             self.response = response
         self.distribution = distribution
@@ -30,21 +30,6 @@ class Rule:
 
     def getResponseTimestamp(self):
         return self.distribution.getRandom()
-
-    def getResponse(self):
-        return self.response
-
-    def getTrigger(self):
-        return self.trigger
-
-    def getResponseConfidence(self):
-        return self.responseConfidence
-
-    def getTriggerConfidence(self):
-        return self.triggerConfidence
-
-    def getDistribution(self):
-        return self.distribution
 
     def asJson(self):
         return {

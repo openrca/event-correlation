@@ -41,7 +41,7 @@ def printResult(result, distributions):
 def printDistance(dist1, dist2):
     print("Distance:")
     print("\tKS Test: " + str(core.distribution.kstest(dist1, dist2)))
-    print("\tChi2 Test: " + str(core.distribution.chi2test(dist1, dist2)))
+    # print("\tChi2 Test: " + str(core.distribution.chi2test(dist1, dist2)))
 
 
 parser = argparse.ArgumentParser()
@@ -72,7 +72,7 @@ if (args.input is None):
         print("Creating new sequence from {} with length {}".format(args.rules, args.length))
         entries = generation.entry.loadEntries(args.rules)
         for entry in entries:
-            baseDistributions.append(entry.rule.getDistribution())
+            baseDistributions.append(entry.rule.distribution)
 
         gen = Generator().setEntries(entries)
         if (args.length is not None):
@@ -94,7 +94,7 @@ elif (args.algorithm == 'lagEM'):
 
     dist = NormalDistribution(param["Mu"], param["Sigma"])
     rule = Rule("A", "B", dist)
-    seq.setRules([rule])
+    seq.rules = [rule]
 
     printResult(param, baseDistributions)
     printDistance(dist, baseDistributions[0])

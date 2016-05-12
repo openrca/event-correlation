@@ -15,42 +15,36 @@ class Sequence:
         self.length = length
         self.rules = rules
 
-    def getLength(self):
-        return self.length
-
     def getEvents(self, eventType=None):
         res = []
         for e in self.events:
-            if (eventType is None or e.getEventType() == eventType):
+            if (eventType is None or e.eventType == eventType):
                 res.append(e)
         return res
 
     def getEvent(self, index):
         result = []
         for e in self.events:
-            if (index < math.floor(e.getTimestamp())):
+            if (index < math.floor(e.timestamp)):
                 break
-            if (math.floor(e.getTimestamp()) == index):
+            if (math.floor(e.timestamp) == index):
                 result.append(e)
         if (len(result) == 0):
             result.append(Event(timestamp=index))
         return result
 
-    def setRules(self, rules):
-        self.rules = rules
-
     def getRule(self, trigger, response):
         for r in self.rules:
-            if (r.getTrigger() == trigger.getEventType() and r.getResponse() == response.getEventType()):
+            if (r.trigger == trigger.eventType and r.response == response.eventType):
                 return r
         return None
 
     def asVector(self, eventType):
-        l = [e for e in self.getEvents(eventType) if e.hasOccurred()]
+        l = [e for e in self.getEvents(eventType) if e.occurred]
         v = np.zeros(len(l))
         i = 0
         for e in l:
-            v[i] = e.getTimestamp()
+            v[i] = e.timestamp
             i += 1
         return v
 
@@ -58,7 +52,7 @@ class Sequence:
         tokens = []
 
         seq = copy.copy(self.getEvents())
-        for i in range(0, self.getLength()):
+        for i in range(self.length):
             if (len(seq) > 0 and seq[0].timestamp <= i):
                 while (len(seq) > 0 and seq[0].timestamp <= i):
                     e = seq.pop(0)
@@ -75,7 +69,7 @@ class Sequence:
         for r in self.rules:
             rules.append(r.asJson())
         return {
-            "length": self.getLength(),
+            "length": self.length,
             "events": events,
             "rules": rules
         }
@@ -97,8 +91,8 @@ def load(value):
             e = event.load(item)
             if (e not in events):
                 events.append(e)
-            while (e.getTriggered() is not None):
-                e = e.getTriggered()
+            while (e.triggered is not None):
+                e = e.triggered
                 if (e not in events):
                     events.append(e)
         events.sort(key=lambda x: x.timestamp)

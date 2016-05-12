@@ -13,6 +13,7 @@ class TestScript(unittest.TestCase):
     def test_constructor(self):
         self.assertEqual("a", self.event.eventType)
         self.assertEqual(10, self.event.timestamp)
+        self.assertTrue(self.event.occurred)
 
     def test_constructor2(self):
         event = core.event.Event("a")
@@ -20,6 +21,7 @@ class TestScript(unittest.TestCase):
         self.assertEqual("a", event.eventType)
         self.assertIsNotNone(event.timestamp)
         self.assertEqual(-1, event.timestamp)
+        self.assertTrue(self.event.occurred)
 
     def test_constructor3(self):
         event = core.event.Event()
@@ -27,10 +29,11 @@ class TestScript(unittest.TestCase):
         self.assertEqual("-", event.eventType)
         self.assertIsNotNone(event.timestamp)
         self.assertEqual(-1, event.timestamp)
+        self.assertTrue(self.event.occurred)
 
     def test_getter(self):
-        self.assertEqual("a", self.event.getEventType())
-        self.assertEqual(10, self.event.getTimestamp())
+        self.assertEqual("a", self.event.eventType)
+        self.assertEqual(10, self.event.timestamp)
 
     def test_hash(self):
         self.assertEqual(hash("a") + hash(10), hash(self.event))
@@ -50,7 +53,7 @@ class TestScript(unittest.TestCase):
     def test_asJson(self):
         event = core.event.Event("a", 0)
         event2 = core.event.Event("b", 0)
-        event2.setOccurred(False)
+        event2.occurred = False
         event.setTriggered(event2)
 
         d = {
@@ -66,15 +69,12 @@ class TestScript(unittest.TestCase):
 
         self.assertEqual(d, json.loads(json.dumps(event.asJson())))
 
-    def test_hasOccurred(self):
-        self.assertEqual(True, self.event.hasOccurred())
-
     def test_getExternalRepresentation(self):
         self.assertEqual("a", self.event.getExternalRepresentation())
 
         e = Event()
         self.assertEqual("-", e.getExternalRepresentation())
-        e.setOccurred(False)
+        e.occurred = False
         self.assertEqual("*", e.getExternalRepresentation())
 
     def test___str__(self):

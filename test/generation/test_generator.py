@@ -49,13 +49,13 @@ class TestScript(unittest.TestCase):
         seq = sequences[0]
         self.assertEqual("_A__BA__*_", str(seq))
         self.assertEqual(eventA1, seq.getEvent(1)[0])
-        self.assertEqual(eventB1, seq.getEvent(1)[0].getTriggered())
+        self.assertEqual(eventB1, seq.getEvent(1)[0].triggered)
         self.assertEqual(eventB1, seq.getEvent(4)[0])
-        self.assertEqual(eventA1, seq.getEvent(4)[0].getTriggeredBy())
+        self.assertEqual(eventA1, seq.getEvent(4)[0].triggeredBy)
         self.assertEqual(eventA2, seq.getEvent(5)[0])
-        self.assertEqual(eventB2, seq.getEvent(5)[0].getTriggered())
+        self.assertEqual(eventB2, seq.getEvent(5)[0].triggered)
         self.assertEqual(eventB2, seq.getEvent(8)[0])
-        self.assertEqual(eventA2, seq.getEvent(8)[0].getTriggeredBy())
+        self.assertEqual(eventA2, seq.getEvent(8)[0].triggeredBy)
 
     def test_createSequenceByNumberOfEvents(self):
         numberEvents = 9
@@ -69,8 +69,8 @@ class TestScript(unittest.TestCase):
         eventB3 = Event("B", 10)
         eventB4 = Event("B", 14)
 
-        eventA2.setOccurred(False)
-        eventB3.setOccurred(False)
+        eventA2.occurred = False
+        eventB3.occurred = False
         eventA1.setTriggered(eventB1)
         eventA2.setTriggered(eventB2)
         eventA3.setTriggered(eventB3)
@@ -91,25 +91,25 @@ class TestScript(unittest.TestCase):
         seq = sequences[0]
         self.assertEqual("_A__B*_AB_*A_AB", str(seq))
         self.assertEqual(eventA1, seq.getEvent(1)[0])
-        self.assertEqual(eventB1, seq.getEvent(1)[0].getTriggered())
+        self.assertEqual(eventB1, seq.getEvent(1)[0].triggered)
         self.assertEqual(eventB1, seq.getEvent(4)[0])
-        self.assertEqual(eventA1, seq.getEvent(4)[0].getTriggeredBy())
+        self.assertEqual(eventA1, seq.getEvent(4)[0].triggeredBy)
         self.assertEqual(eventA2, seq.getEvent(5)[0])
-        self.assertFalse(eventA2.hasOccurred())
-        self.assertEqual(eventB2, seq.getEvent(5)[0].getTriggered())
+        self.assertFalse(eventA2.occurred)
+        self.assertEqual(eventB2, seq.getEvent(5)[0].triggered)
         self.assertEqual(eventB2, seq.getEvent(8)[0])
-        self.assertEqual(eventA2, seq.getEvent(8)[0].getTriggeredBy())
+        self.assertEqual(eventA2, seq.getEvent(8)[0].triggeredBy)
         self.assertEqual(eventA3, seq.getEvent(7)[0])
-        self.assertEqual(eventB3, seq.getEvent(7)[0].getTriggered())
+        self.assertEqual(eventB3, seq.getEvent(7)[0].triggered)
         self.assertEqual(eventB3, seq.getEvent(10)[0])
-        self.assertFalse(eventB3.hasOccurred())
-        self.assertEqual(eventA3, seq.getEvent(10)[0].getTriggeredBy())
+        self.assertFalse(eventB3.occurred)
+        self.assertEqual(eventA3, seq.getEvent(10)[0].triggeredBy)
         self.assertEqual(eventA4, seq.getEvent(11)[0])
-        self.assertEqual(eventB4, seq.getEvent(11)[0].getTriggered())
+        self.assertEqual(eventB4, seq.getEvent(11)[0].triggered)
         self.assertEqual(eventB4, seq.getEvent(14)[0])
-        self.assertEqual(eventA4, seq.getEvent(14)[0].getTriggeredBy())
+        self.assertEqual(eventA4, seq.getEvent(14)[0].triggeredBy)
         self.assertEqual(eventA5, seq.getEvent(13)[0])
-        self.assertIsNone(eventA5.getTriggered())
+        self.assertIsNone(eventA5.triggered)
 
     def test_invalidConfiguration(self):
         with self.assertRaises(RuntimeError):

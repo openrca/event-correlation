@@ -28,14 +28,14 @@ class TestScript(unittest.TestCase):
         eventB = Event("B", 2)
         eventC = Event("C", 1)
 
-        self.assertEqual(10, seq.getLength())
+        self.assertEqual(10, seq.length)
         self.assertEqual(3, len(events))
         self.assertEqual(eventA, events[0])
         self.assertEqual(eventC, events[1])
         self.assertEqual(eventB, events[2])
-        self.assertEqual(eventB, events[0].getTriggered())
-        self.assertEqual(eventA, events[2].getTriggeredBy())
-        self.assertIsNone(events[1].getTriggered())
+        self.assertEqual(eventB, events[0].triggered)
+        self.assertEqual(eventA, events[2].triggeredBy)
+        self.assertIsNone(events[1].triggered)
 
         with self.assertRaises(ValueError):
             sequence.load("{\"length\": 10}")
@@ -43,7 +43,7 @@ class TestScript(unittest.TestCase):
     def test_rules(self):
         seq = sequence.loadFromFile(INPUT_FILE)
         rule = Rule("A", "B", NormalDistribution())
-        seq.setRules([rule])
+        seq.rules = [rule]
         self.assertEqual(rule, seq.getRule(Event("A"), Event("B")))
         self.assertIsNone(seq.getRule(Event("A"), Event("C")))
 
@@ -72,15 +72,15 @@ class TestScript(unittest.TestCase):
             seq.store(TMP_FILE_NAME)
             seq2 = sequence.loadFromFile(TMP_FILE_NAME)
 
-            self.assertEqual(seq.getLength(), seq2.getLength())
+            self.assertEqual(seq.length, seq2.length)
             self.assertEqual(len(seq.getEvents()), len(seq2.getEvents()))
             for i in range(len(seq.getEvents())):
                 event1 = seq.getEvents()[i]
                 event2 = seq2.getEvents()[i]
 
                 self.assertEqual(event1, event2)
-                self.assertEqual(event1.getTriggered(), event2.getTriggered())
-                self.assertEqual(event1.getTriggeredBy(), event2.getTriggeredBy())
+                self.assertEqual(event1.triggered, event2.triggered)
+                self.assertEqual(event1.triggeredBy, event2.triggeredBy)
             self.assertEqual(len(seq.rules), len(seq2.rules))
             for i in range(len(seq.rules)):
                 self.assertEqual(seq.rules[i], seq2.rules[i])

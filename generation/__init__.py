@@ -42,6 +42,6 @@ def createSequences():
         .setEntries(entries) \
         .createSequence(args.count)
     for seq in sequences:
-        seq.setRules(rules)
+        seq.rules = rules
 
     return sequences

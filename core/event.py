@@ -11,34 +11,11 @@ class Event:
         self.triggeredBy = None
         self.triggered = None
 
-    def getEventType(self):
-        return self.eventType
-
-    def getTimestamp(self):
-        return self.timestamp
-
-    def hasOccurred(self):
-        return self.occurred
-
-    def getTriggeredBy(self):
-        return self.triggeredBy
-
-    def getTriggered(self):
-        return self.triggered
-
-    def setOccurred(self, occurred):
-        self.occurred = occurred
-
-    def setTriggeredBy(self, event):
-        self.triggeredBy = event
-
+    # TODO use property decorator
     def setTriggered(self, event):
         """ Sets the triggered event by this event. Also sets triggered by."""
         self.triggered = event
-        event.setTriggeredBy(self)
-
-    def setTimestamp(self, timestamp):
-        self.timestamp = timestamp
+        event.triggeredBy = self
 
     def getExternalRepresentation(self):
         if (self.occurred):
@@ -79,9 +56,9 @@ def load(value):
         event = Event(value["eventType"])
 
         if ("timestamp" in value):
-            event.setTimestamp(float(value["timestamp"]))
+            event.timestamp = float(value["timestamp"])
         if ("occurred" in value):
-            event.setOccurred(bool(value["occurred"]))
+            event.occurred = bool(value["occurred"])
         if ("triggered" in value):
             event.setTriggered(load(value["triggered"]))
         return event

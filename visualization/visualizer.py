@@ -67,8 +67,8 @@ class ArrowWidget(QGraphicsItem):
     def paint(self, painter: QPainter, option, widget):
         color = 0
         if (self.rule is not None):
-            distance = self.end.eventType.getTimestamp() - self.start.eventType.getTimestamp()
-            prob = self.rule.getDistribution().getPDFValue(distance) / self.rule.getDistribution().getMaximumPDF()
+            distance = self.end.eventType.timestamp - self.start.eventType.timestamp
+            prob = self.rule.distribution.getPDFValue(distance) / self.rule.distribution.getMaximumPDF()
             color = (1 - prob) * 256
         color = QColor(color, color, color)
 
@@ -115,7 +115,7 @@ class SequenceWidget(QGraphicsScene):
     def paint(self, sequence):
         self.sequence = sequence
         eventCount = 0
-        for i in range(0, self.sequence.getLength()):
+        for i in range(self.sequence.length):
             for event in self.sequence.getEvent(i):
                 widget = EventWidget(event, QPoint(eventCount * (self.eventWidth + self.offset), self.eventY),
                                      self.eventWidth)
@@ -124,12 +124,12 @@ class SequenceWidget(QGraphicsScene):
                 eventCount += 1
 
         for event, widget in self.eventWidgets.items():
-            response = event.getTriggered()
-            if (response is None or response.getTimestamp() >= self.sequence.getLength()):
+            response = event.triggered
+            if (response is None or response.timestamp >= self.sequence.length):
                 continue
 
             rule = sequence.getRule(event, response)
-            triggeredWidget = self.eventWidgets[event.getTriggered()]
+            triggeredWidget = self.eventWidgets[event.triggered]
             self.addItem(ArrowWidget(widget, triggeredWidget, rule))
 
     def cleanUp(self):
