@@ -17,9 +17,9 @@ class Matcher:
     def __init__(self, name):
         self.name = name
         self.logger = None
-        self.__initLogging()
+        self._initLogging()
 
-    def __initLogging(self):
+    def _initLogging(self):
         handler = logging.StreamHandler()
         handler.setLevel(logging.TRACE)
 

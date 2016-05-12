@@ -103,7 +103,7 @@ class StaticDistribution(Distribution):
             n = 1
         result = []
         for i in range(n):
-            self.rvsIdx, value = self.__get(self.rvsIdx, self.rvs)
+            self.rvsIdx, value = self._get(self.rvsIdx, self.rvs)
             result.append(value)
 
         if (n == 1):
@@ -111,15 +111,15 @@ class StaticDistribution(Distribution):
         return result
 
     def getPDFValue(self, x):
-        self.pdfIdx, value = self.__get(self.pdfIdx, self.pdf)
+        self.pdfIdx, value = self._get(self.pdfIdx, self.pdf)
         return value
 
     def getCDFValue(self, x):
-        self.cdfIdx, value = self.__get(self.cdfIdx, self.cdf)
+        self.cdfIdx, value = self._get(self.cdfIdx, self.cdf)
         return value
 
     @staticmethod
-    def __get(idx, lst):
+    def _get(idx, lst):
         if (idx >= len(lst)):
             idx = 0
         return (idx + 1, lst[idx])
@@ -139,10 +139,10 @@ class NormalDistribution(Distribution):
         super().__init__(distType=NORMAL, param=(mu, sigma))
         self.mu = mu
         self.sigma = sigma
-        self.__checkParam()
+        self._checkParam()
         self.dist = stats.norm(mu, sigma)
 
-    def __checkParam(self):
+    def _checkParam(self):
         if (self.sigma <= 0):
             raise ValueError("Variance is not positive. Sigma: {}".format(self.sigma))
 
@@ -170,10 +170,10 @@ class UniformDistribution(Distribution):
         super().__init__(distType=UNIFORM, param=(lower, upper))
         self.lower = lower
         self.upper = upper
-        self.__checkParam()
+        self._checkParam()
         self.dist = stats.uniform(lower, upper)
 
-    def __checkParam(self):
+    def _checkParam(self):
         if (self.lower >= self.upper):
             raise ValueError("Lower border is greater or equal to upper border. Lower: {}, Upper: {}"
                              .format(self.lower, self.upper))
@@ -206,10 +206,10 @@ class PowerLawDistribution(Distribution):
         super().__init__(distType=POWER, param=(a, b))
         self.a = a
         self.b = b
-        self.__checkParam()
+        self._checkParam()
         self.dist = stats.powerlaw(a, b)
 
-    def __checkParam(self):
+    def _checkParam(self):
         if (self.a <= 0):
             raise ValueError("A is not positive. A: {}".format(self.a))
 
@@ -239,10 +239,10 @@ class ExponentialDistribution(Distribution):
         """
         super().__init__(distType=EXP, param=(beta))
         self.lam = beta
-        self.__checkParam()
+        self._checkParam()
         self.dist = stats.expon(beta)
 
-    def __checkParam(self):
+    def _checkParam(self):
         if (self.lam <= 0):
             raise ValueError("Exponent is not positive. Exponent: {}".format(self.lam))
 
