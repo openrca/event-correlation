@@ -27,6 +27,7 @@ class Rule:
         self.distribution = distribution
         self.triggerConfidence = triggerConfidence
         self.responseConfidence = responseConfidence
+        self.likelihood = -1
 
     def getResponseTimestamp(self):
         return self.distribution.getRandom()
@@ -37,7 +38,8 @@ class Rule:
             "response": self.response,
             "dist": self.distribution.asJson(),
             "triggerConfidence": self.triggerConfidence,
-            "responseConfidence": self.responseConfidence
+            "responseConfidence": self.responseConfidence,
+            "likelihood": self.likelihood
         }
 
     def __eq__(self, other):
@@ -70,7 +72,10 @@ def load(value):
         responseConfidence = float(value["responseConfidence"])
         dist = core.distribution.load(value["dist"])
 
-        return Rule(trigger, response, dist, triggerConfidence, responseConfidence)
+        rule = Rule(trigger, response, dist, triggerConfidence, responseConfidence)
+        if ("likelihood" in value):
+            rule.likelihood = float(value["likelihood"])
+        return rule
     except KeyError:
         raise ValueError("Missing parameter 'trigger', 'response', 'triggerConfidence',"
                          " 'responseConfidence' and/or 'dist'")
