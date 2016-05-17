@@ -20,16 +20,17 @@ class Matcher:
         self._initLogging()
 
     def _initLogging(self):
-        handler = logging.StreamHandler()
-        handler.setLevel(logging.TRACE)
-
-        formatter = logging.Formatter('%(asctime)s - %(name)s: %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
-
         self.logger = logging.getLogger(self.name)
-        self.logger.setLevel(logging.TRACE)
-        self.logger.propagate = False
-        self.logger.addHandler(handler)
+        if (len(self.logger.handlers) == 0):
+            handler = logging.StreamHandler()
+            handler.setLevel(logging.INFO)
+
+            formatter = logging.Formatter('%(asctime)s - %(name)s: %(levelname)s - %(message)s')
+            handler.setFormatter(formatter)
+
+            self.logger.setLevel(logging.TRACE)
+            self.logger.propagate = False
+            self.logger.addHandler(handler)
 
     @abc.abstractmethod
     def parseArgs(self, kwargs):
