@@ -1,4 +1,5 @@
 import math
+import threading
 
 import numpy as np
 
@@ -25,22 +26,32 @@ class lagEM(Matcher):
         a = self.sequence.asVector(self.eventA)
         b = self.sequence.asVector(self.eventB)
 
-        result = np.zeros([10, 2])
-        for i in range(0, 10):
-            self.logger.info("Processing batch {}".format(i))
-            tmp = np.zeros([20, 3])
-            for j in range(0, 20):
-                tmp[j] = self.calculate(a, b)
+        result = np.zeros([10, 3])
+        threads = []
+        for i in range(10):
+            thread = threading.Thread(target=self.calculateParallel, args=(a, b, result, i,))
+            thread.start()
+            threads.append(thread)
 
-            result[i] = tmp[np.argmax(tmp[:, 2]), [0, 1]]
-            self.logger.debug("Current result:\n {}".format(result))
-        tmp = result.sum(axis=0) / result.shape[0]
-        return {"Mu": tmp[0], "Sigma": tmp[1]}
+        for i in range(10):
+            threads[i].join()
+        threads.clear()
+        self.logger.info("Results:\n {}".format(result))
+        tmp = result.sum(axis=0) / np.count_nonzero(result[:, 0])
+        return {"Mu": tmp[0], "Sigma": tmp[1], "Likelihood": result[:, 2].max()}
+
+    def calculateParallel(self, a, b, result, index):
+        self.logger.info("Processing batch {}".format(index))
+        tmp = np.zeros([20, 3])
+        for j in range(20):
+            self.logger.debug("Worker[{}]: Processing round {}".format(index, j))
+            tmp[j] = self.calculate(a, b)
+        result[index] = tmp[np.argmax(tmp[:, 2])]
 
     def calculate(self, a, b):
         r = np.ones([a.size, b.size]) / b.size
         mu = np.random.uniform(76, 78)
-        variance = np.random.uniform(5, 7)
+        variance = np.random.uniform(3, 25) ** 2
 
         while True:
             self.logger.trace("Current parameters: Mu: {}\t Sigma:{}".format(mu, math.sqrt(variance)))
@@ -65,6 +76,9 @@ class lagEM(Matcher):
         tmp = self.calculateNormalMatrix(a, b, r, mu, variance).sum(axis=0)
         for j in range(b.size):
             likelihood *= tmp[j]
+
+        if (math.isnan(mu) or math.isnan(math.sqrt(variance)) or math.isnan(likelihood)):
+            return (0, 0, 0)
         return (mu, math.sqrt(variance), likelihood)
 
     @staticmethod
@@ -86,7 +100,7 @@ class lagEM(Matcher):
     def calculateNormalMatrix(a, b, r, mu, variance):
         tmp = np.zeros(r.shape)
         scalar = 1 / math.sqrt(2 * math.pi * variance)
-        for i in range(0, a.size):
-            for j in range(0, b.size):
+        for i in range(a.size):
+            for j in range(b.size):
                 tmp[i][j] = r[i][j] * scalar * math.exp(-(b[j] - a[i] - mu) ** 2 / (2 * variance))
         return tmp
