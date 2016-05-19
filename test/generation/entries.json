@@ -29,7 +29,7 @@
         },
         "dist": {
             "name": "Expon",
-            "param": [1]
+            "param": [0, 1]
         },
         "scale": 1
     }

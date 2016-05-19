@@ -60,7 +60,7 @@ class TestScript(unittest.TestCase):
             core.distribution.UniformDistribution(0, 0)
 
     def test_powerlaw(self):
-        dist = core.distribution.PowerLawDistribution(1)
+        dist = core.distribution.PowerLawDistribution(1, 0)
         self.assertTrue(isinstance(dist, core.distribution.Distribution))
         self.assertIsNotNone(dist.getRandom())
         self.assertEqual("Powerlaw: Exponent: 1", str(dist))
@@ -72,15 +72,18 @@ class TestScript(unittest.TestCase):
             core.distribution.PowerLawDistribution(0)
 
     def test_exponential(self):
-        dist = core.distribution.ExponentialDistribution(0.25)
-        self.assertEqual("Expon: Lambda: 0.25", str(dist))
-        self.assertEqual(0.47236655274101469, dist.getPDFValue(1))
-        self.assertEqual(0.22119921692859515, dist.getCDFValue(0.5))
+        dist = core.distribution.ExponentialDistribution(0, 4)
+        self.assertEqual("Expon: Offset: 0\t Lambda: 4", str(dist))
+        self.assertEqual(0.19470019576785122, dist.getPDFValue(1))
+        self.assertEqual(0.1175030974154046, dist.getCDFValue(0.5))
         self.assertIsNotNone(dist.getRandom())
+
+        dist = core.distribution.ExponentialDistribution(1, 4)
+        self.assertEqual(0.25, dist.getPDFValue(1))
 
     def test_exponential_invalid(self):
         with self.assertRaises(ValueError):
-            core.distribution.ExponentialDistribution(-1)
+            core.distribution.ExponentialDistribution(0, -1)
 
     def test_asJson(self):
         dist = core.distribution.UniformDistribution(0, 1)
@@ -107,7 +110,7 @@ class TestScript(unittest.TestCase):
 
         normal = core.distribution.load({"name": "Norm", "param": [0, 1]})
         self.assertEqual(NormalDistribution(0, 1), normal)
-        power = core.distribution.load({"name": "Powerlaw", "param": [1]})
+        power = core.distribution.load({"name": "Powerlaw", "param": [1, 0]})
         self.assertEqual(PowerLawDistribution(1), power)
 
     def test_kstest(self):

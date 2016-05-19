@@ -193,13 +193,14 @@ class UniformDistribution(Distribution):
 
 
 class PowerLawDistribution(Distribution):
+    #  TODO check how Powerlaw exactly is implemented
     """ Creates random samples based on a Power Law distribution
 
     Distribution:
         P(x; a, b) = ax^(a - 1) + b, 0 <= x <= 1, a > 0
     """
 
-    def __init__(self, a, b=0):
+    def __init__(self, a, b=0.0):
         """
         :param a: Shape of function
         :param b: Offset for values
@@ -234,14 +235,16 @@ class ExponentialDistribution(Distribution):
         P(x) = le^(-lx), x >= 0, l > 0
     """
 
-    def __init__(self, beta=1.0):
+    def __init__(self, offset=0.0, beta=1.0):
         """
-        :param beta: 1 / lambda
+        :param offset: Offset of start
+        :param beta: Scaling of slope 1 / lambda
         """
-        super().__init__(distType=EXP, param=(beta))
+        super().__init__(distType=EXP, param=(offset, beta))
         self.lam = beta
+        self.offset = offset
         self._checkParam()
-        self.dist = stats.expon(beta)
+        self.dist = stats.expon(offset, beta)
 
     def _checkParam(self):
         if (self.lam <= 0):
@@ -257,7 +260,7 @@ class ExponentialDistribution(Distribution):
         return self.dist.cdf(x)
 
     def __str__(self):
-        return "{}: Lambda: {}".format(distributions[EXP], self.lam)
+        return "{}: Offset: {}\t Lambda: {}".format(distributions[EXP], self.offset, self.lam)
 
 
 def load(value):
@@ -283,9 +286,9 @@ def load(value):
         elif (dist == distributions[UNIFORM]):
             return UniformDistribution(float(param[0]), float(param[1]))
         elif (dist == distributions[POWER]):
-            return PowerLawDistribution(float(param[0]))
+            return PowerLawDistribution(float(param[0]), float(param[1]))
         elif (dist == distributions[EXP]):
-            return ExponentialDistribution(float(param[0]))
+            return ExponentialDistribution(float(param[0]), float(param[1]))
         else:
             raise ValueError("Unknown distribution '{}'".format(dist))
     except (IndexError, ValueError):
