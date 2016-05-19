@@ -1,5 +1,6 @@
 """ Automatically generated documentation for Visualizer """
 import logging
+import os
 import sys
 import threading
 
@@ -205,7 +206,7 @@ class Visualizer(QMainWindow):
         fileMenu.addAction(exitAction)
 
     def loadSequence(self):
-        fileName = QFileDialog.getOpenFileName(self, "Load Sequence", "/home/")[0]
+        fileName = QFileDialog.getOpenFileName(self, "Load Sequence", os.path.expanduser("~"))[0]
         if (len(fileName) == 0):
             return
 
@@ -226,7 +227,7 @@ class Visualizer(QMainWindow):
         self.setSequence(seq)
 
     def saveSequence(self):
-        fileName = QFileDialog.getSaveFileName(self, "Load Sequence", "/home/")[0]
+        fileName = QFileDialog.getSaveFileName(self, "Load Sequence", os.path.expanduser("~"))[0]
         if (len(fileName) == 0):
             return
         if (fileName[-4:] != ".seq"):
