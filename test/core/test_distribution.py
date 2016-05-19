@@ -52,6 +52,9 @@ class TestScript(unittest.TestCase):
         self.assertEqual(1, dist.getPDFValue(1))
         self.assertEqual(0.5, dist.getCDFValue(0.5))
 
+        dist = core.distribution.UniformDistribution(10, 20)
+        self.assertEqual((10, 20), dist.dist.interval(1))
+
     def test_uniform_invalid(self):
         with self.assertRaises(ValueError):
             core.distribution.UniformDistribution(0, 0)

@@ -4,6 +4,7 @@ import threading
 import numpy as np
 
 from algorithms import Matcher
+from core.distribution import UniformDistribution
 
 
 class lagEM(Matcher):
@@ -50,8 +51,8 @@ class lagEM(Matcher):
 
     def calculate(self, a, b):
         r = np.ones([a.size, b.size]) / b.size
-        mu = np.random.uniform(76, 78)
-        variance = np.random.uniform(3, 25) ** 2
+        mu = UniformDistribution(76, 78).getRandom()
+        variance = UniformDistribution(3, 25).getRandom() ** 2
 
         while True:
             self.logger.trace("Current parameters: Mu: {}\t Sigma:{}".format(mu, math.sqrt(variance)))

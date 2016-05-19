@@ -171,7 +171,8 @@ class UniformDistribution(Distribution):
         self.lower = lower
         self.upper = upper
         self._checkParam()
-        self.dist = stats.uniform(lower, upper)
+        # scipy expects size of interval as second parameter
+        self.dist = stats.uniform(lower, upper - lower)
 
     def _checkParam(self):
         if (self.lower >= self.upper):

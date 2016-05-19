@@ -44,8 +44,9 @@ class TestScript(unittest.TestCase):
 
     def test_asJson(self):
         rule = Rule("a", "b", NormalDistribution(0, 1))
-        expected = {"trigger": "a", "response": "b", "triggerConfidence": 1.0, "responseConfidence": 1.0, "dist":
-            NormalDistribution(0, 1).asJson()}
+        expected = {"trigger": "a", "response": "b", "triggerConfidence": 1.0, "responseConfidence": 1.0,
+                    'likelihood': -1, "dist":
+                        NormalDistribution(0, 1).asJson()}
         self.assertEqual(expected, rule.asJson())
 
     def test___eq__(self):
