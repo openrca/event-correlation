@@ -7,7 +7,7 @@ import math
 import core.distribution
 import generation.entry
 import visualization
-from algorithms import munkresAssign, lagEM
+from algorithms import marcoalg, lagEM
 from core import sequence
 from core.distribution import NormalDistribution
 from core.rule import Rule
@@ -90,20 +90,30 @@ else:
 print("Processing sequence:")
 print(str(seq))
 
-if (args.algorithm == 'munkresAssign'):
-    munkresAssign.munkresAssign(seq, "A", "B")
-elif (args.algorithm == 'lagEM'):
+resultDist = None
+param = None
+if (args.algorithm == marcoalg.MarcoAlg.__name__):
+    algorithm = marcoalg.MarcoAlg()
+    param = algorithm.match(sequence=seq, eventA="A", eventB="B")
+    resultDist = NormalDistribution(param["Mu"], param["Sigma"])
+    rule = Rule("A", "B", resultDist)
+    seq.calculatedRules = [rule]
+
+elif (args.algorithm == lagEM.lagEM.__name__):
     algorithm = lagEM.lagEM()
     param = algorithm.match(sequence=seq, eventA="A", eventB="B", threshold=args.threshold)
 
-    dist = NormalDistribution(param["Mu"], param["Sigma"])
-    rule = Rule("A", "B", dist)
+    resultDist = NormalDistribution(param["Mu"], param["Sigma"])
+    rule = Rule("A", "B", resultDist)
     seq.calculatedRules = [rule]
 
-    printResult(param, baseDistributions)
-    printDistance(dist, baseDistributions[0])
-    visualization.showDistributions(dist, baseDistributions[0])
-    visualization.showVisualizer(seq)
-else:
+if (resultDist is None):
     print("Unknown algorithm: '{}'".format(args.algorithm))
     exit(1)
+
+if (param is not None):
+    printResult(param, baseDistributions)
+printDistance(resultDist, baseDistributions[0])
+visualization.getAreaBetweenDistributions(resultDist, baseDistributions[0])
+visualization.showDistributions(resultDist, baseDistributions[0])
+visualization.showVisualizer(seq)

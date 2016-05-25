@@ -15,6 +15,8 @@ logging.Logger.trace = trace
 
 class Matcher:
     def __init__(self, name):
+        if (name is None):
+            name = __name__
         self.name = name
         self.logger = None
         self._initLogging()
@@ -23,7 +25,7 @@ class Matcher:
         self.logger = logging.getLogger(self.name)
         if (len(self.logger.handlers) == 0):
             handler = logging.StreamHandler()
-            handler.setLevel(logging.INFO)
+            handler.setLevel(logging.DEBUG)
 
             formatter = logging.Formatter('%(asctime)s - %(name)s: %(levelname)s - %(message)s')
             handler.setFormatter(formatter)
