@@ -1,7 +1,56 @@
-#!/usr/bin/env python
-# -*- coding: iso-8859-1 -*-
+import logging
+import math
+import sys
 
-# Documentation is intended to be processed by Epydoc.
+import numpy as np
+
+from algorithms import Matcher
+
+
+class MunkresMatcher(Matcher):
+    def __init__(self):
+        super().__init__(__name__)
+        self.sequence = None
+        self.eventA = None
+        self.eventB = None
+
+    def parseArgs(self, kwargs):
+        self.sequence = kwargs["sequence"]
+        self.eventA = kwargs["eventA"]
+        self.eventB = kwargs["eventB"]
+
+    def match(self, **kwargs):
+        self.parseArgs(kwargs)
+
+        a = self.sequence.asVector(self.eventA)
+        b = self.sequence.asVector(self.eventB)
+
+        [A, B] = np.meshgrid(a, b)
+        c = B - A
+        print(c)
+        print("\n\n")
+
+        np.set_printoptions(precision=4)
+        np.set_printoptions(suppress=True)
+
+        # munkres does not handle negative values
+        c[c < 0] = 1e18
+        print(c)
+
+        m = Munkres()
+        idx = m.compute(c)
+
+        cost = c[idx[0], idx[1]]
+        self.logger.debug("Found matchings with total cost {:.2f}".format(cost.sum()))
+
+        if (self.logger.isEnabledFor(logging.TRACE)):
+            for i in range(len(cost)):
+                self.logger.trace("Matched ({}, {}) -> {:.4f}".format(idx[0][i], idx[1][i], cost[i]))
+
+        mean = cost.sum() / len(cost)
+        var = ((cost - mean) ** 2).sum() / len(cost)
+        return {"Mu": mean, "Sigma": math.sqrt(var)}
+
 
 """
 Introduction
@@ -277,8 +326,6 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
-import sys
-import numpy as np
 
 __docformat__ = 'restructuredtext'
 
@@ -412,7 +459,7 @@ class Munkres:
             step = func()
 
         ones = np.where(self.marked[:self.original_length, :self.original_width] == 1)
-        return zip(*ones)
+        return np.array(ones)
 
     def __step1(self):
         """
@@ -650,48 +697,3 @@ def print_matrix(matrix, msg=None):
     if msg is not None:
         print(msg)
     print(matrix)
-
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
-
-if __name__ == '__main__':
-
-    matrices = [
-        # Square
-        ([[400, 150, 400],
-          [400, 450, 600],
-          [300, 225, 300]],
-         850),  # expected cost
-
-        # Rectangular variant
-        ([[400, 150, 400, 1],
-          [400, 450, 600, 2],
-          [300, 225, 300, 3]],
-         452),  # expected cost
-
-
-        # Square
-        ([[10, 10, 8],
-          [9, 8, 1],
-          [9, 7, 4]],
-         18),
-
-        # Rectangular variant
-        ([[10, 10, 8, 11],
-          [9, 8, 1, 1],
-          [9, 7, 4, 10]],
-         15)]
-
-    m = Munkres()
-    for cost_matrix, expected_total in matrices:
-        print_matrix(cost_matrix, msg='cost matrix')
-        indexes = m.compute(cost_matrix)
-        total_cost = 0
-        for r, c in indexes:
-            x = cost_matrix[r][c]
-            total_cost += x
-            print('(%d, %d) -> %d' % (r, c, x))
-        print('lowest cost=%d' % total_cost)
-        assert expected_total == total_cost

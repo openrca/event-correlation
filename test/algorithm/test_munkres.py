@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from lib.munkres import Munkres
+from algorithms.munkresMatcher import Munkres
 
 
 class TestScript(unittest.TestCase):
@@ -12,8 +12,8 @@ class TestScript(unittest.TestCase):
     @staticmethod
     def calcTotalCost(indexes, cost_matrix):
         total_cost = 0
-        for r, c in indexes:
-            x = cost_matrix[r][c]
+        for i in range(len(indexes[0])):
+            x = cost_matrix[indexes[0][i]][indexes[1][i]]
             total_cost += x
         return total_cost
 
@@ -43,7 +43,7 @@ class TestScript(unittest.TestCase):
                       [9, 8, 1, 1],
                       [9, 7, 4, 10]])
         res = self.m.compute(c)
-        self.assertEqual(15, self.calcTotalCost(res,c ))
+        self.assertEqual(15, self.calcTotalCost(res, c))
 
 
 if __name__ == '__main__':
