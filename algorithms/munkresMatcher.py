@@ -27,14 +27,13 @@ class MunkresMatcher(Matcher):
 
         [A, B] = np.meshgrid(a, b)
         c = B - A
-        print(c)
-        print("\n\n")
-
-        np.set_printoptions(precision=4)
-        np.set_printoptions(suppress=True)
 
         # munkres does not handle negative values
         c[c < 0] = 1e18
+
+        # TODO remove
+        np.set_printoptions(precision=4)
+        np.set_printoptions(suppress=True)
         print(c)
 
         m = Munkres()
