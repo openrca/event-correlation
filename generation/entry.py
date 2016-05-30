@@ -9,7 +9,7 @@ from core.rule import Rule
 class Entry:
     def __init__(self, rule: Rule, dist=ExponentialDistribution(), scale=1.0):
         self.rule = rule
-        self.lastTime = -1
+        self.lastTime = 0
         self.dist = dist
         self.scale = scale
 
