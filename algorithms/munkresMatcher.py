@@ -1,5 +1,4 @@
 import logging
-import math
 import sys
 
 import numpy as np
@@ -46,9 +45,19 @@ class MunkresMatcher(Matcher):
             for i in range(len(cost)):
                 self.logger.trace("Matched ({}, {}) -> {:.4f}".format(idx[0][i], idx[1][i], cost[i]))
 
-        mean = cost.sum() / len(cost)
-        var = ((cost - mean) ** 2).sum() / len(cost)
-        return {"Mu": mean, "Sigma": math.sqrt(var)}
+        # truncation based on mean
+        # tmp = cost[abs(cost - cost.mean()) < cost.std()]
+
+        # truncation based on median
+        distance = np.abs(cost - np.median(cost))
+        d = np.median(distance)
+        s = distance / d if d else 0.
+        tmp = cost[s < 1]
+
+        # Surprisingly, the best results are obtained when the mean is calculated over the whole assignments and the
+        # standard deviation is calculated on the truncated assignments (remove outliers). I don't know why the
+        # algorithm behaves this way.
+        return {"Mu": cost.mean(), "Sigma": tmp.std()}
 
 
 """
