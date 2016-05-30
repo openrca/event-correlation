@@ -1,10 +1,7 @@
 import math
+import shutil
 
-import cvxopt.solvers
 import numpy as np
-import scipy.optimize
-from cvxopt import matrix
-from pymatbridge import Matlab
 
 from algorithms import Matcher
 
@@ -15,6 +12,7 @@ class MarcoAlg(Matcher):
         self.sequence = None
         self.eventA = None
         self.eventB = None
+        self.algorithm = None
 
         self.a = None
         self.b = None
@@ -25,6 +23,12 @@ class MarcoAlg(Matcher):
         self.sequence = kwargs["sequence"]
         self.eventA = kwargs["eventA"]
         self.eventB = kwargs["eventB"]
+        if (kwargs["algorithm"] == "fmincon"):
+            self.algorithm = self.solveFMinCon
+        elif (kwargs["algorithm"] == "cpl"):
+            self.algorithm = self.solveCPL
+        else:
+            self.algorithm = self.solveSLSQP
 
     def calculateMeanVar(self, z):
         Z = np.reshape(z, (len(self.a), len(self.b)))
@@ -60,7 +64,7 @@ class MarcoAlg(Matcher):
 
         self.Aeq = np.kron(np.eye(nb), np.ones(na))
 
-        Z = self.solveFMinCon(z_0, na, nb)
+        Z = self.algorithm(z_0, na, nb)
 
         idx = Z.argmax(axis=1)
         approxZ = np.zeros(Z.shape)
@@ -72,6 +76,11 @@ class MarcoAlg(Matcher):
         return {"Mu": mu, "Sigma": math.sqrt(var)}
 
     def solveFMinCon(self, z, na, nb):
+        from pymatbridge import Matlab
+
+        if (shutil.which("matlab") is None):
+            raise RuntimeError("Matlab not found. Please ensure that Matlab is in the path.")
+
         self.logger.debug("Connecting to Matlab")
         matlab = Matlab()
         matlab.start()
@@ -98,6 +107,8 @@ class MarcoAlg(Matcher):
 
         Does not converge for sequences with more than ~30 events.
         """
+        import scipy.optimize
+
         res = scipy.optimize.minimize(self._costFunctionSLSQP, z, method='SLSQP', constraints=(
             # Constraints can be formulated as equality ('eq') to 0 or inequality ('ineq') >= 0
             {'type': 'ineq', 'fun': lambda x: -self.A.dot(x)},
@@ -117,6 +128,9 @@ class MarcoAlg(Matcher):
         raise RuntimeError("Not working yet")
 
         # noinspection PyUnreachableCode
+        from cvxopt import matrix
+        import cvxopt.solvers
+
         [A, B] = np.meshgrid(self.a, self.b)
         delta = B - A
         var, mean = self.calculateMeanVar(z)
@@ -132,6 +146,8 @@ class MarcoAlg(Matcher):
         return res
 
     def F(self, x=None, z=None):
+        from cvxopt import matrix
+
         na = len(self.a)
         nb = len(self.b)
 

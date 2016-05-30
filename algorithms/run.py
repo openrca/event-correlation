@@ -94,7 +94,7 @@ resultDist = None
 param = None
 if (args.algorithm == marcoalg.MarcoAlg.__name__):
     algorithm = marcoalg.MarcoAlg()
-    param = algorithm.match(sequence=seq, eventA="A", eventB="B")
+    param = algorithm.match(sequence=seq, eventA="A", eventB="B", algorithm="fmincon")
 
     resultDist = NormalDistribution(param["Mu"], param["Sigma"])
     rule = Rule("A", "B", resultDist)
