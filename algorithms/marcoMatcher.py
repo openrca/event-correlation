@@ -6,7 +6,7 @@ import numpy as np
 from algorithms import Matcher
 
 
-class MarcoAlg(Matcher):
+class MarcoMatcher(Matcher):
     def __init__(self):
         super().__init__(__name__)
         self.sequence = None

@@ -7,7 +7,7 @@ import math
 import core.distribution
 import generation.entry
 import visualization
-from algorithms import marcoalg, lagEM, munkresMatcher
+from algorithms import marcoMatcher, lagEM, munkresMatcher
 from core import sequence
 from core.distribution import NormalDistribution
 from core.rule import Rule
@@ -92,8 +92,8 @@ print(str(seq))
 
 resultDist = None
 param = None
-if (args.algorithm == marcoalg.MarcoAlg.__name__):
-    algorithm = marcoalg.MarcoAlg()
+if (args.algorithm == marcoMatcher.MarcoMatcher.__name__):
+    algorithm = marcoMatcher.MarcoMatcher()
     param = algorithm.match(sequence=seq, eventA="A", eventB="B", algorithm="fmincon")
 
     resultDist = NormalDistribution(param["Mu"], param["Sigma"])
