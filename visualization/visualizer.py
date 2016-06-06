@@ -1,5 +1,6 @@
 """ Automatically generated documentation for Visualizer """
 import logging
+import math
 import os
 import sys
 import threading
@@ -117,6 +118,14 @@ class SequenceWidget(QGraphicsScene):
 
     def paint(self, sequence):
         self.sequence = sequence
+
+        # truncate sequence for faster rendering
+        if (len(sequence) > 500):
+            logging.info("Truncating sequence to 500 events to limit rendering time")
+            seq = Sequence(sequence.events[0: 500], math.ceil(sequence.events[499].timestamp) + 1, sequence.rules,
+                           sequence.calculatedRules)
+            self.sequence = seq
+
         eventCount = 0
         for i in range(self.sequence.length):
             for event in self.sequence.getEvent(i):
@@ -135,8 +144,9 @@ class SequenceWidget(QGraphicsScene):
             if (rule is None):
                 rule = sequence.getRule(event, response)
 
-            triggeredWidget = self.eventWidgets[event.triggered]
-            self.addItem(ArrowWidget(widget, triggeredWidget, rule))
+            if (event.triggered in self.eventWidgets):
+                triggeredWidget = self.eventWidgets[event.triggered]
+                self.addItem(ArrowWidget(widget, triggeredWidget, rule))
 
     def cleanUp(self):
         self.sequence = None

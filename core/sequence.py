@@ -10,11 +10,11 @@ from core.event import Event
 
 
 class Sequence:
-    def __init__(self, events, length, rules=[]):
+    def __init__(self, events, length, rules=[], calculatedRules=[]):
         self.events = events
         self.length = length
         self.rules = rules
-        self.calculatedRules = []
+        self.calculatedRules = calculatedRules
 
     def getEvents(self, eventType=None):
         res = []
@@ -60,6 +60,9 @@ class Sequence:
             v[i] = e.timestamp
             i += 1
         return v
+
+    def __len__(self):
+        return len(self.events)
 
     def __str__(self):
         tokens = []
