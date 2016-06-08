@@ -15,7 +15,7 @@ class TestScript(unittest.TestCase):
         self.assertEqual(Rule("A", "B", NormalDistribution()), entry.rule)
         self.assertEqual(ExponentialDistribution(), entry.dist)
         self.assertEqual(1, entry.scale)
-        self.assertEqual(-1, entry.lastTime)
+        self.assertEqual(0, entry.lastTime)
 
     def test_getOccurrenceProb(self):
         entry = Entry(Rule("A", "B", NormalDistribution()), UniformDistribution(0, 10))
