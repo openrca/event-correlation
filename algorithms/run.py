@@ -9,6 +9,7 @@ import generation.entry
 import visualization
 from algorithms import marcoMatcher, lagEM, munkresMatcher
 from core import sequence
+from core.Timer import Timer
 from core.distribution import NormalDistribution
 from core.rule import Rule
 from generation.generator import Generator
@@ -90,40 +91,40 @@ else:
 print("Processing sequence:")
 print(str(seq))
 
-resultDist = None
+timer = Timer()
 param = None
 if (args.algorithm == marcoMatcher.MarcoMatcher.__name__):
     algorithm = marcoMatcher.MarcoMatcher()
-    param = algorithm.match(sequence=seq, eventA="A", eventB="B", algorithm="fmincon")
 
-    resultDist = NormalDistribution(param["Mu"], param["Sigma"])
-    rule = Rule("A", "B", resultDist)
-    seq.calculatedRules = [rule]
+    timer.start()
+    param = algorithm.match(sequence=seq, eventA="A", eventB="B", algorithm="fmincon")
+    timer.stop()
 
 elif (args.algorithm == munkresMatcher.MunkresMatcher.__name__):
     algorithm = munkresMatcher.MunkresMatcher()
+
+    timer.start()
     param = algorithm.match(sequence=seq, eventA="A", eventB="B")
-
-    resultDist = NormalDistribution(param["Mu"], param["Sigma"])
-    rule = Rule("A", "B", resultDist)
-    seq.calculatedRules = [rule]
-
+    timer.stop()
 
 elif (args.algorithm == lagEM.lagEM.__name__):
     algorithm = lagEM.lagEM()
-    param = algorithm.match(sequence=seq, eventA="A", eventB="B", threshold=args.threshold)
 
+    timer.start()
+    param = algorithm.match(sequence=seq, eventA="A", eventB="B", threshold=args.threshold)
+    timer.stop()
+
+if (param is None):
+    print("Unknown algorithm: '{}'".format(args.algorithm))
+    exit(1)
+else:
     resultDist = NormalDistribution(param["Mu"], param["Sigma"])
     rule = Rule("A", "B", resultDist)
     seq.calculatedRules = [rule]
 
-if (resultDist is None):
-    print("Unknown algorithm: '{}'".format(args.algorithm))
-    exit(1)
-
-if (param is not None):
     printResult(param, baseDistributions)
-printDistance(resultDist, baseDistributions[0])
-visualization.getAreaBetweenDistributions(resultDist, baseDistributions[0])
-visualization.showDistributions(resultDist, baseDistributions[0])
-visualization.showVisualizer(seq)
+    print("Calculation time: {} minutes".format(timer))
+    printDistance(resultDist, baseDistributions[0])
+    visualization.getAreaBetweenDistributions(resultDist, baseDistributions[0])
+    visualization.showDistributions(resultDist, baseDistributions[0])
+    visualization.showVisualizer(seq)
