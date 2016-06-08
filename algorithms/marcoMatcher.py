@@ -16,32 +16,19 @@ class MarcoMatcher(Matcher):
 
         self.a = None
         self.b = None
-        self.A = None
-        self.Aeq = None
-        self.delta = None
 
     def parseArgs(self, kwargs):
         self.sequence = kwargs["sequence"]
         self.eventA = kwargs["eventA"]
         self.eventB = kwargs["eventB"]
-        if (kwargs["algorithm"] == "quadprog"):
-            self.algorithm = self.solveQuadProg
-        elif (kwargs["algorithm"] == "cpl"):
-            self.algorithm = self.solveCPL
-        elif (kwargs["algorithm"] == "slsqp"):
-            self.algorithm = self.solveSLSQP
+        if (kwargs["algorithm"] == "matlab"):
+            self.algorithm = self.solveMatlab
+        elif (kwargs["algorithm"] == "scipy"):
+            self.algorithm = self.solveScipy
+        elif (kwargs["algorithm"] == "cvxopt"):
+            self.algorithm = self.solveCvxopt
         else:
             raise ValueError("No algorithm specified.")
-
-    def calculateMeanVar(self, z):
-        Z = np.reshape(z, (len(self.a), len(self.b)))
-        [A, B] = np.meshgrid(self.a, self.b)
-        delta = B - A
-
-        mean = 1 / len(self.b) * np.sum(np.multiply(Z, delta))
-
-        var = 1 / (len(self.b) - 1) * np.sum(np.multiply(Z, (delta.T - mean) ** 2))
-        return (mean, var)
 
     def match(self, **kwargs):
         self.parseArgs(kwargs)
@@ -52,26 +39,34 @@ class MarcoMatcher(Matcher):
         na = len(self.a)
         nb = len(self.b)
 
-        z_0 = np.repeat(1 / na * np.ones(na), nb)
-
         [TA, TB] = np.meshgrid(self.a, self.b)
-        self.delta = TB - TA
-        self.A = -np.diag(self.delta.reshape(-1))
+        delta = TB - TA
+        A = -np.diag(delta.reshape(-1))
+        b = np.zeros(na * nb)
 
-        self.Aeq = np.kron(np.eye(nb), np.ones(na))
+        # one to one matching
+        A = np.concatenate((A, np.tile(np.eye(na), (1, nb))))
+        b = np.concatenate((b, np.ones(na)))
 
-        Z = self.algorithm(z_0, na, nb)
+        Aeq = np.kron(np.eye(nb), np.ones(na))
+        beq = np.ones(nb)
+
+        f = delta.flatten() ** 2 / (na - 1)
+
+        Z = self.algorithm(f, A, b, Aeq, beq, na, nb)
 
         idx = Z.argmax(axis=1)
         approxZ = np.zeros(Z.shape)
         approxZ[np.arange(idx.size), idx] = 1
 
-        print("Approximation:")
-        print(approxZ)
-        mu, var = self.calculateMeanVar(approxZ)
-        return {"Mu": mu, "Sigma": math.sqrt(var)}
+        self.logger.trace("Final (approximated) result: \n {}".format(approxZ))
 
-    def solveQuadProg(self, z, na, nb):
+        mean = 1 / len(self.b) * np.sum(np.multiply(approxZ, delta))
+        var = 1 / (len(self.b) - 1) * np.sum(np.multiply(approxZ, (delta.T - mean) ** 2))
+
+        return {"Mu": mean, "Sigma": math.sqrt(var)}
+
+    def solveMatlab(self, f, A, b, Aeq, beq, na, nb):
         from pymatbridge import Matlab
 
         if (shutil.which("matlab") is None):
@@ -81,22 +76,16 @@ class MarcoMatcher(Matcher):
         matlab = Matlab()
         matlab.start()
 
-        A = self.A
-        b = np.zeros(na * nb)
+        z = np.repeat(1 / na * np.ones(na), nb)
 
-        # one to one matching
-        A = np.concatenate((A, np.tile(np.eye(na), nb)))
-        b = np.concatenate((b, np.ones(na)))
-
-        matlab.set_variable("z", z.T)
+        matlab.set_variable("f", f)
         matlab.set_variable("A", A)
-        matlab.set_variable("b", b.T)
-
-        matlab.set_variable("Aeq", self.Aeq)
-        matlab.set_variable("beq", np.ones(nb).T)
-        matlab.set_variable("lb", np.zeros(na * nb).T)
-        matlab.set_variable("ub", np.ones(na * nb).T)
-        matlab.set_variable("f", self.delta.flatten() ** 2 / (na - 1))
+        matlab.set_variable("b", b)
+        matlab.set_variable("Aeq", Aeq)
+        matlab.set_variable("beq", beq)
+        matlab.set_variable("lb", np.zeros(na * nb))
+        matlab.set_variable("ub", np.ones(na * nb))
+        matlab.set_variable("z", z)
 
         matlab.run_code("[z_opt, val] = quadprog([], f, A, b, Aeq, beq, lb, ub, z);")
         z_opt = matlab.get_variable("z_opt")
@@ -104,54 +93,41 @@ class MarcoMatcher(Matcher):
         self.logger.debug("Closing connection to Matlab")
         return np.reshape(z_opt, (na, nb))
 
-    def solveSLSQP(self, z, na, nb):
-        """ Solve the optimization problem using scipy.optimize.minimize().
+    def solveScipy(self, f, A, b, Aeq, beq, na, nb):
+        """ Solve the optimization problem using scipy.optimize.linprog().
 
-        Does not converge for sequences with more than ~30 events.
+        Performance highly depends on the maximum number of iterations
         """
         import scipy.optimize
 
-        res = scipy.optimize.minimize(self._costFunctionSLSQP, z, method='SLSQP', constraints=(
-            # Constraints can be formulated as equality ('eq') to 0 or inequality ('ineq') >= 0
-            {'type': 'ineq', 'fun': lambda x: -self.A.dot(x)},
-            {'type': 'eq', 'fun': lambda x: self.Aeq.dot(x) - 1}
-        ), bounds=((0, 1),) * z.size, options={"disp": True})
-        print(res)
+        self.logger.debug("Using scipy to solve optimization problem")
+        res = scipy.optimize.linprog(f, A, b, Aeq, beq, bounds=((0, 1),) * na * nb,
+                                     options={"disp": True,
+                                              "bland": True,
+                                              "tol": 1e-12,
+                                              "maxiter": 5000})
+        if (not res.success):
+            self.logger.warn("Unable to find solution: {}. Results may be bad.".format(res.message))
+
         return np.reshape(res.x, (na, nb))
 
-    def _costFunctionSLSQP(self, z):
-        return self.calculateMeanVar(z)[0]
-
-    def solveCPL(self, z, na, nb):
+    def solveCvxopt(self, f, A, b, Aeq, beq, na, nb):
         """ Solve the optimization problem using cvxpot.solvers.cpl().
 
-        Not working yet!
+        Works for higher dimensions but requires quite some time.
         """
-        raise RuntimeError("Not working yet")
-
-        # noinspection PyUnreachableCode
-        from cvxopt import matrix
         import cvxopt.solvers
-
-        [A, B] = np.meshgrid(self.a, self.b)
-        delta = B - A
-        var, mean = self.calculateMeanVar(z)
-
-        c = (delta - mean) ** 2 / (na - 1)
-        c = matrix(c.reshape(na * nb, 1))
-
-        h = np.zeros(na * nb)
-        b = np.ones(na * nb)
-
-        res = cvxopt.solvers.cpl(c=c, F=self.F, options={"debug": True})  # , G=self.A, h=h, A=self.Aeq, b=b)
-        print(res)
-        return res
-
-    def F(self, x=None, z=None):
         from cvxopt import matrix
 
-        na = len(self.a)
-        nb = len(self.b)
+        # add boundaries was lp has no build-in boundaries
+        A1 = np.concatenate((A, -np.eye(na * nb),  np.eye(na * nb)))
+        b1 = np.concatenate((b, np.zeros(na * nb), np.ones(na * nb)))
 
-        if x is None:
-            return 0, matrix(np.repeat(1 / na * np.ones(na), nb))
+        self.logger.debug("Using cvxopt to solve optimization problem")
+        sol = cvxopt.solvers.lp(matrix(f), matrix(A1), matrix(b1), matrix(Aeq), matrix(beq), solver="glpk")
+
+        if (sol["x"] is None):
+            self.logger.warn("Unable to find solution")
+            return np.zeros((na, nb))
+
+        return np.reshape(sol["x"], (na, nb))
