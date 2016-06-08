@@ -34,7 +34,6 @@ class MunkresMatcher(Matcher):
         c **= 2
 
         # TODO remove
-        np.set_printoptions(precision=4, suppress=True, linewidth=150, threshold=10000)
         print(c)
 
         m = Munkres()

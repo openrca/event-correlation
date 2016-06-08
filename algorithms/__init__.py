@@ -1,6 +1,8 @@
 import abc
 import logging
 
+import numpy as np
+
 logging.TRACE = 5
 logging.addLevelName(logging.TRACE, "TRACE")
 
@@ -20,12 +22,13 @@ class Matcher:
         self.name = name
         self.logger = None
         self._initLogging()
+        np.set_printoptions(precision=4, suppress=True, linewidth=150, threshold=10000)
 
     def _initLogging(self):
         self.logger = logging.getLogger(self.name)
         if (len(self.logger.handlers) == 0):
             handler = logging.StreamHandler()
-            handler.setLevel(logging.DEBUG)
+            handler.setLevel(logging.TRACE)
 
             formatter = logging.Formatter('%(asctime)s - %(name)s: %(levelname)s - %(message)s')
             handler.setFormatter(formatter)
