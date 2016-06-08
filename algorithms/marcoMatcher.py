@@ -18,17 +18,20 @@ class MarcoMatcher(Matcher):
         self.b = None
         self.A = None
         self.Aeq = None
+        self.delta = None
 
     def parseArgs(self, kwargs):
         self.sequence = kwargs["sequence"]
         self.eventA = kwargs["eventA"]
         self.eventB = kwargs["eventB"]
-        if (kwargs["algorithm"] == "fmincon"):
-            self.algorithm = self.solveFMinCon
+        if (kwargs["algorithm"] == "quadprog"):
+            self.algorithm = self.solveQuadProg
         elif (kwargs["algorithm"] == "cpl"):
             self.algorithm = self.solveCPL
-        else:
+        elif (kwargs["algorithm"] == "slsqp"):
             self.algorithm = self.solveSLSQP
+        else:
+            raise ValueError("No algorithm specified.")
 
     def calculateMeanVar(self, z):
         Z = np.reshape(z, (len(self.a), len(self.b)))
@@ -46,21 +49,14 @@ class MarcoMatcher(Matcher):
         self.a = self.sequence.asVector(self.eventA)
         self.b = self.sequence.asVector(self.eventB)
 
-        # self.a = np.array([12.6987, 63.2359, 81.4724, 90.5792, 91.3376])
-        # self.b = np.array([20.0833, 72.3687, 92.1576, 107.7360, 106.8765])
-
         na = len(self.a)
         nb = len(self.b)
 
         z_0 = np.repeat(1 / na * np.ones(na), nb)
 
         [TA, TB] = np.meshgrid(self.a, self.b)
-        delta = (TB - TA)
-        self.A = -np.diag(delta.reshape(-1))
-
-        # one to one matching
-        # A = np.concatenate((A, np.tile(np.eye(na), nb)))
-        # b = np.concatenate((b, np.ones(na)))
+        self.delta = TB - TA
+        self.A = -np.diag(self.delta.reshape(-1))
 
         self.Aeq = np.kron(np.eye(nb), np.ones(na))
 
@@ -75,7 +71,7 @@ class MarcoMatcher(Matcher):
         mu, var = self.calculateMeanVar(approxZ)
         return {"Mu": mu, "Sigma": math.sqrt(var)}
 
-    def solveFMinCon(self, z, na, nb):
+    def solveQuadProg(self, z, na, nb):
         from pymatbridge import Matlab
 
         if (shutil.which("matlab") is None):
@@ -84,19 +80,25 @@ class MarcoMatcher(Matcher):
         self.logger.debug("Connecting to Matlab")
         matlab = Matlab()
         matlab.start()
+
+        A = self.A
+        b = np.zeros(na * nb)
+
+        # one to one matching
+        A = np.concatenate((A, np.tile(np.eye(na), nb)))
+        b = np.concatenate((b, np.ones(na)))
+
         matlab.set_variable("z", z.T)
-        matlab.set_variable("ta", self.a)
-        matlab.set_variable("tb", self.b)
-        matlab.set_variable("A", self.A)
-        matlab.set_variable("b", np.zeros(na * nb).T)
+        matlab.set_variable("A", A)
+        matlab.set_variable("b", b.T)
+
         matlab.set_variable("Aeq", self.Aeq)
         matlab.set_variable("beq", np.ones(nb).T)
         matlab.set_variable("lb", np.zeros(na * nb).T)
         matlab.set_variable("ub", np.ones(na * nb).T)
-        matlab.run_code("fun = @(z)cost_function(z, ta, tb, 'var');")
+        matlab.set_variable("f", self.delta.flatten() ** 2 / (na - 1))
 
-        matlab.run_code(
-            "[z_opt, val] = fmincon(fun, z, A, b, Aeq, beq, lb, ub, [], optimoptions('fmincon', 'MaxFunEvals', 1e5));")
+        matlab.run_code("[z_opt, val] = quadprog([], f, A, b, Aeq, beq, lb, ub, z);")
         z_opt = matlab.get_variable("z_opt")
         matlab.stop()
         self.logger.debug("Closing connection to Matlab")

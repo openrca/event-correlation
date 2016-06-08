@@ -97,7 +97,7 @@ if (args.algorithm == marcoMatcher.MarcoMatcher.__name__):
     algorithm = marcoMatcher.MarcoMatcher()
 
     timer.start()
-    param = algorithm.match(sequence=seq, eventA="A", eventB="B", algorithm="fmincon")
+    param = algorithm.match(sequence=seq, eventA="A", eventB="B", algorithm="quadprog")
     timer.stop()
 
 elif (args.algorithm == munkresMatcher.MunkresMatcher.__name__):
