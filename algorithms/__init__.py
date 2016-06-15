@@ -22,7 +22,11 @@ class Matcher:
         self.name = name
         self.logger = None
         self._initLogging()
-        np.set_printoptions(precision=4, suppress=True, linewidth=150, threshold=10000)
+        np.set_printoptions(precision=4, linewidth=150, threshold=10000)
+
+        self.sequence = None
+        self.eventA = None
+        self.eventB = None
 
     def _initLogging(self):
         self.logger = logging.getLogger(self.name)
@@ -37,10 +41,18 @@ class Matcher:
             self.logger.propagate = False
             self.logger.addHandler(handler)
 
+    def match(self, sequence, eventA, eventB, **kwargs):
+        """ Computes a correlation of two event types. Check parseArgs for additional parameters. """
+        self.sequence = sequence
+        self.eventA = eventA
+        self.eventB = eventB
+        self.parseArgs(kwargs)
+        return self.compute()
+
     @abc.abstractmethod
     def parseArgs(self, kwargs):
         pass
 
     @abc.abstractmethod
-    def match(self, **kwargs):
+    def compute(self):
         pass

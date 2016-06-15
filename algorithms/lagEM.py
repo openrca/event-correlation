@@ -10,19 +10,16 @@ from core.distribution import UniformDistribution
 class lagEM(Matcher):
     def __init__(self):
         super().__init__(__name__)
-        self.sequence = None
-        self.eventA = None
-        self.eventB = None
         self.threshold = None
 
     def parseArgs(self, kwargs):
-        self.sequence = kwargs["sequence"]
-        self.eventA = kwargs["eventA"]
-        self.eventB = kwargs["eventB"]
+        """
+        Additional parameters:
+            threshold: Defines a threshold for parameter convergence
+        """
         self.threshold = kwargs["threshold"]
 
-    def match(self, **kwargs):
-        self.parseArgs(kwargs)
+    def compute(self):
         self.logger.info("Matching event {} against {}".format(self.eventA, self.eventB))
         a = self.sequence.asVector(self.eventA)
         b = self.sequence.asVector(self.eventB)

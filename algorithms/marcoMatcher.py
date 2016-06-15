@@ -9,18 +9,16 @@ from algorithms import Matcher
 class MarcoMatcher(Matcher):
     def __init__(self):
         super().__init__(__name__)
-        self.sequence = None
-        self.eventA = None
-        self.eventB = None
         self.algorithm = None
 
-        self.a = None
-        self.b = None
-
     def parseArgs(self, kwargs):
-        self.sequence = kwargs["sequence"]
-        self.eventA = kwargs["eventA"]
-        self.eventB = kwargs["eventB"]
+        """
+        Additional parameters:
+            algorithm: Defines the algorithm to solve the optimization problem. Allowed values are
+                matlab (requires Matlab and pymatbridge)
+                cvxopt (requires cvxopt with glpk support)
+                scipy
+        """
         if (kwargs["algorithm"] == "matlab"):
             self.algorithm = self.solveMatlab
         elif (kwargs["algorithm"] == "scipy"):
@@ -30,16 +28,14 @@ class MarcoMatcher(Matcher):
         else:
             raise ValueError("No algorithm specified.")
 
-    def match(self, **kwargs):
-        self.parseArgs(kwargs)
+    def compute(self):
+        eventA = self.sequence.asVector(self.eventA)
+        eventB = self.sequence.asVector(self.eventB)
 
-        self.a = self.sequence.asVector(self.eventA)
-        self.b = self.sequence.asVector(self.eventB)
+        na = len(eventA)
+        nb = len(eventB)
 
-        na = len(self.a)
-        nb = len(self.b)
-
-        [TA, TB] = np.meshgrid(self.a, self.b)
+        [TA, TB] = np.meshgrid(eventA, eventB)
         delta = TB - TA
         A = -np.diag(delta.reshape(-1))
         b = np.zeros(na * nb)
@@ -59,10 +55,10 @@ class MarcoMatcher(Matcher):
         approxZ = np.zeros(Z.shape)
         approxZ[np.arange(idx.size), idx] = 1
 
-        self.logger.trace("Final (approximated) result: \n {}".format(approxZ))
+        self.logger.trace("Final (approximated) result: \n {}".format(approxZ.argmax(axis=0)))
 
-        mean = 1 / len(self.b) * np.sum(np.multiply(approxZ, delta))
-        var = 1 / (len(self.b) - 1) * np.sum(np.multiply(approxZ, (delta.T - mean) ** 2))
+        mean = 1 / len(eventB) * np.sum(np.multiply(approxZ, delta))
+        var = 1 / (len(eventB) - 1) * np.sum(np.multiply(approxZ, (delta.T - mean) ** 2))
 
         return {"Mu": mean, "Sigma": math.sqrt(var)}
 
@@ -112,7 +108,7 @@ class MarcoMatcher(Matcher):
         return np.reshape(res.x, (na, nb))
 
     def solveCvxopt(self, f, A, b, Aeq, beq, na, nb):
-        """ Solve the optimization problem using cvxpot.solvers.cpl().
+        """ Solve the optimization problem using cvxopt.solvers.cpl().
 
         Works for higher dimensions but requires quite some time.
         """
@@ -120,7 +116,7 @@ class MarcoMatcher(Matcher):
         from cvxopt import matrix
 
         # add boundaries was lp has no build-in boundaries
-        A1 = np.concatenate((A, -np.eye(na * nb),  np.eye(na * nb)))
+        A1 = np.concatenate((A, -np.eye(na * nb), np.eye(na * nb)))
         b1 = np.concatenate((b, np.zeros(na * nb), np.ones(na * nb)))
 
         self.logger.debug("Using cvxopt to solve optimization problem")
