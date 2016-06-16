@@ -14,6 +14,9 @@ def trace(self, message, *args, **kws):
 
 logging.Logger.trace = trace
 
+RESULT_MU = "Mu"
+RESULT_SIGMA = "Sigma"
+
 
 class Matcher:
     def __init__(self, name):

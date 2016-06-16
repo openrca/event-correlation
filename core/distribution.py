@@ -329,3 +329,8 @@ def chi2test(dist1, dist2, n=2000):
 
     counts = np.bincount(np.digitize(a, bins))
     return stats.chisquare(counts).statistic
+
+
+def getEmpiricalDist(a, b):
+    d = b - a
+    return NormalDistribution(d.mean(), np.sqrt(d.var()))

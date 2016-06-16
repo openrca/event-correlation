@@ -3,7 +3,7 @@ import sys
 
 import numpy as np
 
-from algorithms import Matcher
+from algorithms import Matcher, RESULT_MU, RESULT_SIGMA
 
 
 class MunkresMatcher(Matcher):
@@ -45,7 +45,7 @@ class MunkresMatcher(Matcher):
         # complex associations with confidence < 1
         cost = cost[abs(cost - cost.mean()) < 2.58 * cost.std()]
 
-        return {"Mu": cost.mean(), "Sigma": cost.std()}
+        return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std()}
 
 
 """

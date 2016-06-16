@@ -3,7 +3,7 @@ import shutil
 
 import numpy as np
 
-from algorithms import Matcher
+from algorithms import Matcher, RESULT_MU, RESULT_SIGMA
 
 
 class MarcoMatcher(Matcher):
@@ -60,7 +60,7 @@ class MarcoMatcher(Matcher):
         mean = 1 / len(eventB) * np.sum(np.multiply(approxZ, delta))
         var = 1 / (len(eventB) - 1) * np.sum(np.multiply(approxZ, (delta.T - mean) ** 2))
 
-        return {"Mu": mean, "Sigma": math.sqrt(var)}
+        return {RESULT_MU: mean, RESULT_SIGMA: math.sqrt(var)}
 
     def solveMatlab(self, f, A, b, Aeq, beq, na, nb):
         from pymatbridge import Matlab

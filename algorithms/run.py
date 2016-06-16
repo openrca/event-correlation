@@ -2,12 +2,11 @@
 """ Automatically generated documentation for run """
 
 import argparse
-import math
 
 import core.distribution
 import generation.entry
 import visualization
-from algorithms import marcoMatcher, lagEM, munkresMatcher
+from algorithms import marcoMatcher, lagEM, munkresMatcher, RESULT_MU, RESULT_SIGMA
 from core import sequence
 from core.Timer import Timer
 from core.distribution import NormalDistribution
@@ -15,7 +14,7 @@ from core.rule import Rule
 from generation.generator import Generator
 
 
-def printResult(result, distributions):
+def printResult(result, distributions, empiricalDist=None):
     print("Final parameters:")
     for key, value in result.items():
         print("\t {}: {}".format(key, value))
@@ -23,20 +22,8 @@ def printResult(result, distributions):
         print("True parameters:")
         for d in distributions:
             print("\t {}".format(str(d)))
-
-    # TODO remove again
-    eventsA = seq.getEvents('A')
-    eventsB = seq.getEvents('B')
-    mean = 0
-    for i in range(len(eventsB)):
-        mean += eventsB[i].timestamp - eventsA[i].timestamp
-    mean /= len(eventsB)
-
-    var = 0
-    for i in range(len(eventsB)):
-        var += (eventsB[i].timestamp - eventsA[i].timestamp - mean) ** 2
-    var = math.sqrt(var / len(eventsB))
-    print("Empirical parameters:\n\tMu: {}\n\tSigma: {}".format(mean, var))
+    if (empiricalDist is not None):
+        print("Empirical parameters:\n\tMu: {}\n\tSigma: {}".format(empiricalDist.mu, empiricalDist.sigma))
 
 
 def printDistance(dist1, dist2):
@@ -92,39 +79,34 @@ print("Processing sequence:")
 print(str(seq))
 
 timer = Timer()
+timer.start()
 param = None
 if (args.algorithm == marcoMatcher.MarcoMatcher.__name__):
     algorithm = marcoMatcher.MarcoMatcher()
-
-    timer.start()
     param = algorithm.match(sequence=seq, eventA="A", eventB="B", algorithm="cvxopt")
-    timer.stop()
 
 elif (args.algorithm == munkresMatcher.MunkresMatcher.__name__):
     algorithm = munkresMatcher.MunkresMatcher()
-
-    timer.start()
     param = algorithm.match(sequence=seq, eventA="A", eventB="B")
-    timer.stop()
 
 elif (args.algorithm == lagEM.lagEM.__name__):
     algorithm = lagEM.lagEM()
-
-    timer.start()
     param = algorithm.match(sequence=seq, eventA="A", eventB="B", threshold=args.threshold)
-    timer.stop()
+
+timer.stop()
 
 if (param is None):
     print("Unknown algorithm: '{}'".format(args.algorithm))
     exit(1)
 else:
-    resultDist = NormalDistribution(param["Mu"], param["Sigma"])
+    empiricalDist = core.distribution.getEmpiricalDist(seq.asVector("A"), seq.asVector("B"))
+    resultDist = NormalDistribution(param[RESULT_MU], param[RESULT_SIGMA])
     rule = Rule("A", "B", resultDist)
     seq.calculatedRules = [rule]
 
-    printResult(param, baseDistributions)
+    printResult(param, baseDistributions, empiricalDist)
     print("Calculation time: {} minutes".format(timer))
-    printDistance(resultDist, baseDistributions[0])
+    printDistance(resultDist, empiricalDist)
     visualization.getAreaBetweenDistributions(resultDist, baseDistributions[0])
     visualization.showDistributions(resultDist, baseDistributions[0])
     visualization.showVisualizer(seq)
