@@ -10,7 +10,12 @@ from core.event import Event
 
 
 class Sequence:
-    def __init__(self, events, length, rules=[], calculatedRules=[]):
+    def __init__(self, events, length, rules=None, calculatedRules=None):
+        if (rules is None):
+            rules = []
+        if (calculatedRules is None):
+            calculatedRules = []
+
         self.events = events
         self.length = length
         self.rules = rules

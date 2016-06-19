@@ -6,7 +6,7 @@ import argparse
 import core.distribution
 import generation.entry
 import visualization
-from algorithms import marcoMatcher, lagEM, munkresMatcher, RESULT_MU, RESULT_SIGMA
+from algorithms import marcoMatcher, lagEM, munkresMatcher, RESULT_MU, RESULT_SIGMA, icpMatcher
 from core import sequence
 from core.Timer import Timer
 from core.distribution import NormalDistribution
@@ -93,13 +93,17 @@ elif (args.algorithm == lagEM.lagEM.__name__):
     algorithm = lagEM.lagEM()
     param = algorithm.match(sequence=seq, eventA="A", eventB="B", threshold=args.threshold)
 
+elif (args.algorithm == icpMatcher.IcpMatcher.__name__):
+    algorithm = icpMatcher.IcpMatcher()
+    param = algorithm.match(sequence=seq, eventA="A", eventB="B", showVisualization=False)
+
 timer.stop()
 
 if (param is None):
     print("Unknown algorithm: '{}'".format(args.algorithm))
     exit(1)
 else:
-    empiricalDist = core.distribution.getEmpiricalDist(seq.asVector("A"), seq.asVector("B"))
+    empiricalDist = core.distribution.getEmpiricalDist(seq, "A", "B")
     resultDist = NormalDistribution(param[RESULT_MU], param[RESULT_SIGMA])
     rule = Rule("A", "B", resultDist)
     seq.calculatedRules = [rule]

@@ -1,4 +1,5 @@
 import sys
+from time import sleep
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -35,6 +36,7 @@ def showDistributions(estimatedDist, trueDist, visualizeOverlap=True):
         ax.fill_between(x, 0, y, facecolor="#E8E8E8", edgecolor="#E8E8E8")
 
     plt.show()
+    sleep(1)
 
 
 def getAreaBetweenDistributions(dist1, dist2):

@@ -331,6 +331,12 @@ def chi2test(dist1, dist2, n=2000):
     return stats.chisquare(counts).statistic
 
 
-def getEmpiricalDist(a, b):
-    d = b - a
-    return NormalDistribution(d.mean(), np.sqrt(d.var()))
+def getEmpiricalDist(seq, trigger, response):
+    events = seq.getEvents(trigger)
+
+    values = []
+    for event in events:
+        if (event.triggered is not None and event.triggered.eventType == response):
+            values.append(event.triggered.timestamp - event.timestamp)
+    values = np.array(values)
+    return NormalDistribution(values.mean(), values.std())
