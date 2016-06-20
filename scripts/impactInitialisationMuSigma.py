@@ -23,18 +23,18 @@ sigma = ["1-3.6", "3.6-5.6", "5.6-7.6", "7.6-9.6", "9.6-25"]
 
 def showDistributions(title, trueDist, estimate0, estimate1, estimate2, estimate3, estimate4):
     plt.figure()
-    xMin = trueDist.dist.interval(0.99)[0]
-    xMax = trueDist.dist.interval(0.99)[1]
-    xMin = min(estimate0.dist.interval(0.99)[0], xMin)
-    xMax = max(estimate0.dist.interval(0.99)[1], xMax)
-    xMin = min(estimate1.dist.interval(0.99)[0], xMin)
-    xMax = max(estimate1.dist.interval(0.99)[1], xMax)
-    xMin = min(estimate2.dist.interval(0.99)[0], xMin)
-    xMax = max(estimate2.dist.interval(0.99)[1], xMax)
-    xMin = min(estimate3.dist.interval(0.99)[0], xMin)
-    xMax = max(estimate3.dist.interval(0.99)[1], xMax)
-    xMin = min(estimate4.dist.interval(0.99)[0], xMin)
-    xMax = max(estimate4.dist.interval(0.99)[1], xMax)
+    xMin = trueDist.getCompleteInterval()[0]
+    xMax = trueDist.getCompleteInterval()[1]
+    xMin = min(estimate0.getCompleteInterval()[0], xMin)
+    xMax = max(estimate0.getCompleteInterval()[1], xMax)
+    xMin = min(estimate1.getCompleteInterval()[0], xMin)
+    xMax = max(estimate1.getCompleteInterval()[1], xMax)
+    xMin = min(estimate2.getCompleteInterval()[0], xMin)
+    xMax = max(estimate2.getCompleteInterval()[1], xMax)
+    xMin = min(estimate3.getCompleteInterval()[0], xMin)
+    xMax = max(estimate3.getCompleteInterval()[1], xMax)
+    xMin = min(estimate4.getCompleteInterval()[0], xMin)
+    xMax = max(estimate4.getCompleteInterval()[1], xMax)
 
     x = np.linspace(xMin, xMax, 500)
     plt.plot(x, trueDist.dist.pdf(x), "b", label="True distribution")

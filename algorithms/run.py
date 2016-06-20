@@ -6,7 +6,7 @@ import argparse
 import core.distribution
 import generation.entry
 import visualization
-from algorithms import marcoMatcher, lagEM, munkresMatcher, RESULT_MU, RESULT_SIGMA, icpMatcher
+from algorithms import marcoMatcher, lagEM, munkresMatcher, RESULT_MU, RESULT_SIGMA, icpMatcher, RESULT_KDE
 from core import sequence
 from core.Timer import Timer
 from core.distribution import NormalDistribution
@@ -108,9 +108,12 @@ else:
     rule = Rule("A", "B", resultDist)
     seq.calculatedRules = [rule]
 
+    if (RESULT_KDE in param):
+        resultDist = param[RESULT_KDE]
+
     printResult(param, baseDistributions, empiricalDist)
     print("Calculation time: {} minutes".format(timer))
     printDistance(resultDist, empiricalDist)
-    visualization.getAreaBetweenDistributions(resultDist, baseDistributions[0])
+    print("Area between pdf curves: ", visualization.getAreaBetweenDistributions(resultDist, baseDistributions[0]))
     visualization.showDistributions(resultDist, baseDistributions[0])
     visualization.showVisualizer(seq)

@@ -1,9 +1,9 @@
-import math
 import shutil
 
 import numpy as np
 
-from algorithms import Matcher, RESULT_MU, RESULT_SIGMA
+from algorithms import Matcher, RESULT_MU, RESULT_SIGMA, RESULT_KDE
+from core.distribution import KdeDistribution
 
 
 class MarcoMatcher(Matcher):
@@ -57,10 +57,10 @@ class MarcoMatcher(Matcher):
 
         self.logger.trace("Final (approximated) result: \n {}".format(approxZ.argmax(axis=0)))
 
-        mean = 1 / len(eventB) * np.sum(np.multiply(approxZ, delta))
-        var = 1 / (len(eventB) - 1) * np.sum(np.multiply(approxZ, (delta.T - mean) ** 2))
+        cost = np.multiply(approxZ, delta)
+        cost = cost[cost > 0]
 
-        return {RESULT_MU: mean, RESULT_SIGMA: math.sqrt(var)}
+        return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost)}
 
     def solveMatlab(self, f, A, b, Aeq, beq, na, nb):
         from pymatbridge import Matlab

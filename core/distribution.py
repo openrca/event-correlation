@@ -9,6 +9,7 @@ import json
 import time
 
 import numpy as np
+import scipy
 from scipy import stats
 
 STATIC = 1
@@ -16,6 +17,7 @@ NORMAL = 2
 UNIFORM = 3
 POWER = 4
 EXP = 5
+KDE = 6
 
 distributions = {
     STATIC: 'Static',
@@ -23,6 +25,7 @@ distributions = {
     UNIFORM: 'Uniform',
     POWER: 'Powerlaw',
     EXP: 'Expon',
+    KDE: 'Kde'
 }
 
 
@@ -43,6 +46,9 @@ class Distribution:
     def getMaximumPDF(self):
         """ Calculate the maximum PDF for normalization """
         return self.dist.pdf(self.dist.mean())
+
+    def getCompleteInterval(self):
+        return self.dist.interval(0.99)
 
     def __eq__(self, other):
         if (not isinstance(other, Distribution)):
@@ -263,6 +269,45 @@ class ExponentialDistribution(Distribution):
         return "{}: Offset: {}\t Lambda: {}".format(distributions[EXP], self.offset, self.lam)
 
 
+class KdeDistribution(Distribution):
+    def __init__(self, samples):
+        """
+        :param samples: 1D-Samples to create distribution from
+        """
+        super().__init__(distType=KDE, param=[samples])
+        self.samples = np.array(samples)
+        if (len(samples) == 0):
+            raise ValueError("Unable to perform Kernel density estimation without samples.")
+
+        self.minValue = np.min(self.samples) - 2
+        self.maxValue = np.max(self.samples) + 2
+        self.kernel = scipy.stats.gaussian_kde(self.samples)
+
+    def getPDFValue(self, x):
+        return self.kernel.evaluate(x)
+
+    def getRandom(self, n=None):
+        if (n is None):
+            n = 1
+        return self.kernel.resample(n)[0]
+
+    def getCDFValue(self, x):
+        upper = min(x, self.maxValue)
+        if (upper <= self.minValue):
+            return 0
+        return self.kernel.integrate_box_1d(self.minValue, upper)
+
+    def getCompleteInterval(self):
+        return (self.minValue, self.maxValue)
+
+    def getMaximumPDF(self):
+        # TODO implement
+        raise RuntimeError("Not implemented yet.")
+
+    def __str__(self):
+        return "{}: Samples: {}".format(distributions[KDE], self.samples)
+
+
 def load(value):
     """ Load a distribution from a json string
         Parameter:
@@ -289,6 +334,8 @@ def load(value):
             return PowerLawDistribution(float(param[0]), float(param[1]))
         elif (dist == distributions[EXP]):
             return ExponentialDistribution(float(param[0]), float(param[1]))
+        elif (dist == distributions[KDE]):
+            return KdeDistribution(param[0])
         else:
             raise ValueError("Unknown distribution '{}'".format(dist))
     except (IndexError, ValueError):
@@ -301,7 +348,7 @@ def kstest(dist1, dist2, n=20):
     if (not isinstance(dist2, Distribution)):
         raise TypeError("dist2 is not an instance of core.distribution.Distribution")
 
-    return stats.kstest(dist1.dist.rvs(n), dist2.dist.cdf).statistic
+    return stats.kstest(dist1.getRandom(n), dist2.getCDFValue).statistic
 
 
 def approximateIntervalBorders(dist, alpha, lower=-10):

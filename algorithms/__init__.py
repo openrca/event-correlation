@@ -16,6 +16,7 @@ logging.Logger.trace = trace
 
 RESULT_MU = "Mu"
 RESULT_SIGMA = "Sigma"
+RESULT_KDE = "Kde"
 
 
 class Matcher:

@@ -18,11 +18,11 @@ def showAllDistributions(sequence):
 
 
 def showDistributions(estimatedDist, trueDist, visualizeOverlap=True):
-    borders1 = estimatedDist.dist.interval(0.99)
-    borders2 = trueDist.dist.interval(0.99)
+    borders1 = estimatedDist.getCompleteInterval()
+    borders2 = trueDist.getCompleteInterval()
     x = np.linspace(min(borders1[0], borders2[0]) - 1, max(borders1[1], borders2[1]) + 1, 500)
-    y1 = estimatedDist.dist.pdf(x)
-    y2 = trueDist.dist.pdf(x)
+    y1 = estimatedDist.getPDFValue(x)
+    y2 = trueDist.getPDFValue(x)
 
     plt.plot(x, y1, "b", label="Estimated distribution")
     plt.plot(x, y2, "r", label="True distribution")
@@ -40,11 +40,11 @@ def showDistributions(estimatedDist, trueDist, visualizeOverlap=True):
 
 
 def getAreaBetweenDistributions(dist1, dist2):
-    borders1 = dist1.dist.interval(0.99)
-    borders2 = dist2.dist.interval(0.99)
+    borders1 = dist1.getCompleteInterval()
+    borders2 = dist2.getCompleteInterval()
     x = np.linspace(min(borders1[0], borders2[0]), max(borders1[1], borders2[1]), 2000)
-    y = np.amin(np.array([dist1.dist.pdf(x), dist2.dist.pdf(x)]), axis=0)
-    print("Area between pdf curves: " + str(scipy.integrate.simps(y, x)))
+    y = np.amin(np.array([dist1.getPDFValue(x), dist2.getPDFValue(x)]), axis=0)
+    return scipy.integrate.simps(y, x)
 
 
 def showVisualizer(sequence=None):

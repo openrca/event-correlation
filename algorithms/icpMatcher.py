@@ -5,7 +5,8 @@ import numpy as np
 from scipy import optimize
 from sklearn.neighbors import NearestNeighbors
 
-from algorithms import Matcher, RESULT_MU, RESULT_SIGMA
+from algorithms import Matcher, RESULT_MU, RESULT_SIGMA, RESULT_KDE
+from core.distribution import KdeDistribution
 
 
 class IcpMatcher(Matcher):
@@ -84,7 +85,7 @@ class IcpMatcher(Matcher):
         cost = cost[abs(cost - cost.mean()) < 2.58 * cost.std()]
         print(cost)
 
-        return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), "Offset": opt}
+        return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), "Offset": opt}
 
     def findInitialGuess(self, a, b):
         [Ax, Bx] = np.meshgrid(a[:, 0], b[:, 0])
