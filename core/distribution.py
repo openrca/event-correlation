@@ -6,11 +6,12 @@ This module contains a collection of distributions for creation of random sequen
 import abc
 import datetime
 import json
+import numbers
 import time
 
 import numpy as np
 import scipy
-from scipy import stats
+from scipy import stats, integrate
 
 STATIC = 1
 NORMAL = 2
@@ -31,6 +32,8 @@ distributions = {
 
 class Distribution:
     """ Base class for all distributions """
+
+    __metaclass__ = abc.ABCMeta
 
     def __init__(self, distType, param):
         self.distType = distType
@@ -65,17 +68,28 @@ class Distribution:
     @abc.abstractmethod
     def getRandom(self, n=None):
         """ Return random value """
-        return
+        pass
 
     @abc.abstractmethod
     def getPDFValue(self, x):
         """ Calculate PDF for value x """
-        return
+        pass
 
     @abc.abstractmethod
     def getCDFValue(self, x):
         """ Calculate CDF with offset x """
-        return
+        pass
+
+
+class AbstractDistribution(Distribution):
+    def getCDFValue(self, x):
+        return self.dist.cdf(x)
+
+    def getRandom(self, n=None):
+        return self.dist.rvs(n)
+
+    def getPDFValue(self, x):
+        return self.dist.pdf(x)
 
 
 class StaticDistribution(Distribution):
@@ -134,7 +148,7 @@ class StaticDistribution(Distribution):
         return "{}: pdf: {}\t cdf: {}\t rvs: {}".format(distributions[STATIC], self.pdf, self.cdf, self.rvs)
 
 
-class NormalDistribution(Distribution):
+class NormalDistribution(AbstractDistribution):
     """ Creates random samples based on a normal distribution """
 
     def __init__(self, mu=0.0, sigma=1.0):
@@ -152,20 +166,11 @@ class NormalDistribution(Distribution):
         if (self.sigma <= 0):
             raise ValueError("Variance is not positive. Sigma: {}".format(self.sigma))
 
-    def getRandom(self, n=None):
-        return self.dist.rvs(n)
-
-    def getPDFValue(self, x):
-        return self.dist.pdf(x)
-
-    def getCDFValue(self, x):
-        return self.dist.cdf(x)
-
     def __str__(self):
         return "{}: Mu: {}\t Sigma: {}".format(distributions[NORMAL], self.mu, self.sigma)
 
 
-class UniformDistribution(Distribution):
+class UniformDistribution(AbstractDistribution):
     """ Creates random samples based on a uniform distribution """
 
     def __init__(self, lower=0.0, upper=1.0):
@@ -185,20 +190,11 @@ class UniformDistribution(Distribution):
             raise ValueError("Lower border is greater or equal to upper border. Lower: {}, Upper: {}"
                              .format(self.lower, self.upper))
 
-    def getRandom(self, n=None):
-        return self.dist.rvs(n)
-
-    def getPDFValue(self, x):
-        return self.dist.pdf(x)
-
-    def getCDFValue(self, x):
-        return self.dist.cdf(x)
-
     def __str__(self):
         return "{}: Lower: {}\t Upper: {}".format(distributions[UNIFORM], self.lower, self.upper)
 
 
-class PowerLawDistribution(Distribution):
+class PowerLawDistribution(AbstractDistribution):
     #  TODO check how Powerlaw exactly is implemented
     """ Creates random samples based on a Power Law distribution
 
@@ -221,20 +217,11 @@ class PowerLawDistribution(Distribution):
         if (self.a <= 0):
             raise ValueError("A is not positive. A: {}".format(self.a))
 
-    def getRandom(self, n=None):
-        return self.dist.rvs(n)
-
-    def getPDFValue(self, x):
-        return self.dist.pdf(x)
-
-    def getCDFValue(self, x):
-        return self.dist.cdf(x)
-
     def __str__(self):
         return "{}: Exponent: {}".format(distributions[POWER], self.a)
 
 
-class ExponentialDistribution(Distribution):
+class ExponentialDistribution(AbstractDistribution):
     """ Creates random samples based on an Exponential distribution
 
     Distribution
@@ -255,15 +242,6 @@ class ExponentialDistribution(Distribution):
     def _checkParam(self):
         if (self.lam <= 0):
             raise ValueError("Exponent is not positive. Exponent: {}".format(self.lam))
-
-    def getRandom(self, n=None):
-        return self.dist.rvs(n)
-
-    def getPDFValue(self, x):
-        return self.dist.pdf(x)
-
-    def getCDFValue(self, x):
-        return self.dist.cdf(x)
 
     def __str__(self):
         return "{}: Offset: {}\t Lambda: {}".format(distributions[EXP], self.offset, self.lam)
@@ -292,10 +270,18 @@ class KdeDistribution(Distribution):
         return self.kernel.resample(n)[0]
 
     def getCDFValue(self, x):
-        upper = min(x, self.maxValue)
-        if (upper <= self.minValue):
-            return 0
-        return self.kernel.integrate_box_1d(self.minValue, upper)
+        if (isinstance(x, numbers.Number)):
+            upper = min(x, self.maxValue)
+            if (upper <= self.minValue):
+                return 0
+            return self.kernel.integrate_box_1d(self.minValue, upper)
+
+        res = np.zeros(len(x))
+        for i in range(len(x)):
+            upper = min(x[i], self.maxValue)
+            if (upper > self.minValue):
+                res[i] = self.kernel.integrate_box_1d(self.minValue, upper)
+        return res
 
     def getCompleteInterval(self):
         return (self.minValue, self.maxValue)
@@ -340,6 +326,26 @@ def load(value):
             raise ValueError("Unknown distribution '{}'".format(dist))
     except (IndexError, ValueError):
         raise ValueError("Unknown parameters '{}' for distribution '{}'".format(param, dist))
+
+
+def samplesToDistribution(samples, distribution):
+    samples = np.array(samples)
+    if (len(samples) == 0):
+        raise ValueError("No samples provided")
+
+    if (distribution == NORMAL):
+        return NormalDistribution(samples.mean(), samples.std())
+    elif (distribution == UniformDistribution):
+        return UniformDistribution(samples.min(), samples.max())
+    elif (distribution == POWER):
+        # TODO estimate shape
+        return PowerLawDistribution(None, samples.min())
+    elif (distribution == EXP):
+        return ExponentialDistribution(samples.min(), samples.mean() - samples.min())
+    elif (distribution == KDE):
+        return KdeDistribution(samples)
+    else:
+        raise ValueError("Unknown distribution '{}'".format(distribution))
 
 
 def kstest(dist1, dist2, n=20):
@@ -387,3 +393,18 @@ def getEmpiricalDist(seq, trigger, response):
             values.append(event.triggered.timestamp - event.timestamp)
     values = np.array(values)
     return NormalDistribution(values.mean(), values.std())
+
+
+def getAreaBetweenDistributions(dist1, dist2):
+    borders1 = dist1.getCompleteInterval()
+    borders2 = dist2.getCompleteInterval()
+    x = np.linspace(min(borders1[0], borders2[0]), max(borders1[1], borders2[1]), 2000)
+    y = np.amin(np.array([dist1.getPDFValue(x), dist2.getPDFValue(x)]), axis=0)
+    return integrate.simps(y, x)
+
+
+def getRelativeEntropy(dist1, dist2):
+    borders1 = dist1.getCompleteInterval()
+    borders2 = dist2.getCompleteInterval()
+    x = np.linspace(min(borders1[0], borders2[0]), max(borders1[1], borders2[1]), 10000)
+    return stats.entropy(dist1.getPDFValue(x), dist2.getPDFValue(x))

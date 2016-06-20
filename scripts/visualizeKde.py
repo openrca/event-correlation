@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats.distributions import norm
 
-import visualization
+from core import distribution
 from core.distribution import KdeDistribution, UniformDistribution, NormalDistribution, ExponentialDistribution
 
 # 1 Visualization of Kde
@@ -40,8 +40,7 @@ cdfTrue = (0.8 * norm(-1, 1).cdf([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]) +
            0.2 * norm(1, 0.3).cdf([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]))
 print(cdfTrue)
 
-cdf = [dist.getCDFValue(-5), dist.getCDFValue(-4), dist.getCDFValue(-3), dist.getCDFValue(-2), dist.getCDFValue(-1),
-       dist.getCDFValue(0), dist.getCDFValue(1), dist.getCDFValue(2), dist.getCDFValue(3), dist.getCDFValue(4)]
+cdf = dist.getCDFValue([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4])
 print(cdf)
 
 # noinspection PyTypeChecker
@@ -63,8 +62,10 @@ kdeDist = KdeDistribution(
 normalDist = NormalDistribution(5.013421410133262, 1.2946318912766)
 
 print("True distribution is Normal distribution")
-print("Shared area for Normal distribution: ", visualization.getAreaBetweenDistributions(trueDist, normalDist))
-print("Shared area for Kde distribution: ", visualization.getAreaBetweenDistributions(trueDist, kdeDist))
+print("Shared area for Normal distribution: ", distribution.getAreaBetweenDistributions(trueDist, normalDist))
+print("Shared area for Kde distribution: ", distribution.getAreaBetweenDistributions(trueDist, kdeDist))
+print("Relative entropy for Normal distribution: ", distribution.getRelativeEntropy(trueDist, normalDist))
+print("Relative entropy for Kde distribution: ", distribution.getRelativeEntropy(trueDist, kdeDist))
 
 plt.plot(x, trueDist.getPDFValue(x), color="r", label="True distribution")
 plt.plot(x, normalDist.getPDFValue(x), color="b", label="Normal distribution")
@@ -86,9 +87,11 @@ kdeDist = KdeDistribution(
      5.7889])
 normalDist = NormalDistribution(7.431321324171027, 1.4511659410549063)
 
-print("True distribution is Uniform distribution")
-print("Shared area for Normal distribution: ", visualization.getAreaBetweenDistributions(trueDist, normalDist))
-print("Shared area for Kde distribution: ", visualization.getAreaBetweenDistributions(trueDist, kdeDist))
+print("\nTrue distribution is Uniform distribution")
+print("Shared area for Normal distribution: ", distribution.getAreaBetweenDistributions(trueDist, normalDist))
+print("Shared area for Kde distribution: ", distribution.getAreaBetweenDistributions(trueDist, kdeDist))
+print("Relative entropy for Normal distribution: ", distribution.getRelativeEntropy(trueDist, normalDist))
+print("Relative entropy for Kde distribution: ", distribution.getRelativeEntropy(trueDist, kdeDist))
 
 plt.plot(x, trueDist.getPDFValue(x), color="r", label="True distribution")
 plt.plot(x, normalDist.getPDFValue(x), color="b", label="Normal distribution")
@@ -110,9 +113,11 @@ kdeDist = KdeDistribution(
      15.1912, 18.1363, 17.1629, 4.2176, 3.5967, 24.6061])
 normalDist = NormalDistribution(12.469051933513562, 6.907956521247542)
 
-print("True distribution is Exponential distribution")
-print("Shared area for Normal distribution: ", visualization.getAreaBetweenDistributions(trueDist, normalDist))
-print("Shared area for Kde distribution: ", visualization.getAreaBetweenDistributions(trueDist, kdeDist))
+print("\nTrue distribution is Exponential distribution")
+print("Shared area for Normal distribution: ", distribution.getAreaBetweenDistributions(trueDist, normalDist))
+print("Shared area for Kde distribution: ", distribution.getAreaBetweenDistributions(trueDist, kdeDist))
+print("Relative entropy for Normal distribution: ", distribution.getRelativeEntropy(trueDist, normalDist))
+print("Relative entropy for Kde distribution: ", distribution.getRelativeEntropy(trueDist, kdeDist))
 
 plt.plot(x, trueDist.getPDFValue(x), color="r", label="True distribution")
 plt.plot(x, normalDist.getPDFValue(x), color="b", label="Normal distribution")
@@ -133,4 +138,18 @@ plt.bar(3.4, 0.734559815708, barWidth, color="r")
 plt.xticks([1.35, 2.35, 3.35], ["Normal", "Uniform", "Exponential"])
 plt.legend()
 plt.ylabel("Shared areas of estimated pdfs")
+plt.show()
+
+# relative entropy
+barWidth = 0.35
+plt.bar(1, 0.0183126101663, barWidth, color="b", label="Normal distribution")
+plt.bar(1.4, 0.0314108004155, barWidth, color="r", label="Kde distribution")
+plt.bar(2, 0.167637283631, barWidth, color="b")
+plt.bar(2.4, 0.101927070935, barWidth, color="r")
+plt.bar(3, 0.480865966885, barWidth, color="b")
+plt.bar(3.4, 0.540199081816, barWidth, color="r")
+
+plt.xticks([1.35, 2.35, 3.35], ["Normal", "Uniform", "Exponential"])
+plt.legend()
+plt.ylabel("Relative entropy of estimated pdfs")
 plt.show()

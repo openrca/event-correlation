@@ -3,7 +3,6 @@ from time import sleep
 
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy.integrate
 from PySide.QtGui import QApplication
 
 from visualization.visualizer import Visualizer
@@ -37,14 +36,6 @@ def showDistributions(estimatedDist, trueDist, visualizeOverlap=True):
 
     plt.show()
     sleep(1)
-
-
-def getAreaBetweenDistributions(dist1, dist2):
-    borders1 = dist1.getCompleteInterval()
-    borders2 = dist2.getCompleteInterval()
-    x = np.linspace(min(borders1[0], borders2[0]), max(borders1[1], borders2[1]), 2000)
-    y = np.amin(np.array([dist1.getPDFValue(x), dist2.getPDFValue(x)]), axis=0)
-    return scipy.integrate.simps(y, x)
 
 
 def showVisualizer(sequence=None):
