@@ -29,6 +29,7 @@ class TestScript(unittest.TestCase):
         eventC = Event("C", 1)
 
         self.assertEqual(10, seq.length)
+        self.assertEqual(10, len(seq))
         self.assertEqual(3, len(events))
         self.assertEqual(eventA, events[0])
         self.assertEqual(eventC, events[1])

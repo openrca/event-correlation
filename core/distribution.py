@@ -4,9 +4,11 @@ This module contains a collection of distributions for creation of random sequen
 """
 
 import abc
+import collections
 import datetime
 import json
 import numbers
+import math
 import time
 
 import numpy as np
@@ -30,10 +32,8 @@ distributions = {
 }
 
 
-class Distribution:
+class Distribution(abc.ABC):
     """ Base class for all distributions """
-
-    __metaclass__ = abc.ABCMeta
 
     def __init__(self, distType, param):
         self.distType = distType
@@ -80,8 +80,16 @@ class Distribution:
         """ Calculate CDF with offset x """
         pass
 
+    @abc.abstractmethod
+    def getDifferentialEntropy(self):
+        pass
 
-class AbstractDistribution(Distribution):
+
+class AbstractDistribution(Distribution, abc.ABC):
+    @abc.abstractmethod
+    def getDifferentialEntropy(self):
+        pass
+
     def getCDFValue(self, x):
         return self.dist.cdf(x)
 
@@ -114,9 +122,9 @@ class StaticDistribution(Distribution):
         self.pdfIdx = 0
         self.cdfIdx = 0
         self.rvsIdx = 0
-        self.pdf = pdf
-        self.cdf = cdf
-        self.rvs = rvs
+        self.pdf = np.array(pdf)
+        self.cdf = np.array(cdf)
+        self.rvs = np.array(rvs)
 
     def getRandom(self, n=None):
         if (n is None):
@@ -137,6 +145,12 @@ class StaticDistribution(Distribution):
     def getCDFValue(self, x):
         self.cdfIdx, value = self._get(self.cdfIdx, self.cdf)
         return value
+
+    # noinspection PyArgumentList
+    def getDifferentialEntropy(self):
+        """ Static distribution has no continuous entropy. Calculate normal entropy instead. """
+        count = np.array(list(collections.Counter(self.pdf).values()))
+        return stats.entropy(np.divide(count, count.sum()))
 
     @staticmethod
     def _get(idx, lst):
@@ -161,6 +175,9 @@ class NormalDistribution(AbstractDistribution):
         self.sigma = sigma
         self._checkParam()
         self.dist = stats.norm(mu, sigma)
+
+    def getDifferentialEntropy(self):
+        return math.log(self.sigma * math.sqrt(2 * math.pi * math.e))
 
     def _checkParam(self):
         if (self.sigma <= 0):
@@ -190,6 +207,9 @@ class UniformDistribution(AbstractDistribution):
             raise ValueError("Lower border is greater or equal to upper border. Lower: {}, Upper: {}"
                              .format(self.lower, self.upper))
 
+    def getDifferentialEntropy(self):
+        return math.log(self.upper - self.lower)
+
     def __str__(self):
         return "{}: Lower: {}\t Upper: {}".format(distributions[UNIFORM], self.lower, self.upper)
 
@@ -217,6 +237,9 @@ class PowerLawDistribution(AbstractDistribution):
         if (self.a <= 0):
             raise ValueError("A is not positive. A: {}".format(self.a))
 
+    def getDifferentialEntropy(self):
+        raise RuntimeError("Not implemented yet")
+
     def __str__(self):
         return "{}: Exponent: {}".format(distributions[POWER], self.a)
 
@@ -234,17 +257,20 @@ class ExponentialDistribution(AbstractDistribution):
         :param beta: Scaling of slope 1 / lambda
         """
         super().__init__(distType=EXP, param=(offset, beta))
-        self.lam = beta
+        self.beta = beta
         self.offset = offset
         self._checkParam()
         self.dist = stats.expon(offset, beta)
 
     def _checkParam(self):
-        if (self.lam <= 0):
-            raise ValueError("Exponent is not positive. Exponent: {}".format(self.lam))
+        if (self.beta <= 0):
+            raise ValueError("Exponent is not positive. Exponent: {}".format(self.beta))
+
+    def getDifferentialEntropy(self):
+        return 1 - math.log(1 / self.beta)
 
     def __str__(self):
-        return "{}: Offset: {}\t Lambda: {}".format(distributions[EXP], self.offset, self.lam)
+        return "{}: Offset: {}\t Beta: {}".format(distributions[EXP], self.offset, self.beta)
 
 
 class KdeDistribution(Distribution):
@@ -285,6 +311,19 @@ class KdeDistribution(Distribution):
 
     def getCompleteInterval(self):
         return (self.minValue, self.maxValue)
+
+    def getDifferentialEntropy(self):
+        """
+        It is not possible to integrate this function analytically. Therefore the continuous function is approximated by
+        sampling and discrete entropy. To compare differential entropy with "normal" entropy you have to add the
+        logarithm of the step size to the result [1], [2].
+
+        [1] http://thirdorderscientist.org/homoclinic-orbit/2013/5/8/bridging-discrete-and-differential-entropy
+        [2] Elements of information theory, Cover, Thomas, page 247-248
+        """
+        x = np.linspace(self.minValue, self.maxValue, 10000)
+        pdf = self.getPDFValue(x)
+        return stats.entropy(pdf) + math.log((self.maxValue - self.minValue) / 10000)
 
     def getMaximumPDF(self):
         # TODO implement

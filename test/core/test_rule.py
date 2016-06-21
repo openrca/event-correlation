@@ -21,7 +21,7 @@ class TestScript(unittest.TestCase):
 
         self.assertEqual('A', rules[1].trigger)
         self.assertEqual('0', rules[1].response)
-        self.assertEqual(0.5, rules[1].distribution.lam)
+        self.assertEqual(0.5, rules[1].distribution.beta)
         self.assertEqual(0.9, rules[1].responseConfidence)
 
     def test_load(self):
