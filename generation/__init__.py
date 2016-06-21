@@ -1,4 +1,4 @@
-import argparse
+import collections
 import logging
 
 from generation import entry
@@ -6,42 +6,40 @@ from generation.generator import Generator
 
 logging.getLogger().setLevel(logging.DEBUG)
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-c", "--count", action="store", type=int, help="Number of sequences to be generated")
-parser.add_argument("-n", "--length", action="store", type=int, required=True, help="Length of one sequence")
-parser.add_argument("-r", "--rules", action="store", type=str, required=True, help="Path to files containing all rules")
-parser.add_argument("-o", "--output", action="store", type=str, help="Pattern for output files")
 
+def createSequences(rules=None, count=None, length=None, number=1):
+    """
+    Creates new sequences
+    :param rules: Path to file with rules
+    :param count: Number of events in one sequence
+    :param length: Length of one sequence
+    :param number: Number of sequences to be created
+    :return: A single sequence or a list of sequences.
+    """
 
-def createSequences():
-    args = parser.parse_args()
-    print("Creating sequence based on " + str(args))
+    if (length is None and count is None):
+        raise ValueError("Neither sequence length nor event count specified. Please provide at exactly one")
+    if (length is not None and count is not None):
+        raise ValueError("Sequence length and event count specified. Please provide exactly one")
+    if (rules is None):
+        raise ValueError("Rules not specified")
 
-    if (args.length is None):
-        print("Length of sequences not defined")
-        print(parser.print_help())
-        exit(1)
-    if (args.rules is None):
-        print("Rules not specified")
-        print(parser.print_help())
-        exit(1)
-
-    if (args.output is None):
-        print("Output not defined. Printing result to console")
-    if (args.count is None):
-        print("Number of sequences not defined. Assuming 1")
-        args.count = 1
-
-    entries = entry.loadEntries(args.rules)
+    entries = entry.loadEntries(rules)
     rules = []
     for e in entries:
         rules.append(e.rule)
 
-    sequences = Generator() \
-        .setSeqLength(args.length) \
-        .setEntries(entries) \
-        .createSequence(args.count)
-    for seq in sequences:
-        seq.rules = rules
+    generator = Generator()
+    if (length is not None):
+        generator.setSeqLength(length)
+    if (count is not None):
+        generator.setNumberOfEvents(count)
+    sequences = generator.setEntries(entries).createSequence(number)
+
+    if (isinstance(sequences, collections.Iterable)):
+        for seq in sequences:
+            seq.rules = rules
+    else:
+        sequences.rules = rules
 
     return sequences

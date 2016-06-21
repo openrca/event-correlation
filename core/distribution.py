@@ -274,6 +274,12 @@ class ExponentialDistribution(AbstractDistribution):
 
 
 class KdeDistribution(Distribution):
+    """ Creates random samples based on a Kernel density estimation.
+
+    Kernel density estimation is a method for parameter-less distributions. The distributions is created from a set of
+    samples.
+    """
+
     def __init__(self, samples):
         """
         :param samples: 1D-Samples to create distribution from

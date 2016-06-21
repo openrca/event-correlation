@@ -67,7 +67,7 @@ class Sequence:
         return v
 
     def __len__(self):
-        return self.length
+        return len(self.events)
 
     def __str__(self):
         tokens = []

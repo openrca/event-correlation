@@ -256,7 +256,7 @@ class Visualizer(QMainWindow):
             return
 
     def createSequence(self):
-        sequence = generation.createSequences()[0]
+        sequence = generation.createSequences()
         self.setSequence(sequence)
 
     def setSequence(self, sequence):

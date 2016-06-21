@@ -59,7 +59,7 @@ class Generator:
             raise RuntimeError("Configuration not valid. Please provide entries")
 
         if (count == 1):
-            return [self._create()]
+            return self._create()
 
         sequences = []
         for i in range(count):
