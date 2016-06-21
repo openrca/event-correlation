@@ -1,0 +1,19 @@
+[
+	{
+		"rule": {
+			"trigger": "A",
+			"response": "B",
+			"dist": {
+				"name": "Expon",
+				"param": [2, 10]
+			},
+			"triggerConfidence": "1",
+			"responseConfidence": "1"
+		},
+		"dist": {
+			"name": "Uniform",
+			"param": [5, 15]
+		},
+		"scale": 1
+	}
+]

@@ -53,6 +53,14 @@ class Rule:
         return hash(self.trigger) + hash(self.response) + hash(self.distribution) + hash(self.triggerConfidence) \
                + hash(self.responseConfidence)
 
+    def __str__(self):
+        response = str(self.trigger.eventType) + " ->"
+        if (self.response is not None):
+            response += str(self.response.eventType) + " (" + str(self.distribution) + ")"
+        else:
+            response += "_"
+        return response
+
 
 def load(value):
     """ Load a rule from a json string
@@ -67,18 +75,26 @@ def load(value):
 
     try:
         trigger = value["trigger"]
-        response = value["response"]
         triggerConfidence = float(value["triggerConfidence"])
-        responseConfidence = float(value["responseConfidence"])
-        dist = core.distribution.load(value["dist"])
+
+        if ("response" in value):
+            try:
+                response = value["response"]
+                responseConfidence = float(value["responseConfidence"])
+                dist = core.distribution.load(value["dist"])
+            except KeyError:
+                raise ValueError("Missing parameter 'responseConfidence' and/or 'dist'")
+        else:
+            response = None
+            dist = None
+            responseConfidence = None
 
         rule = Rule(trigger, response, dist, triggerConfidence, responseConfidence)
         if ("likelihood" in value):
             rule.likelihood = float(value["likelihood"])
         return rule
     except KeyError:
-        raise ValueError("Missing parameter 'trigger', 'response', 'triggerConfidence',"
-                         " 'responseConfidence' and/or 'dist'")
+        raise ValueError("Missing parameter 'trigger' and/or 'triggerConfidence'")
 
 
 def loadFromFile(filename):

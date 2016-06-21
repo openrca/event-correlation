@@ -38,7 +38,7 @@ class MunkresMatcher(Matcher):
         self.logger.debug("Found matchings with total cost {:.2f}".format(cost.sum()))
 
         if (self.logger.isEnabledFor(logging.TRACE)):
-            for i in range(len(cost)):
+            for i in range(min(len(a), len(b))):
                 self.logger.trace("Matched ({}, {}) -> {:.4f} - {:.4f} = {:.4f}"
                                   .format(idx[0][i], idx[1][i], b[idx[1][i]], a[idx[0][i]], cost[i]))
 

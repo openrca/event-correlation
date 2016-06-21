@@ -2,6 +2,7 @@
 """ Automatically generated documentation for run """
 
 import argparse
+import os
 
 import core.distribution
 import generation.entry
@@ -47,6 +48,9 @@ baseRules = []
 baseDistributions = []
 
 if (args.input is None):
+    if (args.rules.startswith("..")):
+        args.rules = os.path.join(os.path.dirname(__file__), args.rules)
+
     seq = generation.createSequences(rules=args.rules, length=args.length, count=args.count)
 
     entries = generation.entry.loadEntries(args.rules)

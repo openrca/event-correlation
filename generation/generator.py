@@ -81,10 +81,11 @@ class Generator:
                 if (len(timeline) >= self.numberEvents):
                     break
 
-                timeResponse = self._getTimeStamp(entry.rule.distribution, entry.lastTime, timeline)
-                response = Event(entry.rule.response)
-                trigger.setTriggered(response)
-                self._addEvent(timeline, timeResponse, response, entry.rule.responseConfidence)
+                if (entry.rule.response is not None):
+                    timeResponse = self._getTimeStamp(entry.rule.distribution, entry.lastTime, timeline)
+                    response = Event(entry.rule.response)
+                    trigger.setTriggered(response)
+                    self._addEvent(timeline, timeResponse, response, entry.rule.responseConfidence)
         return self._asSequence(timeline)
 
     def _createByLength(self):
@@ -102,13 +103,14 @@ class Generator:
                 trigger = Event(entry.rule.trigger)
                 self._addEvent(timeline, timeTrigger, trigger, entry.rule.triggerConfidence)
 
-                timeResponse = self._getTimeStamp(entry.rule.distribution, entry.lastTime, timeline)
-                if (timeResponse >= self.length):
-                    continue
+                if (entry.rule.response is not None):
+                    timeResponse = self._getTimeStamp(entry.rule.distribution, entry.lastTime, timeline)
+                    if (timeResponse >= self.length):
+                        continue
 
-                response = Event(entry.rule.response)
-                trigger.setTriggered(response)
-                self._addEvent(timeline, timeResponse, response, entry.rule.responseConfidence)
+                    response = Event(entry.rule.response)
+                    trigger.setTriggered(response)
+                    self._addEvent(timeline, timeResponse, response, entry.rule.responseConfidence)
         return self._asSequence(timeline, self.length)
 
     def _getTimeStamp(self, dist, lastTime, timeline):
