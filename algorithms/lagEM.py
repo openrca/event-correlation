@@ -89,8 +89,8 @@ class lagEM(Matcher):
         A, B = np.meshgrid(a, b)
         delta = (B - A).T
 
-        mu = (delta * r).sum() / b.size
-        variance = ((delta - mu) ** 2 * r).sum() / b.size
+        mu = (delta * r).sum() / a.size
+        variance = ((delta - mu) ** 2 * r).sum() / a.size
 
         return (mu, variance)
 
