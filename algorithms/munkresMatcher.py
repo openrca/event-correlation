@@ -21,26 +21,22 @@ class MunkresMatcher(Matcher):
 
         [A, B] = np.meshgrid(a, b)
         c = B - A
-
-        # munkres does not handle negative values
-        c[c < 0] = 1e18
-
-        # square to make pair wise distances asymmetric
-        c **= 2
-
-        # TODO remove
-        print(c)
+        # square to make pair-wise distances asymmetric
+        c[c > 0] **= 2
 
         m = Munkres()
         idx = m.compute(c)
 
-        cost = np.sqrt(c[idx[0], idx[1]])
+        c[c > 0] = np.sqrt(c[c > 0])
+        cost = c[idx[:, 0], idx[:, 1]]
         self.logger.debug("Found matchings with total cost {:.2f}".format(cost.sum()))
 
         if (self.logger.isEnabledFor(logging.TRACE)):
             for i in range(min(len(a), len(b))):
                 self.logger.trace("Matched ({}, {}) -> {:.4f} - {:.4f} = {:.4f}"
-                                  .format(idx[0][i], idx[1][i], b[idx[1][i]], a[idx[0][i]], cost[i]))
+                                  .format(idx[i][1], idx[i][0], b[idx[i][0]], a[idx[i][1]], c[idx[i][0], idx[i][1]]))
+            if (len(a) != len(b)):
+                self.logger.trace("Remaining events were not assigned")
 
         # Remove potential outliers. This leads to worse results for simple associations but improves performance for
         # complex associations with confidence < 1
@@ -381,6 +377,9 @@ class Munkres:
         """
         cost_matrix = np.array(cost_matrix)
 
+        # munkres does not handle negative values
+        cost_matrix[cost_matrix < 0] = sys.maxsize
+
         self.C = self.pad_matrix(cost_matrix)
         self.n = self.C.shape[0]
         self.original_length, self.original_width = cost_matrix.shape
@@ -408,7 +407,7 @@ class Munkres:
             step = func()
 
         ones = np.where(self.marked[:self.original_length, :self.original_width] == 1)
-        return np.array(ones)
+        return np.array(ones).T
 
     def __step1(self):
         """
