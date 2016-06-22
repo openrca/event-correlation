@@ -41,8 +41,10 @@ class MarcoMatcher(Matcher):
         b = np.zeros(na * nb)
 
         # one to one matching
-        A = np.concatenate((A, np.tile(np.eye(na), (1, nb))))
-        b = np.concatenate((b, np.ones(na)))
+        if (na >= nb):
+            A = np.concatenate((A, np.tile(np.eye(na), (1, nb))))
+            b = np.concatenate((b, np.ones(na)))
+        # TODO what happens if na < nb?
 
         Aeq = np.kron(np.eye(nb), np.ones(na))
         beq = np.ones(nb)
@@ -58,7 +60,8 @@ class MarcoMatcher(Matcher):
         self.logger.trace("Final (approximated) result: \n {}".format(approxZ.argmax(axis=0)))
 
         cost = np.multiply(approxZ, delta)
-        cost = cost[cost > 0]
+        cost[cost == 0] = cost.max() + 1
+        cost = cost.min(axis=0 if na < nb else 1)
 
         return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost)}
 
@@ -87,7 +90,7 @@ class MarcoMatcher(Matcher):
         z_opt = matlab.get_variable("z_opt")
         matlab.stop()
         self.logger.debug("Closing connection to Matlab")
-        return np.reshape(z_opt, (na, nb))
+        return np.reshape(z_opt, (nb, na))
 
     def solveScipy(self, f, A, b, Aeq, beq, na, nb):
         """ Solve the optimization problem using scipy.optimize.linprog().
@@ -105,7 +108,7 @@ class MarcoMatcher(Matcher):
         if (not res.success):
             self.logger.warn("Unable to find solution: {}. Results may be bad.".format(res.message))
 
-        return np.reshape(res.x, (na, nb))
+        return np.reshape(res.x, (nb, na))
 
     def solveCvxopt(self, f, A, b, Aeq, beq, na, nb):
         """ Solve the optimization problem using cvxopt.solvers.cpl().
@@ -115,7 +118,7 @@ class MarcoMatcher(Matcher):
         import cvxopt.solvers
         from cvxopt import matrix
 
-        # add boundaries was lp has no build-in boundaries
+        # add boundaries as lp has no build-in boundaries
         A1 = np.concatenate((A, -np.eye(na * nb), np.eye(na * nb)))
         b1 = np.concatenate((b, np.zeros(na * nb), np.ones(na * nb)))
 
@@ -124,6 +127,6 @@ class MarcoMatcher(Matcher):
 
         if (sol["x"] is None):
             self.logger.warn("Unable to find solution")
-            return np.zeros((na, nb))
+            return np.zeros((nb, na))
 
-        return np.reshape(sol["x"], (na, nb))
+        return np.reshape(sol["x"], (nb, na))
