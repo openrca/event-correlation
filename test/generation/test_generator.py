@@ -45,8 +45,8 @@ class TestScript(unittest.TestCase):
             .createSequence()
         # @formatter:on
 
-        self.assertEqual(1, len(sequences))
-        seq = sequences[0]
+        self.assertEqual(4, len(sequences))
+        seq = sequences
         self.assertEqual("__A__BA__*", str(seq))
         self.assertEqual(eventA1, seq.getEvent(2)[0])
         self.assertEqual(eventB1, seq.getEvent(2)[0].triggered)
@@ -87,8 +87,8 @@ class TestScript(unittest.TestCase):
             .createSequence()
         # @formatter:on
 
-        self.assertEqual(1, len(sequences))
-        seq = sequences[0]
+        self.assertEqual(9, len(sequences))
+        seq = sequences
         self.assertEqual("__A__B*_AB_*A_AB", str(seq))
         self.assertEqual(eventA1, seq.getEvent(2)[0])
         self.assertEqual(eventB1, seq.getEvent(2)[0].triggered)
