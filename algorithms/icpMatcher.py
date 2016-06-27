@@ -1,4 +1,5 @@
 import math
+import numbers
 from time import sleep
 
 import matplotlib.pyplot as plt
@@ -13,7 +14,7 @@ class IcpMatcher(Matcher):
     def __init__(self):
         super().__init__(__name__)
         self.initPose = None
-        self.f = 1
+        self.f = None
         self.maxiter = 50
         self.threshold = 1e-4
         self.showVisualization = False
@@ -26,8 +27,11 @@ class IcpMatcher(Matcher):
             threshold: Threshold for offset length. If the change of the offset is smaller than threshold,
                 the calculation is considered as converged. Default if 1e-4.
             initPose: Initial guess of the offset. If not provided, initial guess is calculated from input.
-            f: Fraction of a to be used during transformation calculation. If f < 1, some points of a are ignored and
-                treated as outliers.
+            f: Fraction of src to be used during transformation calculation. This parameter is used to eliminate
+                outliers. Allowed values are:
+                    None: No outlier reduction
+                    [0, 1]: Remove (1 - f) * 100 % of the data points
+                    "confidence": Remove values that are not in the 95% confidence interval
             showVisualization: Show a visualization of the current assignment after each iteration. Default is False.
         """
         if ("maxiter" in kwargs):
@@ -67,7 +71,7 @@ class IcpMatcher(Matcher):
             if (p is not None and abs(p) < self.threshold):
                 break
 
-            subData = self.getSubset(data, model, 0.5)
+            subData, selectedIdx = self.getSubset(data, model)
             idx = IcpMatcher.findMinimalDistance(subData, model)
             p = IcpMatcher.findOptimalTransformation(opt, subData, model[idx])
             data += p
@@ -75,14 +79,13 @@ class IcpMatcher(Matcher):
 
             self.logger.debug("Offset {}\t Distance {}".format(opt, IcpMatcher.costFunction(0, subData, model[idx])))
             if (self.showVisualization):
-                IcpMatcher.visualizeCurrentStep(src, data, model, idx)
+                IcpMatcher.visualizeCurrentStep(src, subData, selectedIdx, model, idx)
 
         idx = IcpMatcher.findMinimalDistance(data, model)
         idx = np.column_stack((np.arange(idx.size), idx))
         tmp = model[idx[:, 1]]
         self.logger.info("Final distance " + str(IcpMatcher.costFunction(0, data, tmp)))
         self.logger.info("Final offset " + str(opt))
-        print(idx)
 
         cost = tmp - src
         cost = cost[abs(cost - cost.mean()) < 2.58 * cost.std()]
@@ -100,7 +103,7 @@ class IcpMatcher(Matcher):
         return guess
 
     @staticmethod
-    def visualizeCurrentStep(src, data, model, idx):
+    def visualizeCurrentStep(src, data, dataIdx, model, modelIdx):
         plt.clf()
         plt.scatter(model, [0] * len(model), marker='x', c='b', label="Model")
         plt.scatter(src, [-1] * len(src), marker='x', c='r', label="Data")
@@ -109,9 +112,9 @@ class IcpMatcher(Matcher):
         plt.legend(loc="upper left")
         plt.ylim([-1.2, 0.4])
 
-        for i in range(data.shape[0]):
-            plt.plot([src[i], model[idx[i]]], [-1, 0], color='k', linestyle='-', linewidth=0.5)
-            plt.plot([data[i], model[idx[i]]], [-0.5, 0], color='k', linestyle=':', linewidth=0.5)
+        for i in range(modelIdx.shape[0]):
+            plt.plot([data[i], src[dataIdx[i]]], [-0.5, -1], color='k', linestyle='-', linewidth=0.5)
+            plt.plot([data[i], model[modelIdx[i]]], [-0.5, 0], color='k', linestyle=':', linewidth=0.5)
 
         plt.show()
         sleep(1)
@@ -135,17 +138,26 @@ class IcpMatcher(Matcher):
     def costFunction(p, data, model):
         return math.sqrt(np.sum(np.square((data + p) - model)))
 
-    @staticmethod
-    def getSubset(data, model, f):
-        if (f == 1):
-            return data
+    def getSubset(self, data, model):
+        if (self.f == 1 or self.f is None):
+            return data, np.arange(data.size)
 
         [A, B] = np.meshgrid(data, model)
         delta = abs(B - A)
 
         minIdx = np.column_stack((delta.argmin(axis=0), np.arange(data.size)))
         values = delta[minIdx[:, 0], minIdx[:, 1]]
-        return data[minIdx[:, 1][values.argsort()[:math.floor(f * data.size)]]]
+
+        selectedIdx = values
+        if (isinstance(self.f, numbers.Number)):
+            # based on The Trimmed Iterative Closest Point algorithm, Chetverikov, Svirko and Stepanov
+            selectedIdx = values.argsort()[:math.floor(self.f * data.size)]
+        if (self.f == "confidence"):
+            # based on The Dual-Bootstrap Iterative Closest Point Algorithm With Application to Retinal Image
+            # Registration, Stewart, Tsai and Roysam
+            selectedIdx = np.arange(values.size)[abs(values - values.mean()) < 1.96 * values.std()]
+        self.logger.trace("Selected {} from {} values".format(selectedIdx.size, data.size))
+        return data[minIdx[:, 1][selectedIdx]], selectedIdx
 
     # noinspection PyTypeChecker
     @staticmethod

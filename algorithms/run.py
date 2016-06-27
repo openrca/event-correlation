@@ -81,7 +81,7 @@ elif (args.algorithm == lagEM.lagEM.__name__):
 
 elif (args.algorithm == icpMatcher.IcpMatcher.__name__):
     algorithm = icpMatcher.IcpMatcher()
-    param = algorithm.match(sequence=seq, eventA="A", eventB="B", showVisualization=False)
+    param = algorithm.match(sequence=seq, eventA="A", eventB="B", showVisualization=False, f="confidence")
 
 timer.stop()
 
