@@ -3,7 +3,7 @@ import sys
 
 import numpy as np
 
-from algorithms import Matcher, RESULT_MU, RESULT_SIGMA, RESULT_KDE
+from algorithms import Matcher, RESULT_MU, RESULT_SIGMA, RESULT_KDE, RESULT_IDX
 from core.distribution import KdeDistribution
 
 
@@ -42,7 +42,7 @@ class MunkresMatcher(Matcher):
         # complex associations with confidence < 1
         cost = cost[abs(cost - cost.mean()) < 2.58 * cost.std()]
 
-        return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost)}
+        return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx}
 
 
 """

@@ -58,13 +58,12 @@ class Sequence:
         return None
 
     def asVector(self, eventType):
-        l = [e for e in self.getEvents(eventType) if e.occurred]
-        v = np.zeros(len(l))
-        i = 0
-        for e in l:
-            v[i] = e.timestamp
-            i += 1
-        return v
+        l = [e.timestamp for e in self.getEvents(eventType) if e.occurred]
+        return np.array(l)
+
+    def getMissingIdx(self, eventType):
+        l = np.array([e.occurred for e in self.getEvents(eventType)])
+        return np.where(np.arange(len(l)) * np.invert(l))[0]
 
     def __len__(self):
         return len(self.events)

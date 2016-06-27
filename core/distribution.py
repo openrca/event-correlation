@@ -413,6 +413,7 @@ def approximateIntervalBorders(dist, alpha, lower=-10):
 
 
 def chi2test(dist1, dist2, n=2000):
+    # Number of bins based on L. White, The Choice of the Number of Bins for the M Statistic
     nrBins = int(n / 5)
     if (n >= 35):
         nrBins = int(1.88 * n ** 0.4)

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import optimize
 
-from algorithms import Matcher, RESULT_MU, RESULT_SIGMA, RESULT_KDE
+from algorithms import Matcher, RESULT_MU, RESULT_SIGMA, RESULT_KDE, RESULT_IDX
 from core.distribution import KdeDistribution
 
 
@@ -78,7 +78,8 @@ class IcpMatcher(Matcher):
                 IcpMatcher.visualizeCurrentStep(src, data, model, idx)
 
         idx = IcpMatcher.findMinimalDistance(data, model)
-        tmp = model[idx]
+        idx = np.column_stack((np.arange(idx.size), idx))
+        tmp = model[idx[:, 1]]
         self.logger.info("Final distance " + str(IcpMatcher.costFunction(0, data, tmp)))
         self.logger.info("Final offset " + str(opt))
         print(idx)
@@ -88,7 +89,8 @@ class IcpMatcher(Matcher):
         if (self.switched):
             cost *= -1
 
-        return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), "Offset": opt}
+        return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx,
+                "Offset": opt}
 
     def findInitialGuess(self, data, model):
         [A, B] = np.meshgrid(data, model)

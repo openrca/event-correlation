@@ -2,7 +2,7 @@ import shutil
 
 import numpy as np
 
-from algorithms import Matcher, RESULT_MU, RESULT_SIGMA, RESULT_KDE
+from algorithms import Matcher, RESULT_MU, RESULT_SIGMA, RESULT_KDE, RESULT_IDX
 from core.distribution import KdeDistribution
 
 
@@ -54,8 +54,9 @@ class MarcoMatcher(Matcher):
         Z = self.algorithm(f, A, b, Aeq, beq, na, nb)
 
         idx = Z.argmax(axis=1)
+        idx = np.column_stack((np.arange(idx.size), idx))
         approxZ = np.zeros(Z.shape)
-        approxZ[np.arange(idx.size), idx] = 1
+        approxZ[idx[:, 0], idx[:, 1]] = 1
 
         self.logger.trace("Final (approximated) result: \n {}".format(approxZ.argmax(axis=0)))
 
@@ -63,7 +64,7 @@ class MarcoMatcher(Matcher):
         cost[cost == 0] = cost.max() + 1
         cost = cost.min(axis=0 if na < nb else 1)
 
-        return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost)}
+        return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx}
 
     def solveMatlab(self, f, A, b, Aeq, beq, na, nb):
         from pymatbridge import Matlab
