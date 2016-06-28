@@ -42,8 +42,8 @@ class TestScript(unittest.TestCase):
                     "name": "Uniform",
                     "param": [0, 1]
                 },
-                "triggerConfidence": 1,
-                "responseConfidence": 1
+                "successTrigger": 1,
+                "successResponse": 1
            },
             "dist": {
                 "name": "Norm",

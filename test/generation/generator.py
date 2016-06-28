@@ -39,7 +39,7 @@ class TestScript(unittest.TestCase):
             .setSeqLength(length) \
             .setRndNumber(StaticDistribution(rvs=[1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1])) \
             .setEntries([Entry(
-                Rule(Event('A'), Event('B'), StaticDistribution(rvs=[3]), responseConfidence=0.9),
+                Rule(Event('A'), Event('B'), StaticDistribution(rvs=[3]), successResponse=0.9),
                 StaticDistribution(rvs=[2, 4, 5]))
             ]) \
             .createSequence()
@@ -81,7 +81,7 @@ class TestScript(unittest.TestCase):
             .setNumberOfEvents(numberEvents) \
             .setRndNumber(StaticDistribution(rvs=[0, 0, 1, 0, 0, 1, 0, 0, 0])) \
             .setEntries([Entry(
-                Rule(Event('A'), Event('B'), StaticDistribution(rvs=[3]), triggerConfidence=0.9, responseConfidence=0.9),
+                Rule(Event('A'), Event('B'), StaticDistribution(rvs=[3]), successTrigger=0.9, successResponse=0.9),
                 StaticDistribution(rvs=[2, 4]))
             ]) \
             .createSequence()
@@ -117,7 +117,7 @@ class TestScript(unittest.TestCase):
             generation.generator.Generator() \
                 .setRndNumber(StaticDistribution([0, 0, 1, 0, 0, 1, 0, 0, 0])) \
                 .setEntries([Entry(
-                    Rule(Event('A'), Event('B'), StaticDistribution(), triggerConfidence=0.9, responseConfidence=0.9),
+                    Rule(Event('A'), Event('B'), StaticDistribution(), successTrigger=0.9, successResponse=0.9),
                     StaticDistribution([2, 4]))
                 ]) \
                 .createSequence()
@@ -137,7 +137,7 @@ class TestScript(unittest.TestCase):
             .setNumberOfEvents(9) \
             .setRndNumber(StaticDistribution([0, 0, 1, 0, 0, 1, 0, 0, 0])) \
             .setEntries([Entry(
-                Rule(Event('A'), Event('B'), StaticDistribution([3]), triggerConfidence=0.9, responseConfidence=0.9),
+                Rule(Event('A'), Event('B'), StaticDistribution([3]), successTrigger=0.9, successResponse=0.9),
                 StaticDistribution([2, 4]))
             ]) \
             .createSequence(5)

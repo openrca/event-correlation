@@ -76,7 +76,7 @@ class Generator:
                 timeTrigger = self._getTimeStamp(entry.dist, entry.lastTime, timeline)
                 entry.lastTime = timeTrigger
                 trigger = Event(entry.rule.trigger)
-                self._addEvent(timeline, timeTrigger, trigger, entry.rule.triggerConfidence)
+                self._addEvent(timeline, timeTrigger, trigger, entry.rule.successTrigger)
 
                 if (len(timeline) >= self.numberEvents):
                     break
@@ -85,7 +85,7 @@ class Generator:
                     timeResponse = self._getTimeStamp(entry.rule.distribution, entry.lastTime, timeline)
                     response = Event(entry.rule.response)
                     trigger.setTriggered(response)
-                    self._addEvent(timeline, timeResponse, response, entry.rule.responseConfidence)
+                    self._addEvent(timeline, timeResponse, response, entry.rule.successResponse)
         return self._asSequence(timeline)
 
     def _createByLength(self):
@@ -101,7 +101,7 @@ class Generator:
 
                 entry.lastTime = timeTrigger
                 trigger = Event(entry.rule.trigger)
-                self._addEvent(timeline, timeTrigger, trigger, entry.rule.triggerConfidence)
+                self._addEvent(timeline, timeTrigger, trigger, entry.rule.successTrigger)
 
                 if (entry.rule.response is not None):
                     timeResponse = self._getTimeStamp(entry.rule.distribution, entry.lastTime, timeline)
@@ -110,7 +110,7 @@ class Generator:
 
                     response = Event(entry.rule.response)
                     trigger.setTriggered(response)
-                    self._addEvent(timeline, timeResponse, response, entry.rule.responseConfidence)
+                    self._addEvent(timeline, timeResponse, response, entry.rule.successResponse)
         return self._asSequence(timeline, self.length)
 
     def _getTimeStamp(self, dist, lastTime, timeline):
@@ -123,8 +123,8 @@ class Generator:
             time += stepSize
         return time
 
-    def _addEvent(self, timeline, timestamp, event, confidence):
-        if (self.rndNumber.getRandom() > confidence):
+    def _addEvent(self, timeline, timestamp, event, success):
+        if (self.rndNumber.getRandom() > success):
             event.occurred = False
         event.timestamp = timestamp
         timeline[timestamp] = event

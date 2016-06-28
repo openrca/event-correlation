@@ -6,15 +6,15 @@ import core.event
 
 
 class Rule:
-    def __init__(self, trigger, response, distribution, triggerConfidence=1.0, responseConfidence=1.0):
+    def __init__(self, trigger, response, distribution, successTrigger=1.0, successResponse=1.0):
         """ Represents a single rule
 
         Parameters:
             trigger: An event type that causes this rule to trigger
             response: An event type that follows after the trigger
             distribution: The distribution used to calculate the time lag between trigger and response
-            triggerConfidence: Probability that the trigger is really triggered
-            responseConfidence: Probability that the response really follows the trigger
+            successTrigger: Probability that the trigger is really triggered
+            successResponse: Probability that the response really follows the trigger
         """
         if (isinstance(trigger, core.event.Event)):
             self.trigger = trigger.eventType
@@ -25,8 +25,8 @@ class Rule:
         else:
             self.response = response
         self.distribution = distribution
-        self.triggerConfidence = triggerConfidence
-        self.responseConfidence = responseConfidence
+        self.successTrigger = successTrigger
+        self.successResponse = successResponse
         self.likelihood = -1
 
     def getResponseTimestamp(self):
@@ -37,8 +37,8 @@ class Rule:
             "trigger": self.trigger,
             "response": self.response,
             "dist": self.distribution.asJson(),
-            "triggerConfidence": self.triggerConfidence,
-            "responseConfidence": self.responseConfidence,
+            "successTrigger": self.successTrigger,
+            "successResponse": self.successResponse,
             "likelihood": self.likelihood
         }
 
@@ -46,12 +46,12 @@ class Rule:
         if (not isinstance(other, Rule)):
             return False
         return self.trigger == other.trigger and self.response == other.response \
-               and self.distribution == other.distribution and self.triggerConfidence == other.triggerConfidence \
-               and self.responseConfidence == other.responseConfidence
+               and self.distribution == other.distribution and self.successTrigger == other.successTrigger \
+               and self.successResponse == other.successResponse
 
     def __hash__(self):
-        return hash(self.trigger) + hash(self.response) + hash(self.distribution) + hash(self.triggerConfidence) \
-               + hash(self.responseConfidence)
+        return hash(self.trigger) + hash(self.response) + hash(self.distribution) + hash(self.successTrigger) \
+               + hash(self.successResponse)
 
     def __str__(self):
         response = str(self.trigger.eventType) + " ->"
@@ -65,7 +65,7 @@ class Rule:
 def load(value):
     """ Load a rule from a json string
     Parameter:
-        trigger, response, dist, triggerConfidence, responseConfidence
+        trigger, response, dist, successTrigger, successResponse
     Throws:
         ValueException
     """
@@ -75,26 +75,26 @@ def load(value):
 
     try:
         trigger = value["trigger"]
-        triggerConfidence = float(value["triggerConfidence"])
+        successTrigger = float(value["successTrigger"])
 
         if ("response" in value):
             try:
                 response = value["response"]
-                responseConfidence = float(value["responseConfidence"])
+                successResponse = float(value["successResponse"])
                 dist = core.distribution.load(value["dist"])
             except KeyError:
-                raise ValueError("Missing parameter 'responseConfidence' and/or 'dist'")
+                raise ValueError("Missing parameter 'successResponse' and/or 'dist'")
         else:
             response = None
             dist = None
-            responseConfidence = None
+            successResponse = None
 
-        rule = Rule(trigger, response, dist, triggerConfidence, responseConfidence)
+        rule = Rule(trigger, response, dist, successTrigger, successResponse)
         if ("likelihood" in value):
             rule.likelihood = float(value["likelihood"])
         return rule
     except KeyError:
-        raise ValueError("Missing parameter 'trigger' and/or 'triggerConfidence'")
+        raise ValueError("Missing parameter 'trigger' and/or 'successTrigger'")
 
 
 def loadFromFile(filename):

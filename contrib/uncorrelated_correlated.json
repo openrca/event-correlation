@@ -7,8 +7,8 @@
 				"name": "Expon",
 				"param": [2, 10]
 			},
-			"triggerConfidence": "1",
-			"responseConfidence": "1"
+			"successTrigger": "1",
+			"successResponse": "1"
 		},
 		"dist": {
 			"name": "Uniform",
@@ -19,7 +19,7 @@
 	{
 		"rule": {
 			"trigger": "C",
-			"triggerConfidence": "1"
+			"successTrigger": "1"
 		},
 		"dist": {
 			"name": "Uniform",

@@ -6,8 +6,8 @@
             "name": "Uniform",
             "param": [0, 1]
         },
-        "triggerConfidence": "1",
-        "responseConfidence": "1"
+        "successTrigger": "1",
+        "successResponse": "1"
     },
     {
         "trigger": "A",
@@ -16,8 +16,8 @@
             "name": "Expon",
             "param": [0, 0.5]
         },
-        "triggerConfidence": "0.9",
-        "responseConfidence": "0.9"
+        "successTrigger": "0.9",
+        "successResponse": "0.9"
     },
     {
         "trigger":  "A"

@@ -17,12 +17,12 @@ class TestScript(unittest.TestCase):
         self.assertEqual('B', rules[0].response)
         self.assertEqual(0, rules[0].distribution.lower)
         self.assertEqual(1, rules[0].distribution.upper)
-        self.assertEqual(1, rules[0].responseConfidence)
+        self.assertEqual(1, rules[0].successResponse)
 
         self.assertEqual('A', rules[1].trigger)
         self.assertEqual('0', rules[1].response)
         self.assertEqual(0.5, rules[1].distribution.beta)
-        self.assertEqual(0.9, rules[1].responseConfidence)
+        self.assertEqual(0.9, rules[1].successResponse)
 
     def test_load(self):
         rule = core.rule.load("""{
@@ -32,19 +32,19 @@ class TestScript(unittest.TestCase):
                 "name": "Uniform",
                 "param": [0, 1]
             },
-            "triggerConfidence": "1",
-            "responseConfidence": "1"
+            "successTrigger": "1",
+            "successResponse": "1"
         }""")
 
         self.assertEqual('A', rule.trigger)
         self.assertEqual('B', rule.response)
         self.assertEqual(0, rule.distribution.lower)
         self.assertEqual(1, rule.distribution.upper)
-        self.assertEqual(1, rule.responseConfidence)
+        self.assertEqual(1, rule.successResponse)
 
     def test_asJson(self):
         rule = Rule("a", "b", NormalDistribution(0, 1))
-        expected = {"trigger": "a", "response": "b", "triggerConfidence": 1.0, "responseConfidence": 1.0,
+        expected = {"trigger": "a", "response": "b", "successTrigger": 1.0, "successResponse": 1.0,
                     'likelihood': -1, "dist":
                         NormalDistribution(0, 1).asJson()}
         self.assertEqual(expected, rule.asJson())

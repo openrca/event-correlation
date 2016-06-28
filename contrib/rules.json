@@ -4,11 +4,11 @@
 			"trigger": "A",
 			"response": "B",
 			"dist": {
-				"name": "Expon",
-				"param": [2, 10]
+				"name": "Norm",
+				"param": [7, 2]
 			},
-			"triggerConfidence": "1",
-			"responseConfidence": "1"
+			"successTrigger": "1",
+			"successResponse": "0.9"
 		},
 		"dist": {
 			"name": "Uniform",
