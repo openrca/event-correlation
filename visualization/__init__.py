@@ -54,15 +54,15 @@ def showFinalAssignment(sequence, eventA, eventB, idx, axes=None):
 
     i = np.array(idx, copy=True)
     for j in range(idx.shape[0]):
-        i[j][0] += len(np.where(missingB <= j)[0])
-        i[j][1] += len(np.where(missingA <= j)[0])
+        i[j][0] += len(np.where(missingA <= j)[0])
+        i[j][1] += len(np.where(missingB <= j)[0])
 
-    ax.plot(i[:, 1], i[:, 0], "ro", label="Assignment")
-    ax.plot(np.arange(i[:, 0].max() + 1), np.arange(i[:, 0].max() + 1), "-", label="Theoretically optimal")
+    ax.plot(i[:, 0], i[:, 1], "ro", label="Assignment")
+    ax.plot(np.arange(i.max() + 1), np.arange(i.max() + 1), "-", label="Theoretically optimal")
     if (len(missingA) > 0):
-        ax.plot(missingA, [1] * len(missingA), "rx", label="Missing " + eventA)
+        ax.plot(missingA, [0.5] * len(missingA), "rx", label="Missing " + eventA)
     if (len(missingB) > 0):
-        ax.plot([1] * len(missingB), missingB, "yx", label="Missing " + eventB)
+        ax.plot([0.5] * len(missingB), missingB, "yx", label="Missing " + eventB)
     ax.set_xlabel("Event " + eventA)
     ax.set_ylabel("Event " + eventB)
     ax.legend(loc="upper left")

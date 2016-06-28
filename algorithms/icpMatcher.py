@@ -16,7 +16,7 @@ class IcpMatcher(Matcher):
         self.initPose = None
         self.f = None
         self.maxiter = 50
-        self.threshold = 1e-4
+        self.threshold = 1e-6
         self.showVisualization = False
         self.switched = False
 
@@ -31,7 +31,7 @@ class IcpMatcher(Matcher):
                 outliers. Allowed values are:
                     None: No outlier reduction
                     [0, 1]: Remove (1 - f) * 100 % of the data points
-                    "confidence": Remove values that are not in the 95% confidence interval
+                    "confidence": Remove values that are not in the 80% confidence interval
             showVisualization: Show a visualization of the current assignment after each iteration. Default is False.
         """
         if ("maxiter" in kwargs):
@@ -50,13 +50,6 @@ class IcpMatcher(Matcher):
             src = np.array(self.sequence.asVector(self.eventA))
         if (model is None):
             model = np.array(self.sequence.asVector(self.eventB))
-
-        self.switched = len(src) > len(model)
-        if (self.switched):
-            self.logger.info("Switching input and model")
-            tmp = src
-            src = model
-            model = tmp
 
         data = np.array(src, copy=True).astype(float)
 
@@ -89,8 +82,6 @@ class IcpMatcher(Matcher):
 
         cost = tmp - src
         cost = cost[abs(cost - cost.mean()) < 2.58 * cost.std()]
-        if (self.switched):
-            cost *= -1
 
         return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx,
                 "Offset": opt}
@@ -155,7 +146,12 @@ class IcpMatcher(Matcher):
         if (self.f == "confidence"):
             # based on The Dual-Bootstrap Iterative Closest Point Algorithm With Application to Retinal Image
             # Registration, Stewart, Tsai and Roysam
-            selectedIdx = np.arange(values.size)[abs(values - values.mean()) < 1.96 * values.std()]
+            selectedIdx = np.arange(values.size)[abs(values - values.mean()) < 1.282 * values.std()]
+
+        # select at most one data point per model point
+        if (selectedIdx.size > model.size):
+            selectedIdx = values[selectedIdx].argsort()[:model.size]
+
         self.logger.trace("Selected {} from {} values".format(selectedIdx.size, data.size))
         return data[minIdx[:, 1][selectedIdx]], selectedIdx
 

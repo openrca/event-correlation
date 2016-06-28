@@ -26,15 +26,16 @@ class MunkresMatcher(Matcher):
 
         m = Munkres()
         idx = m.compute(c)
+        idx[:, [0, 1]] = idx[:, [1, 0]]
 
         c[c > 0] = np.sqrt(c[c > 0])
-        cost = c[idx[:, 0], idx[:, 1]]
+        cost = c[idx[:, 1], idx[:, 0]]
         self.logger.debug("Found matchings with total cost {:.2f}".format(cost.sum()))
 
         if (self.logger.isEnabledFor(logging.TRACE)):
             for i in range(min(len(a), len(b))):
                 self.logger.trace("Matched ({}, {}) -> {:.4f} - {:.4f} = {:.4f}"
-                                  .format(idx[i][1], idx[i][0], b[idx[i][0]], a[idx[i][1]], c[idx[i][0], idx[i][1]]))
+                                  .format(idx[i][0], idx[i][1], b[idx[i][1]], a[idx[i][0]], c[idx[i][1], idx[i][0]]))
             if (len(a) != len(b)):
                 self.logger.trace("Remaining events were not assigned")
 

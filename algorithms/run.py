@@ -17,7 +17,10 @@ from core.rule import Rule
 def printResult(result, distributions, empiricalDist=None):
     print("Final parameters:")
     for key, value in result.items():
-        print("\t {}: {}".format(key, value))
+        if (key == RESULT_IDX):
+            print("\t {}: \n{}".format(key, value.T))
+        else:
+            print("\t {}: {}".format(key, value))
     if (distributions is not None):
         print("True parameters:")
         for d in distributions:

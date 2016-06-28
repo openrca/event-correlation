@@ -53,16 +53,18 @@ class MarcoMatcher(Matcher):
 
         Z = self.algorithm(f, A, b, Aeq, beq, na, nb)
 
-        idx = Z.argmax(axis=1)
-        idx = np.column_stack((np.arange(idx.size), idx))
-        approxZ = np.zeros(Z.shape)
-        approxZ[idx[:, 0], idx[:, 1]] = 1
+        self.logger.trace("Final (approximated) result: \n {}".format(Z.argmax(axis=0)))
 
-        self.logger.trace("Final (approximated) result: \n {}".format(approxZ.argmax(axis=0)))
-
-        cost = np.multiply(approxZ, delta)
+        cost = np.multiply(Z, delta)
         cost[cost == 0] = cost.max() + 1
-        cost = cost.min(axis=0 if na < nb else 1)
+        if (na < nb):
+            idx = cost.argmin(axis=0)
+            idx = np.column_stack((np.arange(idx.size), idx))
+            cost = cost.min(axis=0)
+        else:
+            idx = cost.argmin(axis=1)
+            idx = np.column_stack((idx, np.arange(idx.size)))
+            cost = cost.min(axis=1)
 
         return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx}
 
