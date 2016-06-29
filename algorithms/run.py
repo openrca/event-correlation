@@ -37,7 +37,7 @@ def printDistance(dist1, dist2):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-r", "--rules", action="store", type=str, help="Path to files containing correct rules")
-parser.add_argument("-i", "--input", action="store", type=str, help="Path to files containing sequences")
+parser.add_argument("-i", "--input", action="store", type=str, help="Path to file containing sequence")
 parser.add_argument("-a", "--algorithm", action="store", type=str, required=True, help="Algorithm to use for alignment")
 parser.add_argument("-l", "--length", action="store", type=int, help="Length of to be generated sequence")
 parser.add_argument("-c", "--count", action="store", type=int, help="Number of events in generated sequence")

@@ -614,19 +614,3 @@ def make_cost_matrix(profit_matrix, inversion_function):
     :return: The converted matrix
     """
     return inversion_function(profit_matrix)
-
-
-def print_matrix(matrix, msg=None):
-    """
-    Convenience function: Displays the contents of a matrix of integers.
-
-    :Parameters:
-        matrix : list of lists
-            Matrix to print
-
-        msg : str
-            Optional message to print before displaying the matrix
-    """
-    if msg is not None:
-        print(msg)
-    print(matrix)
