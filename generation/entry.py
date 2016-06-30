@@ -24,6 +24,9 @@ class Entry:
     def __hash__(self):
         return hash(self.rule) + hash(self.dist) + hash(self.scale)
 
+    def __repr__(self):
+        return str(self.rule) + " | " + str(self.dist)
+
 
 def loadEntry(value):
     """ Loads a entry from a json string

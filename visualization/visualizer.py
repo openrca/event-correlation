@@ -4,6 +4,7 @@ import math
 import os
 import sys
 import threading
+import core.rule
 
 from PySide.QtCore import Signal, QPoint, QRectF
 from PySide.QtGui import QMainWindow, QWidget, QVBoxLayout, QPainter, QPainterPath, QGraphicsScene, QGraphicsView, \
@@ -256,7 +257,8 @@ class Visualizer(QMainWindow):
             return
 
     def createSequence(self):
-        sequence = generation.createSequences()
+        # TODO make generic
+        sequence = generation.createSequences("/tmp/rule.json", 100)
         self.setSequence(sequence)
 
     def setSequence(self, sequence):

@@ -54,9 +54,9 @@ class Rule:
                + hash(self.successResponse)
 
     def __str__(self):
-        response = str(self.trigger.eventType) + " ->"
+        response = str(self.trigger) + " -> "
         if (self.response is not None):
-            response += str(self.response.eventType) + " (" + str(self.distribution) + ")"
+            response += str(self.response) + " (" + str(self.distribution) + ")"
         else:
             response += "_"
         return response

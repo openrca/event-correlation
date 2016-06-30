@@ -13,6 +13,7 @@ class Generator:
         self.length = -1
         self.numberEvents = -1
         self.entries = []
+        self.rules = []
         self.rndNumber = core.distribution.UniformDistribution()
         self.discrete = False
         self._create = None
@@ -38,8 +39,11 @@ class Generator:
 
     def setEntries(self, entries):
         """ Add entries to this generator """
+        self.entries = []
+        self.rules = []
         for entry in entries:
             self.entries.append(entry)
+            self.rules.append(entry.rule)
         return self
 
     def setDiscrete(self):
@@ -86,6 +90,8 @@ class Generator:
                     response = Event(entry.rule.response)
                     trigger.setTriggered(response)
                     self._addEvent(timeline, timeResponse, response, entry.rule.successResponse)
+        for entry in self.entries:
+            entry.lastTime = 0
         return self._asSequence(timeline)
 
     def _createByLength(self):
@@ -111,6 +117,8 @@ class Generator:
                     response = Event(entry.rule.response)
                     trigger.setTriggered(response)
                     self._addEvent(timeline, timeResponse, response, entry.rule.successResponse)
+        for entry in self.entries:
+            entry.lastTime = 0
         return self._asSequence(timeline, self.length)
 
     def _getTimeStamp(self, dist, lastTime, timeline):
@@ -129,8 +137,7 @@ class Generator:
         event.timestamp = timestamp
         timeline[timestamp] = event
 
-    @staticmethod
-    def _asSequence(dictionary, length=-1):
+    def _asSequence(self, dictionary, length=-1):
         seq = list(dictionary.values())
         seq.sort()
-        return Sequence(seq, length if length != -1 else math.ceil(seq[-1].timestamp) + 1)
+        return Sequence(seq, length if length != -1 else math.ceil(seq[-1].timestamp) + 1, self.rules)

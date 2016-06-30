@@ -58,7 +58,7 @@ def load(value):
         if ("timestamp" in value):
             event.timestamp = float(value["timestamp"])
         if ("occurred" in value):
-            event.occurred = bool(value["occurred"])
+            event.occurred = value["occurred"] == "True"
         if ("triggered" in value):
             event.setTriggered(load(value["triggered"]))
         return event
