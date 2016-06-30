@@ -3,8 +3,8 @@ import threading
 
 import numpy as np
 
-from algorithms import Matcher, RESULT_MU, RESULT_SIGMA, RESULT_IDX
-from core.distribution import UniformDistribution
+from algorithms import Matcher, RESULT_MU, RESULT_SIGMA, RESULT_IDX, RESULT_KDE
+from core.distribution import UniformDistribution, KdeDistribution, NormalDistribution
 
 
 class lagEM(Matcher):
@@ -36,7 +36,8 @@ class lagEM(Matcher):
         threads.clear()
         self.logger.info("Results:\n {}".format(result))
         tmp = result.sum(axis=0) / np.count_nonzero(result[:, 0])
-        return {RESULT_MU: tmp[0], RESULT_SIGMA: tmp[1], "Likelihood": result[:, 2].max(), RESULT_IDX: None}
+        return {RESULT_MU: tmp[0], RESULT_SIGMA: tmp[1], "Likelihood": result[:, 2].max(), RESULT_IDX: None,
+                RESULT_KDE: KdeDistribution(NormalDistribution(tmp[0], tmp[1]).getRandom(min(a.size, b.size)))}
 
     def calculateParallel(self, a, b, result, index):
         self.logger.info("Processing batch {}".format(index))
@@ -48,7 +49,7 @@ class lagEM(Matcher):
 
     def calculate(self, a, b):
         r = np.ones([a.size, b.size]) / b.size
-        mu = UniformDistribution(76, 78).getRandom()
+        mu = UniformDistribution(0, 100).getRandom()
         variance = UniformDistribution(3, 25).getRandom() ** 2
 
         while True:
