@@ -1,6 +1,7 @@
 import math
 import numbers
 from time import sleep
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -54,7 +55,8 @@ class IcpMatcher(Matcher):
         data = np.array(src, copy=True).astype(float)
 
         if (self.initPose is None):
-            self.initPose = self.findInitialGuess(data, model)
+            self.initPose = SampleConsensusInitialGuess().computeTransformation(data, model)
+            self.logger.info("Estimated initial guess as {}".format(self.initPose))
 
         opt = np.array(self.initPose).astype(np.float32)
         data += opt
@@ -86,13 +88,6 @@ class IcpMatcher(Matcher):
         return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx,
                 "Offset": opt}
 
-    def findInitialGuess(self, data, model):
-        [A, B] = np.meshgrid(data, model)
-        guess = (B - A).mean()
-        guess /= len(model) / len(data)
-        self.logger.info("Estimated initial guess as {}".format(guess))
-        return guess
-
     @staticmethod
     def visualizeCurrentStep(src, data, dataIdx, model, modelIdx):
         plt.clf()
@@ -111,10 +106,12 @@ class IcpMatcher(Matcher):
         sleep(1)
 
     @staticmethod
-    def findMinimalDistance(data, model):
+    def findMinimalDistance(data, model, k=1):
         [A, B] = np.meshgrid(data, model)
         delta = abs(B - A)
-        return delta.argmin(axis=0)
+        if (k == 1):
+            return delta.argmin(axis=0)
+        return np.argsort(delta, axis=0)[0:k, :].flatten()
 
     @staticmethod
     def findOptimalTransformation(p, data, model):
@@ -167,3 +164,73 @@ class IcpMatcher(Matcher):
         # This function has to have the same arguments as IcpMatcher.jacobiMatrix and IcpMatcher.totalDistance.
         # See http://docs.scipy.org/doc/scipy-0.17.1/reference/generated/scipy.optimize.minimize.html
         return 2 * np.size(data, 0)
+
+
+class SampleConsensusInitialGuess:
+    """
+    Compute (mostly) robust initial transformation for IcpMatcher.
+
+    Calculation is based on [1] Fast Point Feature Histograms (FPFH) for 3D registration, Rusu, Blodow and Beetz,
+    Section IV Sample Consensus Initial Alignment: SAC-IA and [2] PointCloudLibrary(PCL) implementation on
+    http://docs.pointclouds.org/trunk/ia__ransac_8hpp_source.html
+    """
+
+    def __init__(self):
+        self.nrSamples = 3
+        self.maxIterations = 500
+        self.minSampleDistance = 0
+        self.distanceThreshold = 50
+        self.kCorrespondence = 2
+
+    def selectSamples(self, data):
+        result = []
+        iterationsWithoutSample = 0
+        while (len(result) < self.nrSamples):
+            d = np.random.choice(data, 1)
+            valid = True
+
+            for i in result:
+                if (abs(d - i) < self.minSampleDistance):
+                    valid = False
+
+            if (valid):
+                iterationsWithoutSample = 0
+                result.append(d)
+            else:
+                iterationsWithoutSample += 1
+            if (iterationsWithoutSample > 3 * data.size):
+                self.minSampleDistance /= 2
+                iterationsWithoutSample = 0
+
+        return np.array(result).flatten()
+
+    def findSimilarFeatures(self, data, model):
+        result = []
+        for d in data:
+            idx = IcpMatcher.findMinimalDistance(d, model, self.kCorrespondence)
+            result.append(np.random.choice(idx, 1)[0])
+
+        return model[result]
+
+    def computeErrorMetric(self, data, model):
+        error = 0
+        idx = IcpMatcher.findMinimalDistance(data, model)
+        dist = data - model[idx]
+        for d in dist:
+            error += min(abs(d) / self.distanceThreshold, 1)
+        return error
+
+    def computeTransformation(self, data, model):
+        guess = 0
+        minError = sys.maxsize
+        for i in range(self.maxIterations):
+            dataSamples = self.selectSamples(data)
+            modelSamples = self.findSimilarFeatures(dataSamples, model)
+
+            p = IcpMatcher.findOptimalTransformation(0, dataSamples, modelSamples)
+            d = dataSamples + p
+            error = self.computeErrorMetric(d, model)
+            if (error < minError):
+                guess = p
+                minError = error
+        return guess
