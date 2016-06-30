@@ -18,7 +18,6 @@ from scipy import stats, integrate
 STATIC = 1
 NORMAL = 2
 UNIFORM = 3
-POWER = 4
 EXP = 5
 KDE = 6
 
@@ -26,7 +25,6 @@ distributions = {
     STATIC: 'Static',
     NORMAL: 'Norm',
     UNIFORM: 'Uniform',
-    POWER: 'Powerlaw',
     EXP: 'Expon',
     KDE: 'Kde'
 }
@@ -84,6 +82,14 @@ class Distribution(abc.ABC):
     def getDifferentialEntropy(self):
         pass
 
+    @abc.abstractmethod
+    def getVar(self):
+        pass
+
+    @abc.abstractmethod
+    def getStd(self):
+        pass
+
 
 class AbstractDistribution(Distribution, abc.ABC):
     @abc.abstractmethod
@@ -98,6 +104,12 @@ class AbstractDistribution(Distribution, abc.ABC):
 
     def getPDFValue(self, x):
         return self.dist.pdf(x)
+
+    def getVar(self):
+        return self.dist.var()
+
+    def getStd(self):
+        return self.dist.std()
 
 
 class StaticDistribution(Distribution):
@@ -151,6 +163,12 @@ class StaticDistribution(Distribution):
         """ Static distribution has no continuous entropy. Calculate normal entropy instead. """
         count = np.array(list(collections.Counter(self.pdf).values()))
         return stats.entropy(np.divide(count, count.sum()))
+
+    def getStd(self):
+        return self.pdf.std()
+
+    def getVar(self):
+        return self.pdf.var()
 
     @staticmethod
     def _get(idx, lst):
@@ -212,36 +230,6 @@ class UniformDistribution(AbstractDistribution):
 
     def __str__(self):
         return "{}: Lower: {}\t Upper: {}".format(distributions[UNIFORM], self.lower, self.upper)
-
-
-class PowerLawDistribution(AbstractDistribution):
-    #  TODO check how Powerlaw exactly is implemented
-    """ Creates random samples based on a Power Law distribution
-
-    Distribution:
-        P(x; a, b) = ax^(a - 1) + b, 0 <= x <= 1, a > 0
-    """
-
-    def __init__(self, a, b=0.0):
-        """
-        :param a: Shape of function
-        :param b: Offset for values
-        """
-        super().__init__(distType=POWER, param=(a, b))
-        self.a = a
-        self.b = b
-        self._checkParam()
-        self.dist = stats.powerlaw(a, b)
-
-    def _checkParam(self):
-        if (self.a <= 0):
-            raise ValueError("A is not positive. A: {}".format(self.a))
-
-    def getDifferentialEntropy(self):
-        raise RuntimeError("Not implemented yet")
-
-    def __str__(self):
-        return "{}: Exponent: {}".format(distributions[POWER], self.a)
 
 
 class ExponentialDistribution(AbstractDistribution):
@@ -335,8 +323,17 @@ class KdeDistribution(Distribution):
         # TODO implement
         raise RuntimeError("Not implemented yet.")
 
+    def getStd(self):
+        return self.samples.std()
+
+    def getVar(self):
+        return self.samples.var()
+
     def __str__(self):
         return "{}: Samples: {}".format(distributions[KDE], self.samples)
+
+    def __repr__(self):
+        return str(self.samples)
 
 
 def load(value):
@@ -361,8 +358,6 @@ def load(value):
             return NormalDistribution(float(param[0]), float(param[1]))
         elif (dist == distributions[UNIFORM]):
             return UniformDistribution(float(param[0]), float(param[1]))
-        elif (dist == distributions[POWER]):
-            return PowerLawDistribution(float(param[0]), float(param[1]))
         elif (dist == distributions[EXP]):
             return ExponentialDistribution(float(param[0]), float(param[1]))
         elif (dist == distributions[KDE]):
@@ -382,9 +377,6 @@ def samplesToDistribution(samples, distribution):
         return NormalDistribution(samples.mean(), samples.std())
     elif (distribution == UniformDistribution):
         return UniformDistribution(samples.min(), samples.max())
-    elif (distribution == POWER):
-        # TODO estimate shape
-        return PowerLawDistribution(None, samples.min())
     elif (distribution == EXP):
         return ExponentialDistribution(samples.min(), samples.mean() - samples.min())
     elif (distribution == KDE):

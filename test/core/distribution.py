@@ -1,7 +1,7 @@
 import unittest
 
 from core import distribution
-from core.distribution import NormalDistribution, PowerLawDistribution, UniformDistribution, KdeDistribution, \
+from core.distribution import NormalDistribution, UniformDistribution, KdeDistribution, \
     Distribution, StaticDistribution, ExponentialDistribution
 
 
@@ -57,21 +57,6 @@ class TestScript(unittest.TestCase):
     def test_uniform_invalid(self):
         with self.assertRaises(ValueError):
             UniformDistribution(0, 0)
-
-    def test_powerlaw(self):
-        dist = PowerLawDistribution(1, 0)
-        self.assertTrue(isinstance(dist, Distribution))
-        self.assertIsNotNone(dist.getRandom())
-        self.assertEqual("Powerlaw: Exponent: 1", str(dist))
-        self.assertEqual(1, dist.getPDFValue(1))
-        self.assertEqual(0.5, dist.getCDFValue(0.5))
-
-        with self.assertRaises(RuntimeError):
-            dist.getDifferentialEntropy()
-
-    def test_powerlaw_invalid(self):
-        with self.assertRaises(ValueError):
-            PowerLawDistribution(0)
 
     def test_exponential(self):
         dist = ExponentialDistribution(0, 4)
@@ -138,8 +123,6 @@ class TestScript(unittest.TestCase):
 
         normal = distribution.load({"name": "Norm", "param": [0, 1]})
         self.assertEqual(NormalDistribution(0, 1), normal)
-        power = distribution.load({"name": "Powerlaw", "param": [1, 0]})
-        self.assertEqual(PowerLawDistribution(1), power)
         kde = distribution.load({'param': [[1, 2, 3, 4, 5]], 'name': 'Kde'})
         self.assertEqual(KdeDistribution([1, 2, 3, 4, 5]), kde)
 

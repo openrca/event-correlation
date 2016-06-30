@@ -37,17 +37,17 @@ def showDistributions(title, trueDist, estimate0, estimate1, estimate2, estimate
     xMax = max(estimate4.getCompleteInterval()[1], xMax)
 
     x = np.linspace(xMin, xMax, 500)
-    plt.plot(x, trueDist.dist.pdf(x), "b", label="True distribution")
-    plt.plot(x, estimate0.dist.pdf(x), "g",
-             label="{} ({:.1f}, {:.1f})".format(sigma[0], estimate0.dist.mean(), math.sqrt(estimate0.dist.var())))
-    plt.plot(x, estimate0.dist.pdf(x), "r",
-             label="{} ({:.1f}, {:.1f})".format(sigma[1], estimate1.dist.mean(), math.sqrt(estimate1.dist.var())))
-    plt.plot(x, estimate0.dist.pdf(x), "c",
-             label="{} ({:.1f}, {:.1f})".format(sigma[2], estimate2.dist.mean(), math.sqrt(estimate2.dist.var())))
-    plt.plot(x, estimate0.dist.pdf(x), "m",
-             label="{} ({:.1f}, {:.1f})".format(sigma[3], estimate3.dist.mean(), math.sqrt(estimate3.dist.var())))
-    plt.plot(x, estimate0.dist.pdf(x), "y",
-             label="{} ({:.1f}, {:.1f})".format(sigma[4], estimate4.dist.mean(), math.sqrt(estimate4.dist.var())))
+    plt.plot(x, trueDist.getPDFValue(x), "b", label="True distribution")
+    plt.plot(x, estimate0.getPDFValue(x), "g",
+             label="{} ({:.1f}, {:.1f})".format(sigma[0], estimate0.dist.mean(), math.sqrt(estimate0.getVar()())))
+    plt.plot(x, estimate0.getPDFValue(x), "r",
+             label="{} ({:.1f}, {:.1f})".format(sigma[1], estimate1.dist.mean(), math.sqrt(estimate1.getVar())))
+    plt.plot(x, estimate0.getPDFValue(x), "c",
+             label="{} ({:.1f}, {:.1f})".format(sigma[2], estimate2.dist.mean(), math.sqrt(estimate2.getVar())))
+    plt.plot(x, estimate0.getPDFValue(x), "m",
+             label="{} ({:.1f}, {:.1f})".format(sigma[3], estimate3.dist.mean(), math.sqrt(estimate3.getVar())))
+    plt.plot(x, estimate0.getPDFValue(x), "y",
+             label="{} ({:.1f}, {:.1f})".format(sigma[4], estimate4.dist.mean(), math.sqrt(estimate4.getVar())))
     plt.legend(loc='upper left')
     plt.title(title)
     plt.draw()
