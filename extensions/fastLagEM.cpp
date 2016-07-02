@@ -91,13 +91,13 @@ static double* calculate(double* a, double* b, double initMu, double initVarianc
             break;
     }
     
-    double likelihood = 1;
+    double likelihood = 0;
     double** tmp = calculateNormalMatrix(a, b, r, mu, var, sizeA, sizeB);
     for (int j = 0; j < sizeB; ++j) {
         double sum = 0;
         for (int i = 0; i < sizeA; ++i)
             sum += tmp[i][j];
-        likelihood *= sum;
+        likelihood += std::log(sum);
     }
     
     for(int i = 0; i < sizeA; ++i) {
