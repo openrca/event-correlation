@@ -118,15 +118,14 @@ class MarcoMatcher(Matcher):
 
         Works for higher dimensions but requires quite some time.
         """
-        import cvxopt.solvers
-        from cvxopt import matrix
+        from cvxopt import matrix, solvers
 
         # add boundaries as lp has no build-in boundaries
         A1 = np.concatenate((A, -np.eye(na * nb), np.eye(na * nb)))
         b1 = np.concatenate((b, np.zeros(na * nb), np.ones(na * nb)))
 
         self.logger.debug("Using cvxopt to solve optimization problem")
-        sol = cvxopt.solvers.lp(matrix(f), matrix(A1), matrix(b1), matrix(Aeq), matrix(beq), solver="glpk")
+        sol = solvers.lp(matrix(f), matrix(A1), matrix(b1), matrix(Aeq), matrix(beq), solver="glpk")
 
         if (sol["x"] is None):
             self.logger.warn("Unable to find solution")

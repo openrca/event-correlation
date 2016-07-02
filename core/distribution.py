@@ -12,7 +12,6 @@ import math
 import time
 
 import numpy as np
-import scipy
 from scipy import stats, integrate
 
 STATIC = 1
@@ -177,7 +176,7 @@ class StaticDistribution(Distribution):
         return (idx + 1, lst[idx])
 
     def __str__(self):
-        return "{}: pdf: {}\t cdf: {}\t rvs: {}".format(distributions[STATIC], self.pdf, self.cdf, self.rvs)
+        return "{}: pdf: {} cdf: {} rvs: {}".format(distributions[STATIC], self.pdf, self.cdf, self.rvs)
 
 
 class NormalDistribution(AbstractDistribution):
@@ -202,7 +201,7 @@ class NormalDistribution(AbstractDistribution):
             raise ValueError("Variance is not positive. Sigma: {}".format(self.sigma))
 
     def __str__(self):
-        return "{}: Mu: {}\t Sigma: {}".format(distributions[NORMAL], self.mu, self.sigma)
+        return "{}: Mu: {} Sigma: {}".format(distributions[NORMAL], self.mu, self.sigma)
 
 
 class UniformDistribution(AbstractDistribution):
@@ -229,7 +228,7 @@ class UniformDistribution(AbstractDistribution):
         return math.log(self.upper - self.lower)
 
     def __str__(self):
-        return "{}: Lower: {}\t Upper: {}".format(distributions[UNIFORM], self.lower, self.upper)
+        return "{}: Lower: {} Upper: {}".format(distributions[UNIFORM], self.lower, self.upper)
 
 
 class ExponentialDistribution(AbstractDistribution):
@@ -258,7 +257,7 @@ class ExponentialDistribution(AbstractDistribution):
         return 1 - math.log(1 / self.beta)
 
     def __str__(self):
-        return "{}: Offset: {}\t Beta: {}".format(distributions[EXP], self.offset, self.beta)
+        return "{}: Offset: {} Beta: {}".format(distributions[EXP], self.offset, self.beta)
 
 
 class KdeDistribution(Distribution):
@@ -279,7 +278,7 @@ class KdeDistribution(Distribution):
 
         self.minValue = np.min(self.samples) - 2
         self.maxValue = np.max(self.samples) + 2
-        self.kernel = scipy.stats.gaussian_kde(self.samples)
+        self.kernel = stats.gaussian_kde(self.samples)
 
     def getPDFValue(self, x):
         return self.kernel.evaluate(x)

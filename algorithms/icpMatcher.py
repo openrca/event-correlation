@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import optimize
 
-from algorithms import Matcher, RESULT_MU, RESULT_SIGMA, RESULT_KDE, RESULT_IDX
+from algorithms import Matcher, RESULT_MU, RESULT_SIGMA, RESULT_KDE, RESULT_IDX, InitialGuess
 from core.distribution import KdeDistribution
 
 
@@ -19,7 +19,6 @@ class IcpMatcher(Matcher):
         self.maxiter = 50
         self.threshold = 1e-6
         self.showVisualization = False
-        self.switched = False
 
     def parseArgs(self, kwargs):
         """
@@ -55,7 +54,7 @@ class IcpMatcher(Matcher):
         data = np.array(src, copy=True).astype(float)
 
         if (self.initPose is None):
-            self.initPose = SampleConsensusInitialGuess().computeTransformation(data, model)
+            self.initPose = SampleConsensusInitialGuess().computeOffset(data, model)
             self.logger.info("Estimated initial guess as {}".format(self.initPose))
 
         opt = np.array(self.initPose).astype(np.float32)
@@ -166,7 +165,7 @@ class IcpMatcher(Matcher):
         return 2 * np.size(data, 0)
 
 
-class SampleConsensusInitialGuess:
+class SampleConsensusInitialGuess(InitialGuess):
     """
     Compute (mostly) robust initial transformation for IcpMatcher.
 
@@ -220,7 +219,7 @@ class SampleConsensusInitialGuess:
             error += min(abs(d) / self.distanceThreshold, 1)
         return error
 
-    def computeTransformation(self, data, model):
+    def computeOffset(self, data, model):
         guess = 0
         minError = sys.maxsize
         for i in range(self.maxIterations):

@@ -17,7 +17,7 @@ from core.rule import Rule
 def printResult(result, distributions, empiricalDist=None):
     print("Final parameters:")
     for key, value in result.items():
-        if (key == RESULT_IDX):
+        if (key == RESULT_IDX and value is not None):
             print("\t {}: \n{}".format(key, value.T))
         else:
             print("\t {}: {}".format(key, value))

@@ -20,7 +20,7 @@ RESULT_KDE = "Kde"
 RESULT_IDX = "Index"
 
 
-class Matcher:
+class Matcher(abc.ABC):
     def __init__(self, name):
         if (name is None):
             name = __name__
@@ -60,4 +60,10 @@ class Matcher:
 
     @abc.abstractmethod
     def compute(self):
+        pass
+
+
+class InitialGuess(abc.ABC):
+    @abc.abstractmethod
+    def computeOffset(self, data, model):
         pass
