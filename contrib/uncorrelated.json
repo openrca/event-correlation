@@ -1,0 +1,24 @@
+[
+	{
+		"rule": {
+			"trigger": "A",
+			"successTrigger": "1"
+		},
+		"dist": {
+			"name": "Norm",
+			"param": [8, 1]
+		},
+		"scale": 1
+	},
+	{
+		"rule": {
+			"trigger": "B",
+			"successTrigger": "1"
+		},
+		"dist": {
+			"name": "Uniform",
+			"param": [10, 30]
+		},
+		"scale": 1
+	}
+]

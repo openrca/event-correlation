@@ -22,17 +22,22 @@ def showDistributions(estimatedDist, trueDist, visualizeOverlap=True, axes=None)
     else:
         ax = axes
 
+    if (trueDist is None):
+        borders2 = estimatedDist.getCompleteInterval()
+    else:
+        borders2 = trueDist.getCompleteInterval()
     borders1 = estimatedDist.getCompleteInterval()
-    borders2 = trueDist.getCompleteInterval()
     x = np.linspace(min(borders1[0], borders2[0]) - 1, max(borders1[1], borders2[1]) + 1, 500)
-    y1 = estimatedDist.getPDFValue(x)
-    y2 = trueDist.getPDFValue(x)
 
+    y1 = estimatedDist.getPDFValue(x)
     ax.plot(x, y1, "b", label="Estimated distribution")
-    ax.plot(x, y2, "r", label="True distribution")
+
+    if (trueDist is not None):
+        y2 = trueDist.getPDFValue(x)
+        ax.plot(x, y2, "r", label="True distribution")
     ax.legend()
 
-    if (visualizeOverlap):
+    if (visualizeOverlap and trueDist is not None):
         y = np.zeros(len(y1))
         for i in range(len(y1)):
             y[i] = min(y1[i], y2[i])

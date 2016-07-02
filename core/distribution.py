@@ -428,11 +428,17 @@ def getEmpiricalDist(seq, trigger, response):
     for event in events:
         if (event.triggered is not None and event.triggered.eventType == response):
             values.append(event.triggered.timestamp - event.timestamp)
+    if (len(values) == 0):
+        return None
+
     values = np.array(values)
     return NormalDistribution(values.mean(), values.std())
 
 
 def getAreaBetweenDistributions(dist1, dist2):
+    if (dist1 is None or dist2 is None):
+        return 0
+
     borders1 = dist1.getCompleteInterval()
     borders2 = dist2.getCompleteInterval()
     x = np.linspace(min(borders1[0], borders2[0]), max(borders1[1], borders2[1]), 2000)
