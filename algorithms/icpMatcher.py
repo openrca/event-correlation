@@ -54,7 +54,14 @@ class IcpMatcher(Matcher):
         data = np.array(src, copy=True).astype(float)
 
         if (self.initPose is None):
-            self.initPose = SampleConsensusInitialGuess().computeOffset(data, model)
+            # TODO find better method for initial guess
+            mean = MeanDistanceInitialGuess().computeOffset(data, model)
+            sac = SampleConsensusInitialGuess().computeOffset(data, model)
+            binAlignment = BinAlignmentInitialGuess().computeOffset(data, model)
+            self.logger.trace("Mean initial guess: {}".format(mean))
+            self.logger.trace("SAC initial guess: {}".format(sac))
+            self.logger.trace("Bin alignment initial guess: {}".format(binAlignment))
+            self.initPose = (mean + sac + binAlignment) / 3
             self.logger.info("Estimated initial guess as {}".format(self.initPose))
 
         opt = np.array(self.initPose).astype(np.float32)
@@ -233,3 +240,51 @@ class SampleConsensusInitialGuess(InitialGuess):
                 guess = p
                 minError = error
         return guess
+
+
+class BinAlignmentInitialGuess(InitialGuess):
+    def __init__(self):
+        self.nrBins = None
+        self.binLength = None
+        self.interval = None
+        self.modelBins = None
+
+        self.data = None
+        self.model = None
+
+    def computeOffset(self, data, model):
+        self.model = model
+        self.data = data
+
+        self.setNumberOfBins(data, model)
+        self.interval = (min(data.min(), model.min()), max(data.max(), model.max()))
+        self.binLength = (self.interval[1] - self.interval[0]) / self.nrBins
+        self.modelBins = self.countBinAssignments(model, 0)
+
+        result = optimize.minimize(self.costFunction, 0, method="TNC", jac=self.jacobiFunction,
+                                   bounds=[(-self.interval[1], self.interval[1])])
+        return result.x
+
+    def setNumberOfBins(self, data, model):
+        # Based on Sturges rules
+        dataBins = math.log2(data.size) + 1
+        modelBins = math.log2(model.size) + 1
+        self.nrBins = math.floor(max(dataBins, modelBins))
+
+    def countBinAssignments(self, points, offset):
+        borders = np.arange(self.nrBins + 1) * self.binLength + self.interval[0]
+        return np.histogram(points - offset, borders)[0]
+
+    def costFunction(self, offset):
+        dataBins = self.countBinAssignments(self.data, offset)
+        return abs(dataBins - self.modelBins).sum() ** 2
+
+    def jacobiFunction(self, offset):
+        modelMean = self.model.mean() - offset
+        dataMean = self.data.mean()
+        return dataMean - modelMean
+
+
+class MeanDistanceInitialGuess(InitialGuess):
+    def computeOffset(self, data, model):
+        return model.mean() - data.mean()
