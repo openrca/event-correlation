@@ -4,13 +4,13 @@ import math
 import os
 import sys
 import threading
-import core.rule
 
 from PySide.QtCore import Signal, QPoint, QRectF
 from PySide.QtGui import QMainWindow, QWidget, QVBoxLayout, QPainter, QPainterPath, QGraphicsScene, QGraphicsView, \
     QGraphicsItem, QFont, QFontMetrics, QBrush, QColor, QPen, QAction, QFileDialog, QMessageBox, QApplication
 
 import core
+import core.rule
 import generation
 import visualization
 from core.sequence import Sequence
@@ -73,7 +73,7 @@ class ArrowWidget(QGraphicsItem):
         color = 0
         if (self.rule is not None):
             distance = self.end.eventType.timestamp - self.start.eventType.timestamp
-            prob = self.rule.distribution.getPDFValue(distance) / self.rule.distribution.getMaximumPDF()
+            prob = self.rule.distributionResponse.getPDFValue(distance) / self.rule.distributionResponse.getMaximumPDF()
             color = (1 - prob) * 256
         color = QColor(color, color, color)
 

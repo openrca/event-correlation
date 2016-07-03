@@ -11,7 +11,7 @@ class TestScript(unittest.TestCase):
         timer.start()
         time.sleep(1)
         timer.stop()
-        self.assertRegex(str(timer), "00:01,\\d{3}")
+        self.assertRegex(str(timer), "00:0[01],\\d{3}")
 
     def test_str(self):
         timer = Timer()
@@ -27,7 +27,7 @@ class TestScript(unittest.TestCase):
         time.sleep(1)
 
         res = timer.stopAndLog()
-        self.assertRegex(res, "00:01,\\d{3}")
+        self.assertRegex(res, "00:0[01],\\d{3}")
         self.assertEqual(timer.stopAndLog(), res)
 
 

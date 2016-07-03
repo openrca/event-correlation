@@ -25,14 +25,14 @@ class TestScript(unittest.TestCase):
         self.assertEqual(6, dist.getRandom())
         self.assertEqual(5, dist.getRandom())
         self.assertEqual([6, 5], dist.getRandom(2))
-        self.assertEqual("Static: pdf: [1 2]\t cdf: [3 4]\t rvs: [5 6]", str(dist))
+        self.assertEqual("Static: pdf: [1 2] cdf: [3 4] rvs: [5 6]", str(dist))
         self.assertAlmostEqual(0.6931, dist.getDifferentialEntropy(), delta=1e-4)
 
     def test_normal(self):
         dist = NormalDistribution(0, 1)
         self.assertTrue(isinstance(dist, Distribution))
         self.assertIsNotNone(dist.getRandom())
-        self.assertEqual("Norm: Mu: 0\t Sigma: 1", str(dist))
+        self.assertEqual("Norm: Mu: 0 Sigma: 1", str(dist))
         self.assertEqual(0.3989422804014327, dist.getPDFValue(0))
         self.assertEqual(0.5, dist.getCDFValue(0))
         self.assertAlmostEqual(1.4189, dist.getDifferentialEntropy(), delta=1e-4)
@@ -45,7 +45,7 @@ class TestScript(unittest.TestCase):
         dist = UniformDistribution(0, 1)
         self.assertTrue(isinstance(dist, Distribution))
         self.assertIsNotNone(dist.getRandom())
-        self.assertEqual("Uniform: Lower: 0\t Upper: 1", str(dist))
+        self.assertEqual("Uniform: Lower: 0 Upper: 1", str(dist))
         self.assertEqual(1, dist.getPDFValue(1))
         self.assertEqual(0.5, dist.getCDFValue(0.5))
         self.assertEqual(0, dist.getDifferentialEntropy())
@@ -60,7 +60,7 @@ class TestScript(unittest.TestCase):
 
     def test_exponential(self):
         dist = ExponentialDistribution(0, 4)
-        self.assertEqual("Expon: Offset: 0\t Beta: 4", str(dist))
+        self.assertEqual("Expon: Offset: 0 Beta: 4", str(dist))
         self.assertEqual(0.19470019576785122, dist.getPDFValue(1))
         self.assertEqual(0.1175030974154046, dist.getCDFValue(0.5))
         self.assertIsNotNone(dist.getRandom())
