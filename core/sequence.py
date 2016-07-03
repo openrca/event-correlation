@@ -144,6 +144,4 @@ def load(value):
 def loadFromFile(filename):
     with open(filename, "r") as file:
         content = json.loads("".join(file.readlines()))
-
-        entry = load(content)
-        return entry
+        return load(content)

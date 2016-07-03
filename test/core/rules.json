@@ -1,25 +1,37 @@
 [
     {
-        "trigger": "A",
-        "response": "B",
-        "dist": {
-            "name": "Uniform",
-            "param": [0, 1]
+        "trigger": {
+            "event": "A",
+            "dist": "",
+            "success": "1"
         },
-        "successTrigger": "1",
-        "successResponse": "1"
+        "response": {
+            "event": "B",
+            "dist": {
+                "name": "Uniform",
+                "param": [0, 1]
+            },
+            "success": "1"
+        }
     },
     {
-        "trigger": "A",
-        "response": "0",
-        "dist": {
-            "name": "Expon",
-            "param": [0, 0.5]
+        "trigger": {
+            "event": "A",
+            "dist": "",
+            "success": "0.9"
         },
-        "successTrigger": "0.9",
-        "successResponse": "0.9"
+        "response": {
+            "event": "0",
+            "dist": {
+                "name": "Expon",
+                "param": [0, 0.5]
+            },
+            "success": "0.9"
+        }
     },
     {
-        "trigger":  "A"
+        "trigger": {
+            "event": "A"
+        }
     }
 ]

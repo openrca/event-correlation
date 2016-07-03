@@ -2,10 +2,12 @@
 """ Automatically generated documentation for run """
 
 import argparse
+import math
 import os
 
 import core.distribution
-import generation.entry
+import core.rule
+import generation
 import visualization
 from algorithms import marcoMatcher, lagEM, munkresMatcher, RESULT_MU, RESULT_SIGMA, icpMatcher, RESULT_KDE, RESULT_IDX
 from core import sequence, distribution
@@ -70,9 +72,9 @@ if (args.input is None):
 
     seq = generation.createSequences(rules=args.rules, length=args.length, count=args.count)
 
-    entries = generation.entry.loadEntries(args.rules)
-    if (len(entries) == 1):
-        baseDistribution = entries[0].rule.distribution
+    rules = core.rule.loadFromFile(args.rules)
+    if (len(rules) == 1):
+        baseDistribution = rules[0].distributionResponse
 
 else:
     print("Loading sequence from {}".format(args.input))
@@ -111,7 +113,7 @@ else:
     rule = Rule("A", "B", resultDist)
     seq.calculatedRules = [rule]
 
-    samples = resultDist.getRandom(len(seq) / 2)
+    samples = resultDist.getRandom(math.ceil(len(seq) / 2))
     if (RESULT_KDE in param):
         resultDist = param[RESULT_KDE]
         samples = param[RESULT_KDE].samples

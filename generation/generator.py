@@ -12,8 +12,8 @@ class Generator:
     def __init__(self):
         self.length = -1
         self.numberEvents = -1
-        self.entries = []
         self.rules = []
+        self.lastTime = {}
         self.rndNumber = core.distribution.UniformDistribution()
         self.discrete = False
         self._create = None
@@ -37,13 +37,13 @@ class Generator:
         self.numberEvents = count
         return self
 
-    def setEntries(self, entries):
-        """ Add entries to this generator """
-        self.entries = []
+    def setRules(self, rules):
+        """ Add rules to this generator """
         self.rules = []
-        for entry in entries:
-            self.entries.append(entry)
-            self.rules.append(entry.rule)
+        self.lastTime = {}
+        for rule in rules:
+            self.rules.append(rule)
+            self.lastTime[rule] = 0
         return self
 
     def setDiscrete(self):
@@ -59,7 +59,7 @@ class Generator:
         else:
             raise RuntimeError("Configuration not valid. Please set either numberEvents or sequence length")
 
-        if (len(self.entries) == 0):
+        if (len(self.rules) == 0):
             raise RuntimeError("Configuration not valid. Please provide entries")
 
         if (count == 1):
@@ -73,52 +73,52 @@ class Generator:
     def _createByNumberEvents(self):
         timeline = {}
         while len(timeline) < self.numberEvents:
-            for entry in self.entries:
+            for rule in self.rules:
                 if (len(timeline) >= self.numberEvents):
                     break
 
-                timeTrigger = self._getTimeStamp(entry.dist, entry.lastTime, timeline)
-                entry.lastTime = timeTrigger
-                trigger = Event(entry.rule.trigger)
-                self._addEvent(timeline, timeTrigger, trigger, entry.rule.successTrigger)
+                timeTrigger = self._getTimeStamp(rule.distributionTrigger, self.lastTime[rule], timeline)
+                self.lastTime[rule] = timeTrigger
+                trigger = Event(rule.trigger)
+                self._addEvent(timeline, timeTrigger, trigger, rule.successTrigger)
 
                 if (len(timeline) >= self.numberEvents):
                     break
 
-                if (entry.rule.response is not None):
-                    timeResponse = self._getTimeStamp(entry.rule.distribution, entry.lastTime, timeline)
-                    response = Event(entry.rule.response)
+                if (rule.response is not None):
+                    timeResponse = self._getTimeStamp(rule.distributionResponse, self.lastTime[rule], timeline)
+                    response = Event(rule.response)
                     trigger.setTriggered(response)
-                    self._addEvent(timeline, timeResponse, response, entry.rule.successResponse)
-        for entry in self.entries:
-            entry.lastTime = 0
+                    self._addEvent(timeline, timeResponse, response, rule.successResponse)
+        for rule in self.rules:
+            self.lastTime[rule] = 0
         return self._asSequence(timeline)
 
     def _createByLength(self):
         timeline = {}
 
-        entries = copy.copy(self.entries)
-        while (len(entries) > 0):
-            for entry in self.entries:
-                timeTrigger = self._getTimeStamp(entry.dist, entry.lastTime, timeline)
+        rules = copy.copy(self.rules)
+        while (len(rules) > 0):
+            for rule in rules:
+                timeTrigger = self._getTimeStamp(rule.distributionTrigger, self.lastTime[rule], timeline)
                 if (timeTrigger >= self.length):
-                    entries.remove(entry)
+                    rules.remove(rule)
                     continue
 
-                entry.lastTime = timeTrigger
-                trigger = Event(entry.rule.trigger)
-                self._addEvent(timeline, timeTrigger, trigger, entry.rule.successTrigger)
+                self.lastTime[rule] = timeTrigger
+                trigger = Event(rule.trigger)
+                self._addEvent(timeline, timeTrigger, trigger, rule.successTrigger)
 
-                if (entry.rule.response is not None):
-                    timeResponse = self._getTimeStamp(entry.rule.distribution, entry.lastTime, timeline)
+                if (rule.response is not None):
+                    timeResponse = self._getTimeStamp(rule.distributionResponse, self.lastTime[rule], timeline)
                     if (timeResponse >= self.length):
                         continue
 
-                    response = Event(entry.rule.response)
+                    response = Event(rule.response)
                     trigger.setTriggered(response)
-                    self._addEvent(timeline, timeResponse, response, entry.rule.successResponse)
-        for entry in self.entries:
-            entry.lastTime = 0
+                    self._addEvent(timeline, timeResponse, response, rule.successResponse)
+        for rule in self.rules:
+            self.lastTime[rule] = 0
         return self._asSequence(timeline, self.length)
 
     def _getTimeStamp(self, dist, lastTime, timeline):

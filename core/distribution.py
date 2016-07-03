@@ -7,8 +7,8 @@ import abc
 import collections
 import datetime
 import json
-import numbers
 import math
+import numbers
 import time
 
 import numpy as np
@@ -129,7 +129,7 @@ class StaticDistribution(Distribution):
             cdf = [0.5]
         if (rvs is None):
             rvs = [0.5]
-        super().__init__(distType=STATIC, param=(pdf, cdf, rvs))
+        super().__init__(distType=STATIC, param=())
         self.pdfIdx = 0
         self.cdfIdx = 0
         self.rvsIdx = 0
@@ -271,7 +271,7 @@ class KdeDistribution(Distribution):
         """
         :param samples: 1D-Samples to create distribution from
         """
-        super().__init__(distType=KDE, param=[samples])
+        super().__init__(distType=KDE, param=(samples))
         self.samples = np.array(samples)
         if (len(samples) == 0):
             raise ValueError("Unable to perform Kernel density estimation without samples.")
@@ -344,6 +344,8 @@ def load(value):
         """
 
     if (isinstance(value, str)):
+        if (value == ""):
+            return None
         value = json.loads(value)
 
     try:

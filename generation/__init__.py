@@ -1,7 +1,7 @@
 import collections
 import logging
 
-from generation import entry
+import core.rule
 from generation.generator import Generator
 
 logging.getLogger().setLevel(logging.DEBUG)
@@ -24,17 +24,13 @@ def createSequences(rules=None, count=None, length=None, number=1):
     if (rules is None):
         raise ValueError("Rules not specified")
 
-    entries = entry.loadEntries(rules)
-    rules = []
-    for e in entries:
-        rules.append(e.rule)
-
+    rules = core.rule.loadFromFile(rules)
     generator = Generator()
     if (length is not None):
         generator.setSeqLength(length)
     if (count is not None):
         generator.setNumberOfEvents(count)
-    sequences = generator.setEntries(entries).createSequence(number)
+    sequences = generator.setRules(rules).createSequence(number)
 
     if (isinstance(sequences, collections.Iterable)):
         for seq in sequences:

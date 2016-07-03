@@ -6,13 +6,15 @@ import core.event
 
 
 class Rule:
-    def __init__(self, trigger, response, distribution, successTrigger=1.0, successResponse=1.0):
+    def __init__(self, trigger, response, distributionResponse, distributionTrigger=None, successTrigger=1.0,
+                 successResponse=1.0):
         """ Represents a single rule
 
         Parameters:
             trigger: An event type that causes this rule to trigger
             response: An event type that follows after the trigger
-            distribution: The distribution used to calculate the time lag between trigger and response
+            distributionResponse: The distribution used to calculate the time lag between trigger and response
+            distributionTrigger: The inter-arrival distribution of the trigger event
             successTrigger: Probability that the trigger is really triggered
             successResponse: Probability that the response really follows the trigger
         """
@@ -24,21 +26,27 @@ class Rule:
             self.response = response.eventType
         else:
             self.response = response
-        self.distribution = distribution
+        self.distributionTrigger = distributionTrigger
+        self.distributionResponse = distributionResponse
         self.successTrigger = successTrigger
         self.successResponse = successResponse
         self.likelihood = -1
 
     def getResponseTimestamp(self):
-        return self.distribution.getRandom()
+        return self.distributionResponse.getRandom()
 
     def asJson(self):
         return {
-            "trigger": self.trigger,
-            "response": self.response,
-            "dist": self.distribution.asJson(),
-            "successTrigger": self.successTrigger,
-            "successResponse": self.successResponse,
+            "trigger": {
+                "event": self.trigger,
+                "dist": self.distributionTrigger.asJson() if self.distributionTrigger is not None else "",
+                "success": self.successTrigger
+            },
+            "response": {
+                "event": self.response,
+                "dist": self.distributionResponse.asJson() if self.distributionResponse is not None else "",
+                "success": self.successResponse
+            },
             "likelihood": self.likelihood
         }
 
@@ -46,15 +54,18 @@ class Rule:
         if (not isinstance(other, Rule)):
             return False
         return self.trigger == other.trigger and self.response == other.response \
-               and self.distribution == other.distribution and self.successTrigger == other.successTrigger \
-               and self.successResponse == other.successResponse
+               and self.distributionResponse == other.distributionResponse \
+               and self.distributionTrigger == other.distributionTrigger \
+               and self.successTrigger == other.successTrigger and self.successResponse == other.successResponse \
+               and self.likelihood == other.likelihood
 
     def __hash__(self):
-        return hash(self.trigger) + hash(self.response) + hash(self.distribution) + hash(self.successTrigger) \
-               + hash(self.successResponse)
+        return hash(self.trigger) + hash(self.response) + hash(self.distributionTrigger) \
+               + hash(self.distributionResponse) + hash(self.successTrigger) + hash(self.successResponse) \
+               + hash(self.likelihood)
 
     def __str__(self):
-        response = str(self.trigger) + " -> "
+        response = str(self.trigger) + " (" + str(self.distributionTrigger) + ") -> "
         if (self.response is not None):
             response += str(self.response) + " (" + str(self.distribution) + ")"
         else:
@@ -65,7 +76,7 @@ class Rule:
 def load(value):
     """ Load a rule from a json string
     Parameter:
-        trigger, response, dist, successTrigger, successResponse
+        trigger, response
     Throws:
         ValueException
     """
@@ -75,26 +86,29 @@ def load(value):
 
     try:
         trigger = value["trigger"]
-        successTrigger = float(value["successTrigger"])
+        eventTrigger = trigger["event"]
+        successTrigger = float(trigger["success"])
+        distTrigger = core.distribution.load(trigger["dist"])
 
         if ("response" in value):
             try:
                 response = value["response"]
-                successResponse = float(value["successResponse"])
-                dist = core.distribution.load(value["dist"])
+                eventResponse = response["event"]
+                successResponse = float(response["success"])
+                distResponse = core.distribution.load(response["dist"])
             except KeyError:
-                raise ValueError("Missing parameter 'successResponse' and/or 'dist'")
+                raise ValueError("Missing parameter 'event' and/or 'success' and/or 'dist' in 'response'.")
         else:
-            response = None
-            dist = None
+            eventResponse = None
             successResponse = None
+            distResponse = None
 
-        rule = Rule(trigger, response, dist, successTrigger, successResponse)
+        rule = Rule(eventTrigger, eventResponse, distResponse, distTrigger, successTrigger, successResponse)
         if ("likelihood" in value):
             rule.likelihood = float(value["likelihood"])
         return rule
     except KeyError:
-        raise ValueError("Missing parameter 'trigger' and/or 'successTrigger'")
+        raise ValueError("Missing parameter 'trigger' with 'event' and/or 'success' and/or 'dist'.")
 
 
 def loadFromFile(filename):
@@ -107,8 +121,7 @@ def loadFromFile(filename):
     for item in content:
         logging.debug("Processing line '{}'".format(item))
         try:
-            entry = load(item)
-            rules.append(entry)
+            rules.append(load(item))
         except ValueError as ex:
             logging.warning(ex)
 

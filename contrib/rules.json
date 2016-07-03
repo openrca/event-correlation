@@ -1,19 +1,21 @@
 [
-	{
-		"rule": {
-			"trigger": "A",
-			"response": "B",
-			"dist": {
-				"name": "Norm",
-				"param": [7, 2]
-			},
-			"successTrigger": "1",
-			"successResponse": "0.9"
-		},
-		"dist": {
-			"name": "Uniform",
-			"param": [5, 15]
-		},
-		"scale": 1
-	}
+    {
+        "trigger": {
+            "event": "A",
+            "dist": {
+                "name": "Uniform",
+                "param": [60, 75]
+            },
+            "success": "0.95"
+        },
+        "response": {
+            "event": "B",
+            "dist": {
+                "name": "Uniform",
+                "param": [60, 75]
+            },
+            "success": "0.95"
+        },
+        "likelihood": "1"
+    }
 ]
