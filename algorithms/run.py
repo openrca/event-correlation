@@ -88,7 +88,7 @@ timer.start()
 param = None
 if (args.algorithm == marcoMatcher.MarcoMatcher.__name__):
     algorithm = marcoMatcher.MarcoMatcher()
-    param = algorithm.match(sequence=seq, eventA="A", eventB="B", algorithm="cvxopt")
+    param = algorithm.match(sequence=seq, eventA="A", eventB="B", algorithm=marcoMatcher.Method.PULP)
 
 elif (args.algorithm == munkresMatcher.MunkresMatcher.__name__):
     algorithm = munkresMatcher.MunkresMatcher()
