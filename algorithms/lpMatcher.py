@@ -14,7 +14,7 @@ class Method(Enum):
     PULP = "pulp"
 
 
-class MarcoMatcher(Matcher):
+class LpMatcher(Matcher):
     def __init__(self):
         super().__init__(__name__)
         self.algorithm = None
@@ -27,7 +27,7 @@ class MarcoMatcher(Matcher):
                 cvxopt (requires cvxopt with glpk support)
                 scipy
                 pulp
-            All these values are also defined in marcoMatcher.Method
+            All these values are also defined in lpMatcher.Method
         """
         algorithm = kwargs["algorithm"]
         if (algorithm == Method.MATLAB or algorithm == Method.SCIPY or algorithm == Method.CVXOPT or
@@ -76,6 +76,10 @@ class MarcoMatcher(Matcher):
         idx = tmp.argmax(axis=1)
         Z = np.zeros(tmp.shape)
         Z[np.arange(idx.size), idx] = 1
+
+        # TODO maybe this is a better solution?
+        # Z = np.around(tmp)
+
         self.logger.trace("Final (approximated) result: \n {}".format(Z.argmax(axis=0)))
 
         cost = np.multiply(Z, delta)

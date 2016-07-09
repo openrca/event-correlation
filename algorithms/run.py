@@ -9,7 +9,7 @@ import core.distribution
 import core.rule
 import generation
 import visualization
-from algorithms import marcoMatcher, lagEM, munkresMatcher, RESULT_MU, RESULT_SIGMA, icpMatcher, RESULT_KDE, RESULT_IDX
+from algorithms import lpMatcher, lagEM, munkresMatcher, RESULT_MU, RESULT_SIGMA, icpMatcher, RESULT_KDE, RESULT_IDX
 from core import sequence, distribution
 from core.Timer import Timer
 from core.distribution import NormalDistribution
@@ -86,9 +86,9 @@ print(str(seq))
 timer = Timer()
 timer.start()
 param = None
-if (args.algorithm == marcoMatcher.MarcoMatcher.__name__):
-    algorithm = marcoMatcher.MarcoMatcher()
-    param = algorithm.match(sequence=seq, eventA="A", eventB="B", algorithm=marcoMatcher.Method.PULP)
+if (args.algorithm == lpMatcher.LpMatcher.__name__):
+    algorithm = lpMatcher.LpMatcher()
+    param = algorithm.match(sequence=seq, eventA="A", eventB="B", algorithm=lpMatcher.Method.PULP)
 
 elif (args.algorithm == munkresMatcher.MunkresMatcher.__name__):
     algorithm = munkresMatcher.MunkresMatcher()
