@@ -4,7 +4,7 @@ from enum import Enum
 import numpy as np
 
 from algorithms import Matcher, RESULT_MU, RESULT_SIGMA, RESULT_KDE, RESULT_IDX
-from core.distribution import KdeDistribution
+from core.distribution import KdeDistribution, UniformDistribution
 
 
 class Method(Enum):
@@ -14,10 +14,17 @@ class Method(Enum):
     PULP = "pulp"
 
 
+class Transformation(Enum):
+    ROUNDING = "round"
+    RANDOMIZED_ROUNDING = "rand"
+    MAXIMUM = "maximum"
+
+
 class LpMatcher(Matcher):
     def __init__(self):
         super().__init__(__name__)
         self.algorithm = None
+        self.transformation = Transformation.RANDOMIZED_ROUNDING
 
     def parseArgs(self, kwargs):
         """
@@ -28,6 +35,12 @@ class LpMatcher(Matcher):
                 scipy
                 pulp
             All these values are also defined in lpMatcher.Method
+            transformation (optional): Defines how the relaxed problem shall be transformed into integer problem.
+              Allowed values are:
+                round
+                rand
+                maximum
+            All these values are also defined in lpMatcher.Transformation
         """
         algorithm = kwargs["algorithm"]
         if (algorithm == Method.MATLAB or algorithm == Method.SCIPY or algorithm == Method.CVXOPT or
@@ -35,6 +48,12 @@ class LpMatcher(Matcher):
             self.algorithm = algorithm
         else:
             raise ValueError("No algorithm specified.")
+
+        if ("transformation" in kwargs):
+            transformation = kwargs["transformation"]
+            if (transformation == Transformation.RANDOMIZED_ROUNDING or transformation == Transformation.ROUNDING or
+                        algorithm == Transformation.MAXIMUM):
+                self.transformation = transformation
 
     # noinspection PyUnboundLocalVariable, PyTypeChecker
     def compute(self):
@@ -72,14 +91,7 @@ class LpMatcher(Matcher):
         elif (self.algorithm == Method.CVXOPT):
             Z = self.solveCvxopt(f, A, b, Aeq, beq, na * nb)
 
-        tmp = np.reshape(Z, (nb, na))
-        idx = tmp.argmax(axis=1)
-        Z = np.zeros(tmp.shape)
-        Z[np.arange(idx.size), idx] = 1
-
-        # TODO maybe this is a better solution?
-        # Z = np.around(tmp)
-
+        Z = self.transformResult(Z, na, nb)
         self.logger.trace("Final (approximated) result: \n {}".format(Z.argmax(axis=0)))
 
         cost = np.multiply(Z, delta)
@@ -92,6 +104,24 @@ class LpMatcher(Matcher):
             idx = cost.argmin(axis=1)
             idx = np.column_stack((idx, np.arange(idx.size)))
             cost = cost.min(axis=1)
+
+        # if (na < nb):
+        #     idx = np.ones(na, dtype=int) * -1
+        #     for j in range(Z.shape[1]):
+        #         column = cost[:, j].copy()
+        #         if (column.sum() != 0):
+        #             column[column == 0] = column.max() + 1
+        #             idx[j] = column.argmin()
+        #     idx = np.column_stack((np.arange(idx.size), idx))
+        # else:
+        #     idx = np.ones(nb, dtype=int) * -1
+        #     for i in range(Z.shape[0]):
+        #         row = cost[i, :].copy()
+        #         if (row.sum() != 0):
+        #             row[row == 0] = row.max() + 1
+        #             idx[i] = row.argmin()
+        #     idx = np.column_stack((idx, np.arange(idx.size)))
+        # cost = cost[idx[:, 0], idx[:, 1]].flatten()
 
         return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx}
 
@@ -182,17 +212,17 @@ class LpMatcher(Matcher):
 
         problem.setObjective(LpAffineExpression(objective))
 
-        if (na >= nb):
-            for j in range(nb):
+        if (na >= nb or True):  # TODO pulp violates these constraints. Leads to weird behaviour
+            for i in range(na):
                 oneToOneConstraint = {}
-                for i in np.arange(j, na * nb, na):
-                    oneToOneConstraint[variables[i]] = 1
+                for j in np.arange(i, na * nb, na):
+                    oneToOneConstraint[variables[j]] = 1
                 problem.addConstraint(LpAffineExpression(oneToOneConstraint) <= 1)
 
-        for i in range(na):
+        for j in range(nb):
             onlyOneConstraint = {}
-            for j in range(i * nb, (i + 1) * nb):
-                onlyOneConstraint[variables[j]] = 1
+            for i in range(j * na, (j + 1) * na):
+                onlyOneConstraint[variables[i]] = 1
             problem.addConstraint(LpAffineExpression(onlyOneConstraint) == 1)
 
         self.logger.debug("Starting to solve with glpk")
@@ -202,3 +232,18 @@ class LpMatcher(Matcher):
         for i, v in enumerate(problem.variables()):
             result[i] = v.varValue
         return result
+
+    def transformResult(self, Z, na, nb):
+        tmp = np.reshape(Z, (nb, na))
+        if (self.transformation == Transformation.ROUNDING):
+            return np.around(tmp)
+        elif (self.transformation == Transformation.MAXIMUM):
+            idx = tmp.argmax(axis=1)
+            Z = np.zeros(tmp.shape)
+            Z[np.arange(idx.size), idx] = 1
+            return Z
+        elif (self.transformation == Transformation.RANDOMIZED_ROUNDING):
+            random = UniformDistribution().getRandom(Z.size)
+            tmp = np.zeros(Z.size)
+            tmp[random <= Z] = 1
+            return np.reshape(tmp, (nb, na))
