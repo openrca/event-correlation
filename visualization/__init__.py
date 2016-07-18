@@ -36,6 +36,8 @@ def showDistributions(estimatedDist, trueDist, visualizeOverlap=True, axes=None)
         y2 = trueDist.getPDFValue(x)
         ax.plot(x, y2, "r", label="True distribution")
     ax.legend()
+    ax.set_xlabel("Time Lag")
+    ax.set_ylabel("Probability")
 
     if (visualizeOverlap and trueDist is not None):
         y = np.zeros(len(y1))
