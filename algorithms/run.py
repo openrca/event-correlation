@@ -12,7 +12,7 @@ import generation
 import visualization
 from algorithms import lpMatcher, lagEM, munkresMatcher, RESULT_MU, RESULT_SIGMA, icpMatcher, RESULT_KDE, RESULT_IDX
 from core import sequence, distribution
-from core.Timer import Timer
+from core.timer import Timer
 from core.distribution import NormalDistribution
 from core.performance import RangePerformance, VariancePerformance, StdPerformance, CondProbPerformance, \
     EntropyPerformance

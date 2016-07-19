@@ -2,7 +2,7 @@ import unittest
 
 import time
 
-from core.Timer import Timer
+from core.timer import Timer
 
 
 class TestScript(unittest.TestCase):
