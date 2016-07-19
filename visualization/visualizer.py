@@ -221,7 +221,7 @@ class Visualizer(QMainWindow):
         if (len(fileName) == 0):
             return
 
-        print("Loading sequence from file " + fileName)
+        logging.info("Loading sequence from file " + fileName)
         try:
             seq = core.sequence.loadFromFile(fileName)
 
@@ -230,7 +230,7 @@ class Visualizer(QMainWindow):
             self.statusBar().showMessage("Loaded sequence " + fileName)
         except ValueError as ex:
             msg = "Unable to load sequence: " + str(ex)
-            print(msg)
+            logging.warning(msg)
             messageBox = QMessageBox()
             messageBox.setText(msg)
             messageBox.exec()
@@ -244,13 +244,13 @@ class Visualizer(QMainWindow):
         if (fileName[-4:] != ".seq"):
             fileName += ".seq"
 
-        print("Saving sequence to file " + fileName)
+        logging.info("Saving sequence to file " + fileName)
         try:
             self.sequenceWidget.sequence.store(fileName)
             self.statusBar().showMessage("Stored sequence in " + fileName)
         except (OSError, IOError) as ex:
             msg = "Unable to store sequence: " + str(ex)
-            print(msg)
+            logging.warning(msg)
             messageBox = QMessageBox()
             messageBox.setText(msg)
             messageBox.exec()

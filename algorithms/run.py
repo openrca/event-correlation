@@ -2,6 +2,7 @@
 """ Automatically generated documentation for run """
 
 import argparse
+import logging
 import math
 import os
 
@@ -19,37 +20,38 @@ from core.rule import Rule
 
 
 def printResult(result, distribution, empiricalDist=None):
-    print("Final parameters:")
+    msg = "Final parameters:\n"
     for key, value in result.items():
         if (key == RESULT_IDX and value is not None):
-            print("\t {}: \n{}".format(key, value.T))
+            msg += "\t {}: \n{}\n".format(key, value.T)
         else:
-            print("\t {}: {}".format(key, value))
+            msg += "\t {}: {}\n".format(key, value)
     if (distribution is not None):
-        print("True parameters:\n\t{}".format(str(distribution)))
+        msg += "True parameters:\n\t{}\n".format(str(distribution))
     if (empiricalDist is not None):
-        print("Empirical parameters:\n\tMu: {}\n\tSigma: {}".format(empiricalDist.mu, empiricalDist.sigma))
+        msg += "Empirical parameters:\n\tMu: {}\n\tSigma: {}\n".format(empiricalDist.mu, empiricalDist.sigma)
+    logging.info(msg)
 
 
 def printDistance(dist1, dist2):
-    if (dist1 is None or dist2 is None):
-        return
-
-    print("Distance:")
-    print("\tKS Test: " + str(core.distribution.kstest(dist1, dist2)))
-    # print("\tChi2 Test: " + str(core.distribution.chi2test(dist1, dist2)))
+    if (dist1 is not None and dist2 is not None):
+        logging.info("Distance:\n"
+                     "\tKS Test: {}\n"
+                     "\tChi2 Test: {}\n".format(core.distribution.kstest(dist1, dist2), 0))
 
 
 def printPerformance(dist, samples):
-    if (dist is None):
-        return
-
-    print("Performance:")
-    print("\tRange: {}".format(RangePerformance().getValueByDistribution(dist)))
-    print("\tVariance: {}".format(VariancePerformance().getValueByDistribution(dist)))
-    print("\tStd: {}".format(StdPerformance().getValueByDistribution(dist)))
-    print("\tCondProd: {}".format(CondProbPerformance(samples=samples).getValueByDistribution(dist)))
-    print("\tEntropy: {}".format(EntropyPerformance().getValueByDistribution(dist)))
+    if (dist is not None):
+        logging.info("Performance:\n"
+                     "\tRange: {}\n"
+                     "\tVariance: {}\n"
+                     "\tStd: {}\n"
+                     "\tCondProd: {}\n"
+                     "\tEntropy: {}\n".format(RangePerformance().getValueByDistribution(dist),
+                                              VariancePerformance().getValueByDistribution(dist),
+                                              StdPerformance().getValueByDistribution(dist),
+                                              CondProbPerformance(samples=samples).getValueByDistribution(dist),
+                                              EntropyPerformance().getValueByDistribution(dist)))
 
 
 parser = argparse.ArgumentParser()
@@ -61,7 +63,7 @@ parser.add_argument("-c", "--count", action="store", type=int, help="Number of e
 parser.add_argument("-t", "--threshold", action="store", type=float, help="Threshold for convergence", default=0.01)
 
 args = parser.parse_args()
-print(args)
+logging.info("Arguments: ".format(args))
 
 seq = None
 baseDistribution = None
@@ -77,11 +79,10 @@ if (args.input is None):
         baseDistribution = rules[0].distributionResponse
 
 else:
-    print("Loading sequence from {}".format(args.input))
+    logging.info("Loading sequence from {}".format(args.input))
     seq = sequence.loadFromFile(args.input)
 
-print("Processing sequence:")
-print(str(seq))
+logging.info("Processing sequence:\n{}".format(seq))
 
 timer = Timer()
 timer.start()
@@ -105,7 +106,7 @@ elif (args.algorithm == icpMatcher.IcpMatcher.__name__):
 timer.stop()
 
 if (param is None):
-    print("Unknown algorithm: '{}'".format(args.algorithm))
+    logging.fatal("Unknown algorithm: '{}'".format(args.algorithm))
     exit(1)
 else:
     empiricalDist = core.distribution.getEmpiricalDist(seq, "A", "B")
@@ -119,9 +120,10 @@ else:
         samples = param[RESULT_KDE].samples
 
     printResult(param, baseDistribution, empiricalDist)
-    print("Calculation time: {} minutes".format(timer))
+    logging.info("Calculation time: {} minutes".format(timer))
     printDistance(resultDist, empiricalDist)
-    print("Area between pdf curves: ", distribution.getAreaBetweenDistributions(resultDist, baseDistribution))
+    logging.info("Area between pdf curves: {}"
+                 .format(distribution.getAreaBetweenDistributions(resultDist, baseDistribution)))
     printPerformance(resultDist, samples)
     visualization.showResult(seq, "A", "B", param[RESULT_IDX], baseDistribution, resultDist)
     visualization.showVisualizer(seq)
