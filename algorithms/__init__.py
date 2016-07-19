@@ -19,6 +19,12 @@ RESULT_SIGMA = "Sigma"
 RESULT_KDE = "Kde"
 RESULT_IDX = "Index"
 
+CONFIDENCE_50 = 0.674
+CONFIDENCE_80 = 1.282
+CONFIDENCE_90 = 1.645
+CONFIDENCE_95 = 1.960
+CONFIDENCE_99 = 2.576
+
 
 class Matcher(abc.ABC):
     def __init__(self, name):
@@ -26,6 +32,7 @@ class Matcher(abc.ABC):
             name = __name__
         self.name = name
         self.logger = None
+        self.zScore = CONFIDENCE_90
         self._initLogging()
         np.set_printoptions(precision=4, linewidth=150, threshold=10000)
 
@@ -53,6 +60,16 @@ class Matcher(abc.ABC):
         self.eventB = eventB
         self.parseArgs(kwargs)
         return self.compute()
+
+    def trimVector(self, data):
+        """ Remove potential outliers.
+        This leads to worse results for simple associations but improves performance for complex associations with
+        success < 1
+        """
+        data.sort()
+        result = data[abs(data - data.mean()) < self.zScore * data.std()]
+        self.logger.debug("Kept {} / {} samples".format(result.size, data.size))
+        return result
 
     @abc.abstractmethod
     def parseArgs(self, kwargs):

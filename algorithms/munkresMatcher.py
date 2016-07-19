@@ -39,10 +39,7 @@ class MunkresMatcher(Matcher):
             if (len(a) != len(b)):
                 self.logger.trace("Remaining events were not assigned")
 
-        # Remove potential outliers. This leads to worse results for simple associations but improves performance for
-        # complex associations with success < 1
-        cost = cost[abs(cost - cost.mean()) < 2.58 * cost.std()]
-
+        cost = self.trimVector(cost)
         return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx}
 
 

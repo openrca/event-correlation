@@ -89,8 +89,7 @@ class IcpMatcher(Matcher):
         self.logger.info("Final offset " + str(opt))
 
         cost = tmp - src
-        cost = cost[abs(cost - cost.mean()) < 2.58 * cost.std()]
-
+        cost = self.trimVector(cost)
         return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx,
                 "Offset": opt}
 

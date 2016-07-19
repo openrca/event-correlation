@@ -123,6 +123,7 @@ class LpMatcher(Matcher):
         #     idx = np.column_stack((idx, np.arange(idx.size)))
         # cost = cost[idx[:, 0], idx[:, 1]].flatten()
 
+        cost = self.trimVector(cost)
         return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx}
 
     def solveMatlab(self, f, A, b, Aeq, beq, na, nb):
