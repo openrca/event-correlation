@@ -57,7 +57,9 @@ class CondProbPerformance(Performance):
     Calculate performance based on average conditional probability.
 
     The samples represent conditional values drawn from an underlying distribution. This class creates a distribution
-    from the samples and averages the probability of all samples.
+    from the samples and averages the probability of all samples. To eliminate effects of numerical underflows, the
+    logarithmic value is calculated. Furthermore, as all probabilities are smaller than 1, the absolute value is
+    returned.
     """
 
     def __init__(self, dist=KDE, samples=None):
@@ -74,7 +76,8 @@ class CondProbPerformance(Performance):
         dist = self.dist
         if (isinstance(self.dist, numbers.Number)):
             dist = distribution.samplesToDistribution(samples, self.dist)
-        return dist.getPDFValue(samples).mean()
+        # the probabilities are always smaller than 1. Therefore, using abs() does not change the relation of the values
+        return abs(np.log(dist.getPDFValue(samples)).mean())
 
 
 class EntropyPerformance(Performance):
