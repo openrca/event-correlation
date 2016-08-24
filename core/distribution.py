@@ -316,7 +316,7 @@ class KdeDistribution(Distribution):
         """
         x = np.linspace(self.minValue, self.maxValue, 10000)
         pdf = self.getPDFValue(x)
-        return stats.entropy(pdf) + math.log((self.maxValue - self.minValue) / 10000)
+        return stats.entropy(pdf) + math.log2((self.maxValue - self.minValue) / 10000)
 
     def getMaximumPDF(self):
         # TODO implement

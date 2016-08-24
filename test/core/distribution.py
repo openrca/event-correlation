@@ -91,7 +91,7 @@ class TestScript(unittest.TestCase):
              -0.36441899, 0.2470415, 2.86109234, 1.22804002])
         self.assertAlmostEqual(0.3989, dist.getPDFValue(0), delta=0.1)
         self.assertAlmostEqual(0.5, dist.getCDFValue(0), delta=0.1)
-        self.assertAlmostEqual(1.4189, dist.getDifferentialEntropy(), delta=0.25)
+        self.assertAlmostEqual(-1.4482, dist.getDifferentialEntropy(), delta=0.25)
         self.assertIsNotNone(dist.getRandom())
 
     def test_kde_invalid(self):
