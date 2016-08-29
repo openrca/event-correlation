@@ -3,23 +3,33 @@
 
 import argparse
 import logging
-import math
 import os
 
 import core.distribution
 import core.rule
 import generation
 import visualization
-from algorithms import lpMatcher, lagEM, munkresMatcher, RESULT_MU, RESULT_SIGMA, icpMatcher, RESULT_KDE, RESULT_IDX
+from algorithms import lpMatcher, lagEM, munkresMatcher, icpMatcher, RESULT_IDX
 from core import sequence, distribution
-from core.timer import Timer
-from core.distribution import NormalDistribution
 from core.performance import RangePerformance, VariancePerformance, StdPerformance, CondProbPerformance, \
     EntropyPerformance
-from core.rule import Rule
+from core.timer import Timer
+
+
+def findBaseDistribution(rules, trigger, response):
+    if (rules is None):
+        return None
+
+    for r in rules:
+        if (r.matches(trigger, response)):
+            return r.distributionResponse
+    return None
 
 
 def printResult(result, distribution, empiricalDist=None):
+    if (result is None):
+        return
+
     msg = "Final parameters:\n"
     for key, value in result.items():
         if (key == RESULT_IDX and value is not None):
@@ -67,17 +77,14 @@ logging.info("Arguments: ".format(args))
 
 seq = None
 baseDistribution = None
+rules = None
 
 if (args.input is None):
     if (args.rules.startswith("..")):
         args.rules = os.path.join(os.path.dirname(__file__), args.rules)
 
     seq = generation.createSequences(rules=args.rules, length=args.length, count=args.count)
-
     rules = core.rule.loadFromFile(args.rules)
-    if (len(rules) == 1):
-        baseDistribution = rules[0].distributionResponse
-
 else:
     logging.info("Loading sequence from {}".format(args.input))
     seq = sequence.loadFromFile(args.input)
@@ -86,44 +93,41 @@ logging.info("Processing sequence:\n{}".format(seq))
 
 timer = Timer()
 timer.start()
-param = None
+calculatedRules = None
 if (args.algorithm == lpMatcher.LpMatcher.__name__):
     algorithm = lpMatcher.LpMatcher()
-    param = algorithm.match(sequence=seq, eventA="A", eventB="B", algorithm=lpMatcher.Method.PULP)
+    calculatedRules = algorithm.matchAll(sequence=seq, algorithm=lpMatcher.Method.PULP)
 
 elif (args.algorithm == munkresMatcher.MunkresMatcher.__name__):
     algorithm = munkresMatcher.MunkresMatcher()
-    param = algorithm.match(sequence=seq, eventA="A", eventB="B")
+    calculatedRules = algorithm.matchAll(sequence=seq)
 
 elif (args.algorithm == lagEM.lagEM.__name__):
     algorithm = lagEM.lagEM()
-    param = algorithm.match(sequence=seq, eventA="A", eventB="B", threshold=args.threshold)
+    calculatedRules = algorithm.matchAll(sequence=seq, threshold=args.threshold)
 
 elif (args.algorithm == icpMatcher.IcpMatcher.__name__):
     algorithm = icpMatcher.IcpMatcher()
-    param = algorithm.match(sequence=seq, eventA="A", eventB="B", showVisualization=False, f="confidence")
+    calculatedRules = algorithm.matchAll(sequence=seq, showVisualization=False, f="confidence")
 
 timer.stop()
+logging.info("Calculation time: {} minutes".format(timer))
 
-if (param is None):
+if (calculatedRules is None):
     logging.fatal("Unknown algorithm: '{}'".format(args.algorithm))
     exit(1)
 else:
-    empiricalDist = core.distribution.getEmpiricalDist(seq, "A", "B")
-    resultDist = NormalDistribution(param[RESULT_MU], param[RESULT_SIGMA])
-    rule = Rule("A", "B", resultDist)
-    seq.calculatedRules = [rule]
+    for rule in calculatedRules:
+        empiricalDist = distribution.getEmpiricalDist(seq, rule.trigger, rule.response)
+        resultDist = rule.distributionResponse
+        printDistance(resultDist, empiricalDist)
+        logging.info("Area between pdf curves: {}"
+                     .format(distribution.getAreaBetweenDistributions(resultDist, baseDistribution)))
 
-    samples = resultDist.getRandom(math.ceil(len(seq) / 2))
-    if (RESULT_KDE in param):
-        resultDist = param[RESULT_KDE]
-        samples = param[RESULT_KDE].samples
+        samples = resultDist.samples
+        printPerformance(resultDist, samples)
+        visualization.showResult(seq, rule.trigger, rule.response, rule.param[RESULT_IDX], baseDistribution, resultDist)
 
-    printResult(param, baseDistribution, empiricalDist)
-    logging.info("Calculation time: {} minutes".format(timer))
-    printDistance(resultDist, empiricalDist)
-    logging.info("Area between pdf curves: {}"
-                 .format(distribution.getAreaBetweenDistributions(resultDist, baseDistribution)))
-    printPerformance(resultDist, samples)
-    visualization.showResult(seq, "A", "B", param[RESULT_IDX], baseDistribution, resultDist)
+        printResult(rule.param, findBaseDistribution(rules, rule.trigger, rule.response), empiricalDist)
+
     visualization.showVisualizer(seq)

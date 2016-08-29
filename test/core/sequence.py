@@ -103,5 +103,17 @@ class TestScript(unittest.TestCase):
             print("Unable to open tmp file. Maybe you have to change TMP_FILE_NAME: {}".format(ex))
         os.remove(TMP_FILE_NAME)
 
+    def testEventTypes(self):
+        eventA = Event("A", 0)
+        eventB1 = Event("B", 1)
+        eventB2 = Event("B", 2)
+        eventC = Event("C", 3)
+        seq = Sequence([eventA, eventB1, eventB2, eventC], 3, [])
+        self.assertEqual(3, len(seq.eventTypes))
+        self.assertTrue("A" in seq.eventTypes)
+        self.assertTrue("B" in seq.eventTypes)
+        self.assertTrue("C" in seq.eventTypes)
+
+
 if __name__ == '__main__':
     unittest.main()

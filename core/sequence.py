@@ -21,47 +21,53 @@ class Sequence:
         self.rules = rules
         self.calculatedRules = calculatedRules
 
-    def getEvents(self, eventType=None):
-        res = []
+        self.eventTypes = set()
         for e in self.events:
-            if (eventType is None or e.eventType == eventType):
-                res.append(e)
-        return res
+            self.eventTypes.add(e.eventType)
 
-    def getEvent(self, index):
+    def getEvents(self, eventType=None):
+        """ Returns all events with the given event type. If no eventType is provided all events are returned. """
+        if (eventType is None):
+            return self.events
+        return [e for e in self.events if e.eventType == eventType]
+
+    def getEvent(self, timestamp):
+        """ Returns the all events that happened at the given timestamp (same integer part). If no events happened, a
+        default event is returned. """
         result = []
         for e in self.events:
-            if (index < math.floor(e.timestamp)):
+            if (timestamp < math.floor(e.timestamp)):
                 break
-            if (math.floor(e.timestamp) == index):
+            if (math.floor(e.timestamp) == timestamp):
                 result.append(e)
         if (len(result) == 0):
-            result.append(Event(timestamp=index))
+            result.append(Event(timestamp=timestamp))
         return result
 
     def getCalculatedRule(self, trigger, response):
+        """ Returns the calculated rule with the given trigger and response. """
         return self._getRule(trigger, response, self.calculatedRules)
 
     def getRule(self, trigger, response):
+        """ Returns the rule used to create the sequence with the given trigger and response. Works only for synthetic
+        sequences.
+        """
         return self._getRule(trigger, response, self.rules)
 
     @staticmethod
     def _getRule(trigger, response, rules):
-        if (isinstance(trigger, Event)):
-            trigger = trigger.eventType
-        if (isinstance(response, Event)):
-            response = response.eventType
-
         for r in rules:
-            if (r.trigger == trigger and r.response == response):
+            if (r.matches(trigger, response)):
                 return r
         return None
 
     def asVector(self, eventType):
+        """ Returns all timestamps of the events with the given eventType"""
         l = [e.timestamp for e in self.getEvents(eventType) if e.occurred]
         return np.array(l)
 
     def getMissingIdx(self, eventType):
+        """ Returns the indices of events that did not occure. Works only for synthetic sequences. """
         l = np.array([e.occurred for e in self.getEvents(eventType)])
         return np.where(np.arange(len(l)) * np.invert(l))[0]
 

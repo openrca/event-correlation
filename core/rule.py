@@ -2,12 +2,12 @@ import json
 import logging
 
 import core.distribution
-import core.event
+from core.event import Event
 
 
 class Rule:
     def __init__(self, trigger, response, distributionResponse, distributionTrigger=None, successTrigger=1.0,
-                 successResponse=1.0):
+                 successResponse=1.0, param=None):
         """ Represents a single rule
 
         Parameters:
@@ -17,6 +17,7 @@ class Rule:
             distributionTrigger: The inter-arrival distribution of the trigger event
             successTrigger: Probability that the trigger is really triggered
             successResponse: Probability that the response really follows the trigger
+            param: Optional parameter to store additional information from rule matching. This value is not persisted.
         """
         if (isinstance(trigger, core.event.Event)):
             self.trigger = trigger.eventType
@@ -31,9 +32,19 @@ class Rule:
         self.successTrigger = successTrigger
         self.successResponse = successResponse
         self.likelihood = -1
+        self.param = param
 
     def getResponseTimestamp(self):
         return self.distributionResponse.getRandom()
+
+    def matches(self, trigger, response):
+        """ Checks if this rule has the given trigger and response. """
+        if (isinstance(trigger, Event)):
+            trigger = trigger.eventType
+        if (isinstance(response, Event)):
+            response = response.eventType
+
+        return trigger == self.trigger and response == self.response
 
     def asJson(self):
         return {
@@ -65,9 +76,14 @@ class Rule:
                + hash(self.likelihood)
 
     def __str__(self):
-        response = str(self.trigger) + " (" + str(self.distributionTrigger) + ") -> "
+        response = str(self.trigger)
+        if (self.distributionTrigger is not None):
+            response += " ({})".format(self.distributionTrigger)
+        response += " -> "
         if (self.response is not None):
-            response += str(self.response) + " (" + str(self.distribution) + ")"
+            response += str(self.response)
+            if (self.distributionResponse is not None):
+                response += " ({})".format(self.distributionResponse)
         else:
             response += "_"
         return response
