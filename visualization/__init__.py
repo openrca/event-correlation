@@ -16,7 +16,7 @@ def showAllDistributions(sequence):
                 showDistributions(calculatedRule.distribution, rule.distribution)
 
 
-def showDistributions(estimatedDist, trueDist, visualizeOverlap=True, axes=None):
+def showDistributions(estimatedDist, trueDist=None, visualizeOverlap=True, axes=None):
     if (axes is None):
         ax = plt.gca()
     else:
