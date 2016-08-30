@@ -23,6 +23,11 @@ def findBaseDistribution(rules, trigger, response):
     for r in rules:
         if (r.matches(trigger, response)):
             return r.distributionResponse
+
+    # search for opposite rule
+    for r in rules:
+        if (r.matches(response, trigger)):
+            return -r.distributionResponse
     return None
 
 
@@ -76,7 +81,6 @@ args = parser.parse_args()
 logging.info("Arguments: ".format(args))
 
 seq = None
-baseDistribution = None
 rules = None
 
 if (args.input is None):
@@ -118,16 +122,17 @@ if (calculatedRules is None):
     exit(1)
 else:
     for rule in calculatedRules:
-        empiricalDist = distribution.getEmpiricalDist(seq, rule.trigger, rule.response)
         resultDist = rule.distributionResponse
+        empiricalDist = distribution.getEmpiricalDist(seq, rule.trigger, rule.response)
+        baseDist = findBaseDistribution(rules, rule.trigger, rule.response)
+
         printDistance(resultDist, empiricalDist)
         logging.info("Area between pdf curves: {}"
-                     .format(distribution.getAreaBetweenDistributions(resultDist, baseDistribution)))
+                     .format(distribution.getAreaBetweenDistributions(resultDist, baseDist)))
 
         samples = resultDist.samples
         printPerformance(resultDist, samples)
-        visualization.showResult(seq, rule.trigger, rule.response, rule.param[RESULT_IDX], baseDistribution, resultDist)
-
-        printResult(rule.param, findBaseDistribution(rules, rule.trigger, rule.response), empiricalDist)
+        visualization.showResult(seq, rule.trigger, rule.response, rule.param[RESULT_IDX], baseDist, resultDist)
+        printResult(rule.param, baseDist, empiricalDist)
 
     visualization.showVisualizer(seq)

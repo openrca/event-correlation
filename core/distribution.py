@@ -58,6 +58,9 @@ class Distribution(abc.ABC):
     def __hash__(self):
         return hash(self.param)
 
+    def __neg__(self):
+        return self
+
     @staticmethod
     def seed(seed):
         np.random.seed(seed)
@@ -203,6 +206,9 @@ class NormalDistribution(AbstractDistribution):
     def __str__(self):
         return "{}: Mu: {} Sigma: {}".format(distributions[NORMAL], self.mu, self.sigma)
 
+    def __neg__(self):
+        return NormalDistribution(-self.mu, self.sigma)
+
 
 class UniformDistribution(AbstractDistribution):
     """ Creates random samples based on a uniform distribution """
@@ -229,6 +235,9 @@ class UniformDistribution(AbstractDistribution):
 
     def __str__(self):
         return "{}: Lower: {} Upper: {}".format(distributions[UNIFORM], self.lower, self.upper)
+
+    def __neg__(self):
+        return UniformDistribution(-self.upper, -self.lower)
 
 
 class ExponentialDistribution(AbstractDistribution):
@@ -259,6 +268,9 @@ class ExponentialDistribution(AbstractDistribution):
     def __str__(self):
         return "{}: Offset: {} Beta: {}".format(distributions[EXP], self.offset, self.beta)
 
+    def __neg__(self):
+        return ExponentialDistribution(-self.offset, self.beta)
+
 
 class KdeDistribution(Distribution):
     """ Creates random samples based on a Kernel density estimation.
@@ -279,9 +291,13 @@ class KdeDistribution(Distribution):
         self.minValue = np.min(self.samples) - 2
         self.maxValue = np.max(self.samples) + 2
         self.kernel = stats.gaussian_kde(self.samples)
+        self.cachedMaxPdf = None
 
     def getPDFValue(self, x):
-        return self.kernel.evaluate(x)
+        pdf = self.kernel.evaluate(x)
+        if (self.cachedMaxPdf is not None and pdf > self.cachedMaxPdf):
+            self.cachedMaxPdf = pdf
+        return pdf
 
     def getRandom(self, n=None):
         if (n is None):
@@ -319,8 +335,10 @@ class KdeDistribution(Distribution):
         return stats.entropy(pdf) + math.log2((self.maxValue - self.minValue) / 10000)
 
     def getMaximumPDF(self):
-        # TODO implement
-        raise RuntimeError("Not implemented yet.")
+        if (self.cachedMaxPdf is None):
+            x = np.linspace(self.minValue, self.maxValue, 10000)
+            self.cachedMaxPdf = self.getPDFValue(x).max()
+        return self.cachedMaxPdf
 
     def getStd(self):
         return self.samples.std()
@@ -333,6 +351,9 @@ class KdeDistribution(Distribution):
 
     def __repr__(self):
         return str(self.samples)
+
+    def __neg__(self):
+        return KdeDistribution(-self.samples)
 
 
 def load(value):
@@ -392,6 +413,7 @@ def kstest(dist1, dist2, n=20):
     if (not isinstance(dist2, Distribution)):
         raise TypeError("dist2 is not an instance of core.distribution.Distribution")
 
+    # noinspection PyTypeChecker
     return stats.kstest(dist1.getRandom(n), dist2.getCDFValue).statistic
 
 
