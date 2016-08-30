@@ -295,7 +295,7 @@ class KdeDistribution(Distribution):
 
     def getPDFValue(self, x):
         pdf = self.kernel.evaluate(x)
-        if (self.cachedMaxPdf is not None and pdf > self.cachedMaxPdf):
+        if (self.cachedMaxPdf is not None and len(pdf) == 1 and pdf > self.cachedMaxPdf):
             self.cachedMaxPdf = pdf
         return pdf
 
