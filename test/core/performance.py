@@ -6,6 +6,9 @@ from core.performance import PearsonCoefficient, DistanceCorrelation, EnergyStat
 
 
 class TestScript(unittest.TestCase):
+    list1 = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
+    list2 = np.array([-1, 2, -3, 4, -5, 6, -7, 8, -9, 10, -11, 12, -13, 14, -15, 16, -17, 18, -19, 200])
+
     def testPearsonCoefficient(self):
         a = np.array(
             [5.1, 4.9, 4.7, 4.6, 5.0, 5.4, 4.6, 5.0, 4.4, 4.9, 5.4, 4.8, 4.8, 4.3, 5.8, 5.7, 5.4, 5.1, 5.7, 5.1, 5.4,
@@ -44,3 +47,35 @@ class TestScript(unittest.TestCase):
         # correct value created by R's 'energy' package (eqdist.etest)
         self.assertAlmostEqual(0.49413184617945721, res[0])
         self.assertEqual(1, res[1])
+
+    def testPValues(self):
+        res = PearsonCoefficient().compute(self.list1, self.list1)
+        self.assertLess(res[1], 0.05)
+        res = PearsonCoefficient().compute(self.list1, self.list2)
+        self.assertGreater(res[1], 0.05)
+
+        res = DistanceCorrelation().compute(self.list1, self.list1)
+        self.assertLess(res[1], 0.05)
+        res = DistanceCorrelation().compute(self.list1, self.list2)
+        self.assertGreater(res[1], 0.05)
+
+        res = EnergyStatistic().compute(self.list1, self.list1)
+        self.assertLess(res[1], 0.05)
+        res = EnergyStatistic().compute(self.list1, self.list2)
+        self.assertGreater(res[1], 0.05)
+
+    def testScores(self):
+        res = PearsonCoefficient().compute(self.list1, self.list1)
+        self.assertLess(res[0], 0.5)
+        res = PearsonCoefficient().compute(self.list1, self.list2)
+        self.assertGreater(res[0], 0.5)
+
+        res = DistanceCorrelation().compute(self.list1, self.list1)
+        self.assertLess(res[0], 0.5)
+        res = DistanceCorrelation().compute(self.list1, self.list2)
+        self.assertGreater(res[0], 0.5)
+
+        res = EnergyStatistic().compute(self.list1, self.list1)
+        self.assertLess(res[1], 0.5)
+        res = EnergyStatistic().compute(self.list1, self.list2)
+        self.assertGreater(res[1], 0.5)
