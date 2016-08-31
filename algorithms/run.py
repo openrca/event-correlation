@@ -12,24 +12,22 @@ from core import sequence, distribution
 from core.timer import Timer
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-r", "--rules", action="store", type=str, help="Path to files containing correct rules")
-parser.add_argument("-i", "--input", action="store", type=str, help="Path to file containing sequence")
+parser.add_argument("-m", "--method", action="store", type=str, required=True, choices=["gen", "load"],
+                    help="Method to create sequence.")
+parser.add_argument("-i", "--input", action="store", type=str, required=True, help="Path to file containing sequence")
 parser.add_argument("-a", "--algorithm", action="store", type=str, required=True, help="Algorithm to use for alignment")
-parser.add_argument("-l", "--length", action="store", type=int, help="Length of to be generated sequence")
-parser.add_argument("-c", "--count", action="store", type=int, help="Number of events in generated sequence")
-parser.add_argument("-t", "--threshold", action="store", type=float, help="Threshold for convergence", default=0.01)
 
 args = parser.parse_args()
-logging.info("Arguments: ".format(args))
+logging.info("Arguments: {}".format(args))
+# noinspection PyUnresolvedReferences
+args.input = os.path.toAbsolutePath(args.input)
 
 seq = None
-if (args.input is None):
-    if (args.rules.startswith("..")):
-        args.rules = os.path.join(os.path.dirname(__file__), args.rules)
-
-    seq = generation.createSequences(rules=args.rules, length=args.length, count=args.count)
-else:
-    logging.info("Loading sequence from {}".format(args.input))
+if (args.method == "gen"):
+    logging.info("Creating new sequence")
+    seq = generation.createSequences(config=args.input)
+if (args.method == "load"):
+    logging.info("Loading sequence")
     seq = sequence.loadFromFile(args.input)
 
 logging.info("Processing sequence:\n{}".format(seq))
@@ -47,7 +45,7 @@ elif (args.algorithm == munkresMatcher.MunkresMatcher.__name__):
 
 elif (args.algorithm == lagEM.lagEM.__name__):
     algorithm = lagEM.lagEM()
-    calculatedRules = algorithm.matchAll(sequence=seq, threshold=args.threshold)
+    calculatedRules = algorithm.matchAll(sequence=seq, threshold=0.01)
 
 elif (args.algorithm == icpMatcher.IcpMatcher.__name__):
     algorithm = icpMatcher.IcpMatcher()

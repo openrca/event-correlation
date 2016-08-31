@@ -271,7 +271,8 @@ class Visualizer(QMainWindow):
 
     def createSequence(self):
         # TODO make generic
-        sequence = generation.createSequences("/tmp/rule.json", 100)
+        sequence = generation.createSequences(config="../contrib/generation.json")
+        # TODO parse sequence
         self.setSequence(sequence)
 
     def setSequence(self, sequence):

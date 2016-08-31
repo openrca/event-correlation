@@ -59,6 +59,9 @@ class DetailsCanvas(MplCanvas):
         ax.set_ylabel("Probability")
 
     def showFinalAssignment(self, ax):
+        if (RESULT_IDX not in self.rule.data):
+            return
+
         trigger = self.rule.trigger
         response = self.rule.response
         idx = self.rule.data[RESULT_IDX]

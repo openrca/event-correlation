@@ -1,21 +1,35 @@
 import collections
+import json
 import logging
+import os
 
-import core.rule
+from core import rule
 from generation.generator import Generator
 
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-def createSequences(rules=None, count=None, length=None, number=1):
+def createSequences(config=None, rules=None, count=None, length=None, number=1):
     """
     Creates new sequences
+    :param config: Json configuration file
     :param rules: Path to file with rules
     :param count: Number of events in one sequence
     :param length: Length of one sequence
     :param number: Number of sequences to be created
     :return: A single sequence or a list of sequences.
     """
+    if (config is not None):
+        if (isinstance(config, str)):
+            # noinspection PyUnresolvedReferences
+            config = os.path.toAbsolutePath(config)
+            with open(config) as f:
+                config = json.load(f)
+
+        rules = config["rules"] if "rules" in config else None
+        count = int(config["count"]) if "count" in config else None
+        length = int(config["length"]) if "length" in config else None
+        number = int(config["number"]) if "number" in config else 1
 
     if (length is None and count is None):
         raise ValueError("Neither sequence length nor event count specified. Please provide at exactly one")
@@ -24,7 +38,7 @@ def createSequences(rules=None, count=None, length=None, number=1):
     if (rules is None):
         raise ValueError("Rules not specified")
 
-    rules = core.rule.loadFromFile(rules)
+    rules = rule.loadFromFile(rules)
     generator = Generator()
     if (length is not None):
         generator.setSeqLength(length)

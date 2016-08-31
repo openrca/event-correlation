@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 
 import core.distribution
 from core.event import Event
@@ -132,6 +133,8 @@ def load(value):
 def loadFromFile(filename):
     logging.info("Loading rules from '{}'".format(filename))
     rules = []
+    # noinspection PyUnresolvedReferences
+    filename = os.path.toAbsolutePath(filename)
 
     with open(filename, "r") as file:
         content = json.loads("".join(file.readlines()))

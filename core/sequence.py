@@ -2,6 +2,7 @@ import copy
 import json
 import logging
 import math
+import os
 
 import numpy as np
 
@@ -162,6 +163,8 @@ def load(value):
 
 
 def loadFromFile(filename):
+    # noinspection PyUnresolvedReferences
+    filename = os.path.toAbsolutePath(filename)
     with open(filename, "r") as file:
         content = json.loads("".join(file.readlines()))
         return load(content)
