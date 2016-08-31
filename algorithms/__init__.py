@@ -3,7 +3,8 @@ import logging
 
 import numpy as np
 
-from core.performance import EnergyStatistic
+from core.performance import EnergyStatistic, RangePerformance, VariancePerformance, StdPerformance, \
+    CondProbPerformance, EntropyPerformance
 from core.rule import Rule
 
 RESULT_MU = "Mu"
@@ -80,8 +81,10 @@ class Matcher(abc.ABC):
                 if (pValue <= alpha):
                     self.logger.info("Found correlated events '{}' and '{}'".format(eventA, eventB))
                     # noinspection PyNoneFunctionAssignment
-                    param = self.match(sequence, eventA, eventB, **kwargs)
-                    sequence.calculatedRules.append(Rule(eventA, eventB, param[RESULT_KDE], param=param))
+                    data = self.match(sequence, eventA, eventB, **kwargs)
+                    rule = Rule(eventA, eventB, data[RESULT_KDE], data=data)
+                    self._fillRuleData(rule, rule.distributionResponse)
+                    sequence.calculatedRules.append(rule)
         return sequence.calculatedRules
 
     def match(self, sequence, eventA, eventB, **kwargs):
@@ -99,6 +102,18 @@ class Matcher(abc.ABC):
     @abc.abstractmethod
     def compute(self):
         pass
+
+    # noinspection PyMethodMayBeStatic
+    def _fillRuleData(self, rule, distribution):
+        rule.data["Performance Range"] = RangePerformance().getValueByDistribution(distribution)
+        rule.data["Performance Variance"] = VariancePerformance().getValueByDistribution(distribution)
+        rule.data["Performance Std"] = StdPerformance().getValueByDistribution(distribution)
+        rule.data["Performance CondProd"] = CondProbPerformance(samples=distribution.samples).getValueByDistribution(
+            distribution)
+        rule.data["Performance Entropy"] = EntropyPerformance().getValueByDistribution(distribution)
+        rule.data["Metric Pearson"] = 0
+        rule.data["Metric Distance"] = 0
+        rule.data["Metric Energy"] = 0
 
 
 class InitialGuess(abc.ABC):

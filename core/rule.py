@@ -7,7 +7,7 @@ from core.event import Event
 
 class Rule:
     def __init__(self, trigger, response, distributionResponse, distributionTrigger=None, successTrigger=1.0,
-                 successResponse=1.0, param=None):
+                 successResponse=1.0, data=None):
         """ Represents a single rule
 
         Parameters:
@@ -17,13 +17,15 @@ class Rule:
             distributionTrigger: The inter-arrival distribution of the trigger event
             successTrigger: Probability that the trigger is really triggered
             successResponse: Probability that the response really follows the trigger
-            param: Optional parameter to store additional information from rule matching. This value is not persisted.
+            data: Optional parameter to store additional information from rule matching. This value is not persisted.
         """
-        if (isinstance(trigger, core.event.Event)):
+        if data is None:
+            data = {}
+        if (isinstance(trigger, Event)):
             self.trigger = trigger.eventType
         else:
             self.trigger = trigger
-        if (isinstance(response, core.event.Event)):
+        if (isinstance(response, Event)):
             self.response = response.eventType
         else:
             self.response = response
@@ -32,7 +34,7 @@ class Rule:
         self.successTrigger = successTrigger
         self.successResponse = successResponse
         self.likelihood = -1
-        self.param = param
+        self.data = data
 
     def getResponseTimestamp(self):
         return self.distributionResponse.getRandom()

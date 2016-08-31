@@ -3,27 +3,27 @@ import logging
 import math
 import os
 import sys
-import threading
 
 from PySide.QtCore import Signal, QPoint, QRectF
 from PySide.QtGui import QMainWindow, QWidget, QVBoxLayout, QPainter, QPainterPath, QGraphicsScene, QGraphicsView, \
     QGraphicsItem, QFont, QFontMetrics, QBrush, QColor, QPen, QAction, QFileDialog, QMessageBox, QApplication
 
 import core
-import core.rule
 import generation
-import visualization
+from core.rule import Rule
 from core.sequence import Sequence
+from visualization.details import DetailsContainer
 
 
 class EventWidget(QGraphicsItem):
-    def __init__(self, event, pos, size):
+    def __init__(self, event, pos, size, parent=None):
         super().__init__()
         self.eventType = event
-        self.maxSize = 50
-        self.minSize = 10
-        self.size = min(max(size, self.minSize), self.maxSize)
         self.pos = pos
+        self.size = min(max(size, 10), 50)
+        self.parent = parent
+
+        self.callbackParam = None
 
     def boundingRect(self):
         return QRectF(self.pos.x(), self.pos.y(), self.size, self.size)
@@ -41,8 +41,9 @@ class EventWidget(QGraphicsItem):
         height = metric.width(self.eventType.getExternalRepresentation())
         return (width, height)
 
-    def mousePressEvent(self, event):
-        logging.debug("EventWidget clicked")
+    def mouseDoubleClickEvent(self, event):
+        if (self.parent is not None):
+            self.parent.detailsSignal.emit(self.callbackParam)
 
     def __eq__(self, other):
         if (not isinstance(other, EventWidget)):
@@ -74,7 +75,7 @@ class ArrowWidget(QGraphicsItem):
         if (self.rule is not None):
             distance = self.end.eventType.timestamp - self.start.eventType.timestamp
             prob = self.rule.distributionResponse.getPDFValue(distance) / self.rule.distributionResponse.getMaximumPDF()
-            color = (1 - prob) * 256
+            color = (1 - prob) * 255
         color = QColor(color, color, color)
 
         painter.setPen(QPen(color))
@@ -108,6 +109,8 @@ class ArrowWidget(QGraphicsItem):
 
 
 class SequenceWidget(QGraphicsScene):
+    detailsSignal = Signal(Rule)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.sequence = None
@@ -116,6 +119,9 @@ class SequenceWidget(QGraphicsScene):
         self.offset = 10
         self.eventWidth = 20
         self.eventY = 0
+
+        self.detailsView = None
+        self.detailsSignal.connect(self.showDetails)
 
     def paint(self, sequence):
         self.sequence = sequence
@@ -131,7 +137,7 @@ class SequenceWidget(QGraphicsScene):
         for i in range(self.sequence.length):
             for event in self.sequence.getEvent(i):
                 widget = EventWidget(event, QPoint(eventCount * (self.eventWidth + self.offset), self.eventY),
-                                     self.eventWidth)
+                                     self.eventWidth, self)
                 self.addItem(widget)
                 self.eventWidgets[event] = widget
                 eventCount += 1
@@ -148,6 +154,14 @@ class SequenceWidget(QGraphicsScene):
             if (event.triggered in self.eventWidgets):
                 triggeredWidget = self.eventWidgets[event.triggered]
                 self.addItem(ArrowWidget(widget, triggeredWidget, rule))
+
+                # set up callbacks
+                widget.callbackParam = rule
+                triggeredWidget.callbackParam = rule
+
+    def showDetails(self, rule):
+        self.detailsView = DetailsContainer(self.sequence, rule)
+        self.detailsView.show()
 
     def cleanUp(self):
         self.sequence = None
@@ -217,6 +231,7 @@ class Visualizer(QMainWindow):
         fileMenu.addAction(exitAction)
 
     def loadSequence(self):
+        # noinspection PyCallByClass
         fileName = QFileDialog.getOpenFileName(self, "Load Sequence", os.path.expanduser("~"))[0]
         if (len(fileName) == 0):
             return
@@ -224,9 +239,6 @@ class Visualizer(QMainWindow):
         logging.info("Loading sequence from file " + fileName)
         try:
             seq = core.sequence.loadFromFile(fileName)
-
-            threading.Thread(target=visualization.showAllDistributions, args=(seq,)).start()
-
             self.statusBar().showMessage("Loaded sequence " + fileName)
         except ValueError as ex:
             msg = "Unable to load sequence: " + str(ex)
@@ -238,6 +250,7 @@ class Visualizer(QMainWindow):
         self.setSequence(seq)
 
     def saveSequence(self):
+        # noinspection PyCallByClass
         fileName = QFileDialog.getSaveFileName(self, "Load Sequence", os.path.expanduser("~"))[0]
         if (len(fileName) == 0):
             return

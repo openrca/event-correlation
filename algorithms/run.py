@@ -5,69 +5,11 @@ import argparse
 import logging
 import os
 
-import core.distribution
-import core.rule
 import generation
 import visualization
-from algorithms import lpMatcher, lagEM, munkresMatcher, icpMatcher, RESULT_IDX
+from algorithms import lpMatcher, lagEM, munkresMatcher, icpMatcher
 from core import sequence, distribution
-from core.performance import RangePerformance, VariancePerformance, StdPerformance, CondProbPerformance, \
-    EntropyPerformance
 from core.timer import Timer
-
-
-def findBaseDistribution(rules, trigger, response):
-    if (rules is None):
-        return None
-
-    for r in rules:
-        if (r.matches(trigger, response)):
-            return r.distributionResponse
-
-    # search for opposite rule
-    for r in rules:
-        if (r.matches(response, trigger)):
-            return -r.distributionResponse
-    return None
-
-
-def printResult(result, distribution, empiricalDist=None):
-    if (result is None):
-        return
-
-    msg = "Final parameters:\n"
-    for key, value in result.items():
-        if (key == RESULT_IDX and value is not None):
-            msg += "\t {}: \n{}\n".format(key, value.T)
-        else:
-            msg += "\t {}: {}\n".format(key, value)
-    if (distribution is not None):
-        msg += "True parameters:\n\t{}\n".format(str(distribution))
-    if (empiricalDist is not None):
-        msg += "Empirical parameters:\n\tMu: {}\n\tSigma: {}\n".format(empiricalDist.mu, empiricalDist.sigma)
-    logging.info(msg)
-
-
-def printDistance(dist1, dist2):
-    if (dist1 is not None and dist2 is not None):
-        logging.info("Distance:\n"
-                     "\tKS Test: {}\n"
-                     "\tChi2 Test: {}\n".format(core.distribution.kstest(dist1, dist2), 0))
-
-
-def printPerformance(dist, samples):
-    if (dist is not None):
-        logging.info("Performance:\n"
-                     "\tRange: {}\n"
-                     "\tVariance: {}\n"
-                     "\tStd: {}\n"
-                     "\tCondProd: {}\n"
-                     "\tEntropy: {}\n".format(RangePerformance().getValueByDistribution(dist),
-                                              VariancePerformance().getValueByDistribution(dist),
-                                              StdPerformance().getValueByDistribution(dist),
-                                              CondProbPerformance(samples=samples).getValueByDistribution(dist),
-                                              EntropyPerformance().getValueByDistribution(dist)))
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-r", "--rules", action="store", type=str, help="Path to files containing correct rules")
@@ -81,14 +23,11 @@ args = parser.parse_args()
 logging.info("Arguments: ".format(args))
 
 seq = None
-rules = None
-
 if (args.input is None):
     if (args.rules.startswith("..")):
         args.rules = os.path.join(os.path.dirname(__file__), args.rules)
 
     seq = generation.createSequences(rules=args.rules, length=args.length, count=args.count)
-    rules = core.rule.loadFromFile(args.rules)
 else:
     logging.info("Loading sequence from {}".format(args.input))
     seq = sequence.loadFromFile(args.input)
@@ -120,19 +59,18 @@ logging.info("Calculation time: {} minutes".format(timer))
 if (calculatedRules is None):
     logging.fatal("Unknown algorithm: '{}'".format(args.algorithm))
     exit(1)
-else:
-    for rule in calculatedRules:
-        resultDist = rule.distributionResponse
-        empiricalDist = distribution.getEmpiricalDist(seq, rule.trigger, rule.response)
-        baseDist = findBaseDistribution(rules, rule.trigger, rule.response)
 
-        printDistance(resultDist, empiricalDist)
-        logging.info("Area between pdf curves: {}"
-                     .format(distribution.getAreaBetweenDistributions(resultDist, baseDist)))
+for rule in calculatedRules:
+    resultDist = rule.distributionResponse
+    empiricalDist = distribution.getEmpiricalDist(seq, rule.trigger, rule.response)
+    baseDist = seq.getBaseDistribution(rule)
 
-        samples = resultDist.samples
-        printPerformance(resultDist, samples)
-        visualization.showResult(seq, rule.trigger, rule.response, rule.param[RESULT_IDX], baseDist, resultDist)
-        printResult(rule.param, baseDist, empiricalDist)
+    rule.data["Shared Area"] = distribution.getAreaBetweenDistributions(resultDist, baseDist)
+    rule.data["Distance KS"] = distribution.kstest(resultDist, empiricalDist)
+    rule.data["Distance Chi2"] = 0
+    if (baseDist is not None):
+        rule.data["True Dist"] = baseDist
+    if (empiricalDist is not None):
+        rule.data["Empirical Dist"] = empiricalDist
 
-    visualization.showVisualizer(seq)
+visualization.showVisualizer(seq)

@@ -408,6 +408,9 @@ def samplesToDistribution(samples, distribution):
 
 
 def kstest(dist1, dist2, n=20):
+    if (dist1 is None or dist2 is None):
+        return 0
+
     if (not isinstance(dist1, Distribution)):
         raise TypeError("dist1 is not an instance of core.distribution.Distribution")
     if (not isinstance(dist2, Distribution)):
