@@ -64,7 +64,7 @@ class DetailsCanvas(MplCanvas):
 
         trigger = self.rule.trigger
         response = self.rule.response
-        idx = self.rule.data[RESULT_IDX]
+        idx = np.array(self.rule.data[RESULT_IDX])
 
         missingTrigger = self.sequence.getMissingIdx(trigger)
         missingResponse = self.sequence.getMissingIdx(response)

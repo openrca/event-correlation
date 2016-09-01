@@ -160,6 +160,9 @@ class SequenceWidget(QGraphicsScene):
                 triggeredWidget.callbackParam = rule
 
     def showDetails(self, rule):
+        if (rule is None):
+            self.parent().statusBar().showMessage("No details available")
+            return
         self.detailsView = DetailsContainer(self.sequence, rule)
         self.detailsView.show()
 
