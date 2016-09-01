@@ -5,6 +5,8 @@ This file is used to set up general functionality.
 import logging
 import os
 
+import numpy as np
+
 """ Register log level 'TRACE' """
 logging.TRACE = 5
 logging.addLevelName(logging.TRACE, "TRACE")
@@ -38,3 +40,13 @@ def toAbsolutePath(path):
 
 
 os.path.toAbsolutePath = toAbsolutePath
+
+
+def defaultJsonEncoding(obj):
+    """ Add json encoding for custom classes """
+    from core import distribution, event, rule
+    if (isinstance(obj, (np.ndarray, np.generic))):
+        return obj.tolist()
+    if (isinstance(obj, (distribution.Distribution, event.Event, rule.Rule))):
+        return obj.asJson()
+    raise TypeError('{} Not serializable'.format(obj))

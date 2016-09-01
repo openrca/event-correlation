@@ -11,11 +11,12 @@ from core.event import Event
 
 
 class Sequence:
-    def __init__(self, events, length, rules=None, calculatedRules=None):
+    def __init__(self, events, length=None, rules=None, calculatedRules=None):
         if (rules is None):
             rules = []
         if (calculatedRules is None):
             calculatedRules = []
+        events.sort(key=lambda e: e.timestamp)
 
         self.events = events
         self.length = length
@@ -103,25 +104,17 @@ class Sequence:
         return "".join(tokens)
 
     def asJson(self):
-        events = []
-        for e in self.getEvents():
-            events.append(e.asJson())
-        rules = []
-        for r in self.rules:
-            rules.append(r.asJson())
-        calculatedRules = []
-        for r in self.calculatedRules:
-            calculatedRules.append(r.asJson())
         return {
             "length": self.length,
-            "events": events,
-            "rules": rules,
-            "calculatedRules": calculatedRules
+            "events": self.events,
+            "rules": self.rules,
+            "calculatedRules": self.calculatedRules
         }
 
     def store(self, filename):
+        import core
         with open(filename, "w+") as file:
-            file.write(json.dumps(self.asJson()))
+            file.write(json.dumps(self.asJson(), default=core.defaultJsonEncoding))
 
 
 def load(value):

@@ -18,7 +18,7 @@ class Rule:
             distributionTrigger: The inter-arrival distribution of the trigger event
             successTrigger: Probability that the trigger is really triggered
             successResponse: Probability that the response really follows the trigger
-            data: Optional parameter to store additional information from rule matching. This value is not persisted.
+            data: Optional parameter to store additional information from rule matching.
         """
         if data is None:
             data = {}
@@ -50,19 +50,15 @@ class Rule:
         return trigger == self.trigger and response == self.response
 
     def asJson(self):
-        return {
-            "trigger": {
-                "event": self.trigger,
-                "dist": self.distributionTrigger.asJson() if self.distributionTrigger is not None else "",
-                "success": self.successTrigger
-            },
-            "response": {
-                "event": self.response,
-                "dist": self.distributionResponse.asJson() if self.distributionResponse is not None else "",
-                "success": self.successResponse
-            },
-            "likelihood": self.likelihood
-        }
+        d = {"likelihood": self.likelihood, "data": self.data, "trigger": {
+            "event": self.trigger,
+            "dist": self.distributionTrigger if self.distributionTrigger is not None else "",
+            "success": self.successTrigger
+        }}
+        if (self.response is not None):
+            d["response"] = {"event": self.response, "success": self.successResponse,
+                             "dist": self.distributionResponse if self.distributionResponse is not None else ""}
+        return d
 
     def __eq__(self, other):
         if (not isinstance(other, Rule)):
@@ -125,6 +121,8 @@ def load(value):
         rule = Rule(eventTrigger, eventResponse, distResponse, distTrigger, successTrigger, successResponse)
         if ("likelihood" in value):
             rule.likelihood = float(value["likelihood"])
+        if ("data" in value):
+            rule.data = value["data"]
         return rule
     except KeyError:
         raise ValueError("Missing parameter 'trigger' with 'event' and/or 'success' and/or 'dist'.")

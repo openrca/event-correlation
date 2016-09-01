@@ -45,7 +45,7 @@ class Event:
              "occurred": str(self.occurred),
              "timestamp": str(self.timestamp)}
         if (self.triggered is not None):
-            d["triggered"] = self.triggered.asJson()
+            d["triggered"] = self.triggered
         return d
 
 
