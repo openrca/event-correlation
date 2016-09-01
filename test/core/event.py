@@ -26,7 +26,7 @@ class TestScript(unittest.TestCase):
     def test_constructor3(self):
         event = core.event.Event()
 
-        self.assertEqual("-", event.eventType)
+        self.assertEqual("_", event.eventType)
         self.assertIsNotNone(event.timestamp)
         self.assertEqual(-1, event.timestamp)
         self.assertTrue(self.event.occurred)
@@ -67,13 +67,13 @@ class TestScript(unittest.TestCase):
             }
         }
 
-        self.assertEqual(d, json.loads(json.dumps(event.asJson())))
+        self.assertEqual(d, json.loads(json.dumps(event.asJson(), default=core.defaultJsonEncoding)))
 
     def test_getExternalRepresentation(self):
         self.assertEqual("a", self.event.getExternalRepresentation())
 
         e = Event()
-        self.assertEqual("-", e.getExternalRepresentation())
+        self.assertEqual("_", e.getExternalRepresentation())
         e.occurred = False
         self.assertEqual("*", e.getExternalRepresentation())
 

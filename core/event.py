@@ -2,7 +2,7 @@
 
 
 class Event:
-    def __init__(self, eventType="-", timestamp=None):
+    def __init__(self, eventType="_", timestamp=None):
         self.eventType = eventType
         if (timestamp is None):
             timestamp = -1
@@ -19,7 +19,7 @@ class Event:
 
     def getExternalRepresentation(self):
         if (self.occurred):
-            return self.eventType
+            return str(self.eventType)
         else:
             return "*"
 

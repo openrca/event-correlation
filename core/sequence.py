@@ -11,7 +11,7 @@ from core.event import Event
 
 
 class Sequence:
-    def __init__(self, events, length=None, rules=None, calculatedRules=None):
+    def __init__(self, events, length=0, rules=None, calculatedRules=None):
         if (rules is None):
             rules = []
         if (calculatedRules is None):
@@ -24,8 +24,13 @@ class Sequence:
         self.calculatedRules = calculatedRules
 
         self.eventTypes = set()
+        firstTimestamp = max(self.events[0].timestamp - 1, 0) if (len(self.events) > 0) else 0
         for e in self.events:
+            e.timestamp -= firstTimestamp
             self.eventTypes.add(e.eventType)
+
+        if (length == 0 and len(self.events) > 0):
+            self.length = int(self.events[-1].timestamp) + 1
 
     def getEvents(self, eventType=None):
         """ Returns all events with the given event type. If no eventType is provided all events are returned. """
@@ -33,17 +38,18 @@ class Sequence:
             return self.events
         return [e for e in self.events if e.eventType == eventType]
 
-    def getEvent(self, timestamp):
-        """ Returns the all events that happened at the given timestamp (same integer part). If no events happened, a
-        default event is returned. """
+    # noinspection PyMethodMayBeStatic
+    def getPaddedEvent(self, event, prevTime):
+        """ Returns the given event with an additional padding. The padding fills the time between the event and
+        prevTime. """
         result = []
-        for e in self.events:
-            if (timestamp < math.floor(e.timestamp)):
-                break
-            if (math.floor(e.timestamp) == timestamp):
-                result.append(e)
-        if (len(result) == 0):
-            result.append(Event(timestamp=timestamp))
+        if (event.timestamp - prevTime > 10):
+            result.append(Event(eventType="...", timestamp=event.timestamp))
+        else:
+            for j in range(math.ceil(prevTime), int(event.timestamp) - 1):
+                result.append(Event(timestamp=event.timestamp))
+        result.append(event)
+
         return result
 
     def getCalculatedRule(self, trigger, response):
@@ -93,14 +99,13 @@ class Sequence:
     def __str__(self):
         tokens = []
 
-        seq = copy.copy(self.getEvents())
-        for i in range(self.length):
-            if (len(seq) > 0 and seq[0].timestamp <= i):
-                while (len(seq) > 0 and seq[0].timestamp <= i):
-                    e = seq.pop(0)
-                    tokens.append(e.getExternalRepresentation())
-            else:
-                tokens.append("_")
+        # truncate to 500 events due to performance
+        seq = copy.copy(self.getEvents()[:500])
+        prevTime = -1
+        for i in range(len(seq)):
+            for e in self.getPaddedEvent(seq[i], prevTime):
+                tokens.append(e.getExternalRepresentation())
+            prevTime = seq[i].timestamp
         return "".join(tokens)
 
     def asJson(self):

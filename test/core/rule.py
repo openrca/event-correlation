@@ -76,14 +76,15 @@ class TestScript(unittest.TestCase):
             "event": "a",
             "success": 1.0,
             "dist": ""
-        },
+            },
             "response": {
                 "event": "b",
                 "success": 1.0,
                 "dist":
-                    NormalDistribution(0, 1).asJson()
+                    NormalDistribution(0, 1)
             },
-            'likelihood': -1
+            "likelihood": -1,
+            "data": {}
         }
         self.assertEqual(expected, rule.asJson())
 

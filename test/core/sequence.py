@@ -55,11 +55,13 @@ class TestScript(unittest.TestCase):
         self.assertEqual(rule, seq.getCalculatedRule(Event("A"), Event("B")))
         self.assertIsNone(seq.getCalculatedRule(Event("A"), Event("C")))
 
-    def test_getEvent(self):
+    def test_getPaddedEvent(self):
         seq = sequence.loadFromFile(INPUT_FILE)
-        self.assertIsNotNone(seq.getEvent(-1))
-        self.assertEqual(Event("A", 0), seq.getEvent(0)[0])
-        self.assertEqual(Event(timestamp=3), seq.getEvent(3)[0])
+        self.assertEqual(1, len(seq.getPaddedEvent(seq.events[0], -1)))
+        self.assertEqual(Event("A", 0), seq.getPaddedEvent(seq.events[0], -1)[0])
+        self.assertEqual(2, len(seq.getPaddedEvent(seq.events[2], 0)))
+        self.assertEqual(Event(timestamp=2), seq.getPaddedEvent(seq.events[2], 0)[0])
+        self.assertEqual(Event("B", 2), seq.getPaddedEvent(seq.events[2], 0)[1])
 
     def test_asVector(self):
         seq = sequence.loadFromFile(INPUT_FILE)

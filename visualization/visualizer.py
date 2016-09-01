@@ -75,7 +75,7 @@ class ArrowWidget(QGraphicsItem):
         if (self.rule is not None):
             distance = self.end.eventType.timestamp - self.start.eventType.timestamp
             prob = self.rule.distributionResponse.getPDFValue(distance) / self.rule.distributionResponse.getMaximumPDF()
-            color = (1 - prob) * 255
+            color = max(10, (1 - prob) * 255)
         color = QColor(color, color, color)
 
         painter.setPen(QPen(color))
@@ -134,8 +134,11 @@ class SequenceWidget(QGraphicsScene):
             self.sequence = seq
 
         eventCount = 0
-        for i in range(self.sequence.length):
-            for event in self.sequence.getEvent(i):
+        prevTime = -1
+        for i in range(len(self.sequence.events)):
+            padding = sequence.getPaddedEvent(self.sequence.events[i], prevTime)
+            prevTime = self.sequence.events[i].timestamp
+            for event in padding:
                 widget = EventWidget(event, QPoint(eventCount * (self.eventWidth + self.offset), self.eventY),
                                      self.eventWidth, self)
                 self.addItem(widget)
