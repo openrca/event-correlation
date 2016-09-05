@@ -38,7 +38,7 @@ class Matcher(abc.ABC):
         success < 1
         """
         data.sort()
-        result = data[abs(data - data.mean()) < self.zScore * data.std()]
+        result = data[abs(data - data.mean()) <= self.zScore * data.std()]
         self.logger.debug("Kept {} / {} samples".format(result.size, data.size))
         return result
 
@@ -65,27 +65,40 @@ class Matcher(abc.ABC):
             alpha = kwargs["alpha"]
 
         performance = EnergyStatistic()
+        eventTypes = self._cleanUpEventTypes(sequence)
 
-        for eventA in sequence.eventTypes:
-            for eventB in sequence.eventTypes:
+        for trigger in eventTypes:
+            for response in eventTypes:
                 # TODO decide A -> B or B -> A
 
-                if (eventA == eventB):
+                if (trigger == response):
                     continue
-                self.logger.debug("Matching '{}' with '{}'".format(eventA, eventB))
+                self.logger.debug("Matching '{}' with '{}'".format(trigger, response))
 
-                seqA = sequence.asVector(eventA)
-                seqB = sequence.asVector(eventB)
+                seqTrigger = sequence.asVector(trigger)
+                seqResponse = sequence.asVector(response)
 
-                score, pValue = performance.compute(seqA, seqB)
+                score, pValue = performance.compute(seqTrigger, seqResponse)
                 if (pValue <= alpha):
-                    self.logger.info("Found correlated events '{}' and '{}'".format(eventA, eventB))
+                    self.logger.info("Found correlated events '{}' and '{}'".format(trigger, response))
+                    if (len(seqTrigger) < 5 or len(seqResponse) < 5):
+                        self.logger.warn("Too few samples. Skipping events")
+                        continue
+
                     # noinspection PyNoneFunctionAssignment
-                    data = self.match(sequence, eventA, eventB, **kwargs)
-                    rule = Rule(eventA, eventB, data[RESULT_KDE], data=data)
+                    data = self.match(sequence, trigger, response, **kwargs)
+                    rule = Rule(trigger, response, data[RESULT_KDE], data=data)
                     self._fillRuleData(rule, rule.distributionResponse)
                     sequence.calculatedRules.append(rule)
         return sequence.calculatedRules
+
+    # noinspection PyMethodMayBeStatic
+    def _cleanUpEventTypes(self, sequence):
+        result = []
+        for eventType in sequence.eventTypes:
+            if (len(sequence.getEvents(eventType)) > 5):
+                result.append(eventType)
+        return result
 
     def match(self, sequence, eventA, eventB, **kwargs):
         """ Computes a correlation of two event types. Check parseArgs for additional parameters. """

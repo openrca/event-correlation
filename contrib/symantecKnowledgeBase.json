@@ -1,0 +1,100 @@
+{
+    "website": "https://support.symantec.com/en_US/article.TECH186925.html",
+    "events": {
+        "2": {
+            "id": 2,
+            "desc": "Scan finished",
+            "code": "GL_EVENT_SCAN_STOP"
+        },
+        "3": {
+            "id": 3,
+            "desc": "Scan started",
+            "code": "GL_EVENT_SCAN_START"
+        },
+        "6": {
+            "id": 6,
+            "desc": "File open failed during scan",
+            "code": "GL_EVENT_FILE_NOT_OPEN"
+        },
+        "7": {
+            "id": 7,
+            "desc": "New virus definition found",
+            "code": "GL_EVENT_LOAD_PATTERN"
+        },
+        "12": {
+            "id": 12,
+            "desc": "Configuration change",
+            "code": "GL_EVENT_CONFIG_CHANGE"
+        },
+        "26": {
+            "id": 26,
+            "desc": "Scheduled scan delayed",
+            "code": "GL_EVENT_SCAN_DELAYED"
+        },
+        "51": {
+            "id": 51,
+            "desc": "Threat handled",
+            "code": "GL_EVENT_ANOMALY_FINISH"
+        },
+        "65": {
+            "id": 65,
+            "desc": "Scan stopped",
+            "code": "GL_EVENT_SCAN_SUSPENDED"
+        },
+        "66": {
+            "id": 66,
+            "desc": "Scan continued",
+            "code": "GL_EVENT_SCAN_RESUMED"
+        },
+        "69": {
+            "id": 69,
+            "desc": "Scan failed due to unknown error",
+            "code": ""
+        },
+        "71": {
+            "id": 71,
+            "desc": "Add file exception",
+            "code": "GL_EVENT_HEUR_THREAT_NOW_WHITELISTED"
+        },
+        "100": {
+            "id": 100,
+            "desc": "Internet connected",
+            "code": ""
+        },
+        "101": {
+            "id": 101,
+            "desc": "Internet disconnected",
+            "code": ""
+        },
+        "200": {
+            "id": 200,
+            "desc": "File download started",
+            "code": ""
+        },
+        "201": {
+            "id": 201,
+            "desc": "File download failed",
+            "code": ""
+        },
+        "202": {
+            "id": 202,
+            "desc": "File installation finished",
+            "code": ""
+        },
+        "203": {
+            "id": 203,
+            "desc": "File installation error",
+            "code": ""
+        },
+        "34054": {
+            "id": 34054,
+            "desc": "Threat protection enabled",
+            "code": ""
+        },
+        "34057": {
+            "id": 34057,
+            "desc": "Manipulation Protection enabled",
+            "code": ""
+        }
+    }
+}

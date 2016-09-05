@@ -1,8 +1,11 @@
 import unittest
+import sys
+
+import numpy as np
 
 from core import distribution
 from core.distribution import NormalDistribution, UniformDistribution, KdeDistribution, \
-    Distribution, StaticDistribution, ExponentialDistribution
+    Distribution, StaticDistribution, ExponentialDistribution, SingularKernel
 
 
 class TestScript(unittest.TestCase):
@@ -144,6 +147,22 @@ class TestScript(unittest.TestCase):
     def test_chi2test(self):
         dist = NormalDistribution()
         self.assertLess(distribution.chi2test(dist, dist), 100000)
+
+    def test_singularKernel(self):
+        kernel = SingularKernel(value=0.0)
+        self.assertEqual(sys.maxsize, kernel.evaluate(0))
+        self.assertEqual(0, kernel.evaluate(1))
+        self.assertTrue(np.all(np.array([sys.maxsize] * 5) == kernel.evaluate(np.zeros(5))))
+        self.assertTrue(np.all(np.zeros(5) == kernel.evaluate(np.ones(5))))
+        self.assertTrue(np.all(np.array([0, sys.maxsize, 0] == kernel.evaluate(np.array([1, 0, -1])))))
+
+        self.assertTrue(np.all(np.zeros(5) == kernel.resample(5)))
+
+        self.assertEqual(0, kernel.integrate_box_1d(-2, -1))
+        self.assertEqual(1, kernel.integrate_box_1d(-1, 0))
+        self.assertEqual(1, kernel.integrate_box_1d(0, 1))
+        self.assertEqual(0, kernel.integrate_box_1d(1, 2))
+        self.assertEqual(1, kernel.integrate_box_1d(-1, 1))
 
 
 if __name__ == '__main__':

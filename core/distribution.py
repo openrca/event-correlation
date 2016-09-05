@@ -9,6 +9,7 @@ import datetime
 import json
 import math
 import numbers
+import sys
 import time
 
 import numpy as np
@@ -290,7 +291,10 @@ class KdeDistribution(Distribution):
 
         self.minValue = np.min(self.samples) - 2
         self.maxValue = np.max(self.samples) + 2
-        self.kernel = stats.gaussian_kde(self.samples)
+        if (np.min(self.samples) != np.max(self.samples)):
+            self.kernel = stats.gaussian_kde(self.samples)
+        else:
+            self.kernel = SingularKernel(np.min(self.samples))
         self.cachedMaxPdf = None
 
     def getPDFValue(self, x):
@@ -354,6 +358,29 @@ class KdeDistribution(Distribution):
 
     def __neg__(self):
         return KdeDistribution(-self.samples)
+
+
+class SingularKernel():
+    def __init__(self, value):
+        self.value = value
+
+    def evaluate(self, x):
+        if (isinstance(x, (list, np.ndarray))):
+            result = np.zeros(len(x))
+            for i in range(len(x)):
+                if (x[i] == self.value):
+                    result[i] = sys.maxsize
+            return result
+        else:
+            return sys.maxsize if (x == self.value) else 0
+
+    def resample(self, n):
+        return np.array([self.value] * n)
+
+    def integrate_box_1d(self, lower, upper):
+        if (lower <= self.value <= upper):
+            return 1
+        return 0
 
 
 def load(value):
