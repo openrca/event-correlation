@@ -1,4 +1,5 @@
 import abc
+import fastEnergyDistance
 import math
 import numbers
 
@@ -211,45 +212,6 @@ class EnergyStatistic(Metric):
     """
 
     def compute(self, eventA, eventB):
-        value = self._computeUnNormalized(eventA, eventB) / (2 * self._computeSum(eventA, eventB))
-        p = self._computePValue(eventA, eventB)
-
+        # actual computation is done in C++ extension
+        value, p = fastEnergyDistance.compute(eventA, eventB, eventA.size, eventB.size, 999)
         return (value, p)
-
-    def _computeUnNormalized(self, eventA, eventB):
-        A = self._computeSum(eventA, eventB)
-        B = self._computeSum(eventA, eventA)
-        C = self._computeSum(eventB, eventB)
-        return 2 * A - B - C
-
-    # noinspection PyMethodMayBeStatic
-    def _computeSum(self, eventA, eventB):
-        [TA, TB] = np.meshgrid(eventA, eventB)
-        delta = np.abs(TB - TA)
-        return np.sum(delta) / (eventA.size * eventB.size)
-
-    def _computePValue(self, eventA, eventB, n=999):
-        p = 0
-        ref = self._computeMultivariateTest(eventA, eventB)
-
-        for i in range(n):
-            tmp = np.random.permutation(np.concatenate((eventA, eventB)))
-            permA = tmp[0:eventA.size]
-            permB = tmp[eventA.size:eventA.size + eventB.size]
-
-            v = self._computeMultivariateTest(permA, permB)
-            if (ref > v):
-                p += 1
-
-        return float(p + 1) / float(n + 1)
-
-    def _computeMultivariateTest(self, eventA, eventB):
-        value = 0
-        value += self._computeTestStatistic(eventA, eventA)
-        value += self._computeTestStatistic(eventA, eventB)
-        value += self._computeTestStatistic(eventB, eventA)
-        value += self._computeTestStatistic(eventB, eventB)
-        return value
-
-    def _computeTestStatistic(self, eventA, eventB):
-        return (eventA.size * eventB.size) / (eventA.size + eventB.size) * self._computeUnNormalized(eventA, eventB)
