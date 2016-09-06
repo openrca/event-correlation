@@ -1,8 +1,10 @@
 from distutils.core import setup, Extension
 
-module = Extension('fastLagEM', sources=['extensions/fastLagEM.cpp'])
+lagEMModule = Extension('fastLagEM', sources=['extensions/fastLagEM.cpp'])
+energyDistanceModule = Extension('fastEnergyDistance', sources=['extensions/fastEnergyDistance.cpp'])
 
-setup(name='fastLagEM',
+setup(name='EventCorrelation',
       version='1.0',
-      description='C++ implementation of lagEM algorithm',
-      ext_modules=[module], requires=['numpy', 'matplotlib', 'scipy', 'PySide', 'pymatbridge', 'cvxopt', 'pulp'])
+      description='Correlation of events based on label and timestamp',
+      ext_modules=[lagEMModule, energyDistanceModule],
+      requires=['numpy', 'matplotlib', 'scipy', 'PySide', 'pymatbridge', 'cvxopt', 'pulp'])
