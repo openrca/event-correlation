@@ -45,7 +45,7 @@ class Distribution(abc.ABC):
         return {"name": distributions[self.distType], "param": self.param}
 
     def getMaximumPDF(self):
-        """ Calculate the maximum PDF for normalization """
+        """ Compute the maximum PDF for normalization """
         return self.dist.pdf(self.dist.mean())
 
     def getCompleteInterval(self):
@@ -73,12 +73,12 @@ class Distribution(abc.ABC):
 
     @abc.abstractmethod
     def getPDFValue(self, x):
-        """ Calculate PDF for value x """
+        """ Compute PDF for value x """
         pass
 
     @abc.abstractmethod
     def getCDFValue(self, x):
-        """ Calculate CDF with offset x """
+        """ Compute CDF with offset x """
         pass
 
     @abc.abstractmethod
@@ -163,7 +163,7 @@ class StaticDistribution(Distribution):
 
     # noinspection PyArgumentList
     def getDifferentialEntropy(self):
-        """ Static distribution has no continuous entropy. Calculate normal entropy instead. """
+        """ Static distribution has no continuous entropy. Compute normal entropy instead. """
         count = np.array(list(collections.Counter(self.pdf).values()))
         return stats.entropy(np.divide(count, count.sum()))
 

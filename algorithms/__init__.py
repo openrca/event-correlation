@@ -56,7 +56,7 @@ class Matcher(abc.ABC):
     def matchAll(self, sequence, **kwargs):
         """ Finds all reasonable correlation in a sequence of events.
         Check parseArgs for additional parameters. All detected correlations are return as a list and stored in
-        sequence.calculatedCorrelations.
+        sequence.calculatedRules.
         Additional parameters:
             alpha: Significance level alpha for correlation hypothesis test. Default is 0.05.
         """

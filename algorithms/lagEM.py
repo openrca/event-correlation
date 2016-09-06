@@ -27,7 +27,7 @@ class lagEM(Matcher):
         result = np.zeros([10, 3])
         threads = []
         for i in range(10):
-            thread = threading.Thread(target=self.calculateParallel, args=(a, b, result, i,))
+            thread = threading.Thread(target=self.computeParallel, args=(a, b, result, i,))
             thread.start()
             threads.append(thread)
 
@@ -39,12 +39,12 @@ class lagEM(Matcher):
         return {RESULT_MU: tmp[0], RESULT_SIGMA: tmp[1], "Likelihood": result[:, 2].max(), RESULT_IDX: None,
                 RESULT_KDE: KdeDistribution(NormalDistribution(tmp[0], tmp[1]).getRandom(min(a.size, b.size)))}
 
-    def calculateParallel(self, a, b, result, index):
+    def computeParallel(self, a, b, result, index):
         self.logger.info("Processing batch {}".format(index))
         tmp = np.zeros([20, 3])
         for j in range(20):
             self.logger.debug("Worker[{}]: Processing round {}".format(index, j))
             mu = UniformDistribution(0, 100).getRandom()
             var = UniformDistribution(3, 25).getRandom() ** 2
-            tmp[j] = fastLagEM.calculate(a, b, mu, var, len(a), len(b))
+            tmp[j] = fastLagEM.compute(a, b, mu, var, len(a), len(b))
         result[index] = tmp[np.argmax(tmp[:, 2])]

@@ -45,7 +45,7 @@ print(cdf)
 
 # noinspection PyTypeChecker
 ax[2].plot([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4], cdf - cdfTrue, color='blue', lw=3)
-ax[2].set_title('Distance between true cdf and calculated cdf')
+ax[2].set_title('Distance between true cdf and computed cdf')
 plt.show()
 
 # 2. Benefits of Kde

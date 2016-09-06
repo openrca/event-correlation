@@ -24,14 +24,14 @@ with open(fileName) as file:
         likelihood.append(tokens[3])
 
 plt.subplot(311)
-plt.title("Calculated Mu")
-plt.plot(initMu, calcMu, label="Calculated mu")
+plt.title("Computed Mu")
+plt.plot(initMu, calcMu, label="Computed mu")
 plt.plot(initMu, [77.01] * len(initMu), label="Real mu")
 plt.legend(loc="upper left")
 
 plt.subplot(312)
-plt.title("Calculated Sigma")
-plt.plot(initMu, calcSigma, label="Calculated sigma")
+plt.title("Computed Sigma")
+plt.plot(initMu, calcSigma, label="Computed sigma")
 plt.plot(initMu, [6.664082832618454] * len(initMu), label="Real sigma")
 plt.legend(loc="upper left")
 

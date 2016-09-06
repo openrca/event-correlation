@@ -306,7 +306,7 @@ __license__ = "BSD-style license"
 
 class Munkres:
     """
-    Calculate the Munkres solution to the classical assignment problem.
+    Compute the Munkres solution to the classical assignment problem.
     See the module documentation for usage.
     """
 

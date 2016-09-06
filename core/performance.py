@@ -26,7 +26,7 @@ class Performance(abc.ABC):
 
 class RangePerformance(Performance):
     """
-    Calculate performance based on maximum distance between points.
+    Compute performance based on maximum distance between points.
 
     Performance is |max(samples) - min(samples)|
     """
@@ -40,7 +40,7 @@ class RangePerformance(Performance):
 
 
 class VariancePerformance(Performance):
-    """ Calculate performance based on sample variance. """
+    """ Compute performance based on sample variance. """
 
     def getValueByDistribution(self, dist):
         return dist.getVar()
@@ -50,7 +50,7 @@ class VariancePerformance(Performance):
 
 
 class StdPerformance(Performance):
-    """ Calculate performance based on sample standard deviation. """
+    """ Compute performance based on sample standard deviation. """
 
     def getValueByDistribution(self, dist):
         return dist.getStd()
@@ -61,7 +61,7 @@ class StdPerformance(Performance):
 
 class CondProbPerformance(Performance):
     """
-    Calculate performance based on average conditional probability.
+    Compute performance based on average conditional probability.
 
     The samples represent conditional values drawn from an underlying distribution. This class creates a distribution
     from the samples and averages the probability of all samples. To eliminate effects of numerical underflows, the
@@ -77,22 +77,22 @@ class CondProbPerformance(Performance):
     def getValueByDistribution(self, dist):
         if (self.samples is None):
             return 0
-        return self._calculate(self.samples, dist)
+        return self._compute(self.samples, dist)
 
     def getValueBySamples(self, samples):
         dist = self.dist
         if (isinstance(self.dist, numbers.Number)):
             dist = distribution.samplesToDistribution(samples, self.dist)
-        return self._calculate(samples, dist)
+        return self._compute(samples, dist)
 
     @staticmethod
-    def _calculate(samples, dist):
+    def _compute(samples, dist):
         return np.log(dist.getPDFValue(samples)).mean()
 
 
 class EntropyPerformance(Performance):
     """
-    Calculate performance based on entropy.
+    Compute performance based on entropy.
 
     The samples represent conditional values drawn from an underlying distribution. This class creates a distribution
     from the samples and draws the according probabilities. From this probabilities the normalized entropy is

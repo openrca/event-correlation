@@ -6,7 +6,7 @@
 
 const static double PI = 3.141592653589793238463;
 
-static double** calculateNormalMatrix(double* a, double* b, double** r, double mu, double variance, int sizeA, int sizeB) {
+static double** computeNormalMatrix(double* a, double* b, double** r, double mu, double variance, int sizeA, int sizeB) {
     double** result = new double*[sizeA];
     double scalar = 1 / std::sqrt(2 * PI * variance);
     
@@ -20,7 +20,7 @@ static double** calculateNormalMatrix(double* a, double* b, double** r, double m
 
 
 static void expectation(double* a, double* b, double** r, double mu, double variance, int sizeA, int sizeB) {
-    double** tmp = calculateNormalMatrix(a, b, r, mu, variance, sizeA, sizeB);
+    double** tmp = computeNormalMatrix(a, b, r, mu, variance, sizeA, sizeB);
     
     for (int i = 0; i < sizeA; ++i) {
         for (int j = 0; j < sizeB; ++j) {
@@ -64,7 +64,7 @@ static double* maximization(double* a, double* b, double** r, int sizeA, int siz
 }
 
 
-static double* calculate(double* a, double* b, double initMu, double initVariance, int sizeA, int sizeB) {
+static double* compute(double* a, double* b, double initMu, double initVariance, int sizeA, int sizeB) {
     double** r = new double*[sizeA];
     for (int i = 0; i < sizeA; ++i) {
         r[i] = new double[sizeB];
@@ -92,7 +92,7 @@ static double* calculate(double* a, double* b, double initMu, double initVarianc
     }
     
     double likelihood = 0;
-    double** tmp = calculateNormalMatrix(a, b, r, mu, var, sizeA, sizeB);
+    double** tmp = computeNormalMatrix(a, b, r, mu, var, sizeA, sizeB);
     for (int j = 0; j < sizeB; ++j) {
         double sum = 0;
         for (int i = 0; i < sizeA; ++i)
@@ -144,7 +144,7 @@ static PyObject* fastLagEM(PyObject *self, PyObject *args) {
     double* a = pyobjectToArray(arg0, sizeA);
     double* b = pyobjectToArray(arg1, sizeB);
     
-    double* result = calculate(a, b, initMu, initVar, sizeA, sizeB);
+    double* result = compute(a, b, initMu, initVar, sizeA, sizeB);
     PyObject* res = Py_BuildValue("ddd", result[0], result[1], result[2]);
     
     delete[] result;
@@ -156,7 +156,7 @@ static PyObject* fastLagEM(PyObject *self, PyObject *args) {
 
 
 static PyMethodDef fastLagEMMethods[] = {
-    {"calculate", fastLagEM, METH_VARARGS, "Run lagEM algorithm"},
+    {"compute", fastLagEM, METH_VARARGS, "Run lagEM algorithm"},
     {NULL, NULL, 0, NULL}
 };
 
