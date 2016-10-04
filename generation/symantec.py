@@ -2,7 +2,7 @@ import json
 import os
 from xml.etree.ElementTree import ElementTree
 
-import sqlite3
+import aniso8601
 
 from core import sequence
 from core.event import Event
@@ -13,8 +13,6 @@ class SymantecParser():
     def __init__(self):
         self.cacheDir = "/tmp/ec/cache"
         self.nameSpace = {"ev": "http://schemas.microsoft.com/win/2004/08/events/event"}
-        self.db = sqlite3.connect(":memory:")
-        self.cursor = self.db.cursor()
 
         # noinspection PyUnresolvedReferences
         with open(os.path.toAbsolutePath("../contrib/symantecKnowledgeBase.json")) as f:
@@ -74,10 +72,9 @@ class SymantecParser():
         cacheFile = os.path.join(self.cacheDir, file)
         seq.store(cacheFile)
 
-    # noinspection SqlNoDataSourceInspection
+    # noinspection PyMethodMayBeStatic
     def _parseISO8601(self, timeString):
-        self.cursor.execute("SELECT strftime('%s', ?)", (timeString,))
-        return float(self.cursor.fetchone()[0])
+        return aniso8601.parse_datetime(timeString).timestamp()
 
     def _printStatistic(self, root, count):
         print("# Events: {}".format(len(root)))
