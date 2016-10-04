@@ -4,15 +4,15 @@
             "event": "A",
             "dist": {
                 "name": "Uniform",
-                "param": [60, 75]
+                "param": [18, 20]
             },
             "success": "0.95"
         },
         "response": {
             "event": "B",
             "dist": {
-                "name": "Uniform",
-                "param": [60, 75]
+                "name": "Norm",
+                "param": [8, 2]
             },
             "success": "0.95"
         },
