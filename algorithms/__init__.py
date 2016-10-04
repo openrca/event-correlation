@@ -81,7 +81,7 @@ class Matcher(abc.ABC):
                 score, pValue = performance.compute(seqTrigger, seqResponse)
                 if (pValue <= alpha):
                     self.logger.info("Found correlated events '{}' and '{}'".format(trigger, response))
-                    if (len(seqTrigger) < 5 or len(seqResponse) < 5):
+                    if (len(seqTrigger) < len(sequence.events) / 200 or len(seqResponse) < len(sequence.events) / 200):
                         self.logger.warn("Too few samples. Skipping events")
                         continue
 
