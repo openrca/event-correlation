@@ -3,7 +3,7 @@
 
 class Event:
     def __init__(self, eventType="_", timestamp=None):
-        self.eventType = eventType
+        self.eventType = str(eventType)
         if (timestamp is None):
             timestamp = -1
         self.timestamp = timestamp

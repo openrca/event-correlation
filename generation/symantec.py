@@ -44,7 +44,7 @@ class SymantecParser():
         root = ElementTree().parse(file)
         for event in root:
             system = event.find("ev:System", namespaces=self.nameSpace)
-            eventId = int(system.find("ev:EventID", namespaces=self.nameSpace).text)
+            eventId = str(system.find("ev:EventID", namespaces=self.nameSpace).text)
             time = self._parseISO8601(system.find("ev:TimeCreated", namespaces=self.nameSpace).attrib["SystemTime"])
 
             events.append(Event(eventId, time))
