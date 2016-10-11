@@ -361,21 +361,23 @@ class KdeDistribution(Distribution):
 
 
 class SingularKernel():
-    def __init__(self, value):
+    def __init__(self, value, threshold=0.005):
         self.value = value
+        # threshold is a workaround to increase the probability that distribution is visible in plot
+        self.threshold = threshold
 
     def evaluate(self, x):
         if (isinstance(x, (list, np.ndarray))):
             result = np.zeros(len(x))
             for i in range(len(x)):
-                if (x[i] == self.value):
+                if (abs(x[i] - self.value) < self.threshold):
                     result[i] = sys.maxsize
             return result
         else:
-            return sys.maxsize if (x == self.value) else 0
+            return np.array([sys.maxsize if (abs(x - self.value) < self.threshold) else 0])
 
     def resample(self, n):
-        return np.array([self.value] * n)
+        return [np.array([self.value] * n)]
 
     def integrate_box_1d(self, lower, upper):
         if (lower <= self.value <= upper):
