@@ -66,6 +66,7 @@ class Matcher(abc.ABC):
 
         performance = EnergyStatistic()
         eventTypes = self._cleanUpEventTypes(sequence)
+        result = []
 
         for trigger in eventTypes:
             for response in eventTypes:
@@ -86,11 +87,9 @@ class Matcher(abc.ABC):
                         continue
 
                     # noinspection PyNoneFunctionAssignment
-                    data = self.match(sequence, trigger, response, **kwargs)
-                    rule = Rule(trigger, response, data[RESULT_KDE], data=data)
-                    self._fillRuleData(rule, rule.distributionResponse)
-                    sequence.calculatedRules.append(rule)
-        return sequence.calculatedRules
+                    rule, data = self.match(sequence, trigger, response, **kwargs)
+                    result.append(rule)
+        return result
 
     # noinspection PyMethodMayBeStatic
     def _cleanUpEventTypes(self, sequence):
@@ -106,7 +105,10 @@ class Matcher(abc.ABC):
         self.eventA = eventA
         self.eventB = eventB
         self.parseArgs(kwargs)
-        return self.compute()
+        data = self.compute()
+        rule = Rule(eventA, eventB, data[RESULT_KDE], data=data)
+        self._fillRuleData(rule, rule.distributionResponse)
+        return (rule, data)
 
     @abc.abstractmethod
     def parseArgs(self, kwargs):
