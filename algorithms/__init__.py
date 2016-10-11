@@ -108,6 +108,7 @@ class Matcher(abc.ABC):
         data = self.compute()
         rule = Rule(eventA, eventB, data[RESULT_KDE], data=data)
         self._fillRuleData(rule, rule.distributionResponse)
+        self._connectEventPairs(eventA, eventB, data[RESULT_IDX])
         return (rule, data)
 
     @abc.abstractmethod
@@ -129,6 +130,15 @@ class Matcher(abc.ABC):
         rule.data["Metric Pearson"] = 0
         rule.data["Metric Distance"] = 0
         rule.data["Metric Energy"] = 0
+
+    def _connectEventPairs(self, trigger, response, idx):
+        # TODO what happens if one event is connected several times?
+        if (idx is None):
+            return
+        t = self.sequence.getEvents(trigger)
+        r = self.sequence.getEvents(response)
+        for idxResponse, idxTrigger in idx:
+            t[idxTrigger].setTriggered(r[idxResponse])
 
 
 class InitialGuess(abc.ABC):
