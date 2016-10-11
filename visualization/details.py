@@ -41,7 +41,7 @@ class DetailsCanvas(MplCanvas):
 
         borders1 = estimatedDist.getCompleteInterval()
         borders2 = trueDist.getCompleteInterval() if (trueDist is not None) else estimatedDist.getCompleteInterval()
-        x = np.linspace(min(borders1[0], borders2[0]) - 1, max(borders1[1], borders2[1]) + 1, 500)
+        x = np.linspace(min(borders1[0], borders2[0]) - 1, max(borders1[1], borders2[1]) + 1, 1500)
         y1 = estimatedDist.getPDFValue(x)
         ax.plot(x, y1, "b", label="Estimated distribution")
 
