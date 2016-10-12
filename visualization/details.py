@@ -1,6 +1,7 @@
+import matplotlib.pyplot as plt
 import numpy as np
 from PySide import QtGui, QtCore
-from PySide.QtGui import QTableWidget, QTableWidgetItem, QWidget
+from PySide.QtGui import QTableWidget, QTableWidgetItem, QWidget, QPushButton
 from PySide.QtGui import QVBoxLayout
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -113,8 +114,20 @@ class DetailsContainer(QWidget):
         self.canvas = DetailsCanvas(sequence, rule)
         self.details = DetailsTable(rule.data)
 
+        self.externalFiguresButton = QPushButton('External Figures')
+        # noinspection PyUnresolvedReferences
+        self.externalFiguresButton.clicked.connect(self.externalFigures)
+
         layout = QVBoxLayout()
         layout.addWidget(self.canvas)
         layout.addWidget(self.details)
+        layout.addWidget(self.externalFiguresButton)
 
         self.setLayout(layout)
+
+    def externalFigures(self):
+        fig, ax = plt.subplots(1, 1)
+        self.canvas.showDistributions(ax)
+        fig, ax = plt.subplots(1, 1)
+        self.canvas.showFinalAssignment(ax)
+        plt.show()
