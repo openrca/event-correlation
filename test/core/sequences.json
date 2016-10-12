@@ -1,5 +1,6 @@
 {
     "length": "10",
+    "firstTimestamp": "1",
     "events": [
         {
             "eventType": "A",

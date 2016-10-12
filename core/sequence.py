@@ -24,9 +24,9 @@ class Sequence:
         self.calculatedRules = calculatedRules
 
         self.eventTypes = set()
-        firstTimestamp = max(self.events[0].timestamp - 1, 0) if (len(self.events) > 0) else 0
+        self.firstTimestamp = max(self.events[0].timestamp - 1, 0) if (len(self.events) > 0) else 0
         for e in self.events:
-            e.timestamp -= firstTimestamp
+            e.timestamp -= self.firstTimestamp
             self.eventTypes.add(e.eventType)
 
         if (length == 0 and len(self.events) > 0):
@@ -113,6 +113,7 @@ class Sequence:
             "length": self.length,
             "events": self.events,
             "rules": self.rules,
+            "firstTimestamp": self.firstTimestamp,
             "calculatedRules": self.calculatedRules
         }
 
@@ -153,6 +154,7 @@ def load(value):
                 calculatedRules.append(r)
 
         seq = Sequence(events, length, rules)
+        seq.firstTimestamp = int(value["firstTimestamp"])
         seq.calculatedRules = calculatedRules
         logging.debug("Loaded sequence: " + str(seq))
         return seq

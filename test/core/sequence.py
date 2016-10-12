@@ -31,6 +31,7 @@ class TestScript(unittest.TestCase):
         self.assertEqual(10, seq.length)
         self.assertEqual(3, len(seq))
         self.assertEqual(3, len(events))
+        self.assertEqual(1, seq.firstTimestamp)
         self.assertEqual(eventA, events[0])
         self.assertEqual(eventC, events[1])
         self.assertEqual(eventB, events[2])
@@ -85,6 +86,7 @@ class TestScript(unittest.TestCase):
             seq2 = sequence.loadFromFile(TMP_FILE_NAME)
 
             self.assertEqual(seq.length, seq2.length)
+            self.assertEqual(seq.firstTimestamp, seq2.firstTimestamp)
             self.assertEqual(len(seq.getEvents()), len(seq2.getEvents()))
             for i in range(len(seq.getEvents())):
                 event1 = seq.getEvents()[i]
