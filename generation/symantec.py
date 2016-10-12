@@ -16,7 +16,7 @@ class SymantecParser():
         with open(os.path.toAbsolutePath("../contrib/symantecKnowledgeBase.json")) as f:
             self.knowledgeBase = json.load(f)["events"]
 
-    def parse(self, file):
+    def parse(self, file, filter=[], whitelist=[]):
         """
         This method parses a Symantec xml log file into a Sequence. For multiple consecutive calls, the parsed sequence
         is cached in 'cacheDir'.
@@ -34,11 +34,15 @@ class SymantecParser():
             eventId = str(system.find("ev:EventID", namespaces=self.nameSpace).text)
             time = self._parseISO8601(system.find("ev:TimeCreated", namespaces=self.nameSpace).attrib["SystemTime"])
 
-            events.append(Event(eventId, time))
-            if eventId in count:
-                count[eventId] += 1
-            else:
-                count[eventId] = 1
+            if (eventId in filter):
+                continue
+
+            if (len(whitelist) == 0 or eventId in whitelist):
+                events.append(Event(eventId, time))
+                if eventId in count:
+                    count[eventId] += 1
+                else:
+                    count[eventId] = 1
         self._printStatistic(root, count)
         return Sequence(events)
 
