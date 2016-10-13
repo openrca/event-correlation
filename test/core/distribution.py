@@ -92,7 +92,7 @@ class TestScript(unittest.TestCase):
              -0.91315794, -1.14780757, 0.45317547, -0.62264164, -1.58588465, -0.21322892, 0.19709141, 0.56991324,
              0.31440975, 0.54262837, 1.67869985, -0.67444796, 1.05131451, -0.24062371, -0.59172438, 0.54549846,
              -0.36441899, 0.2470415, 2.86109234, 1.22804002])
-        self.assertAlmostEqual(0.3989, dist.getPDFValue(0), delta=0.1)
+        self.assertAlmostEqual(0.23784, dist.getPDFValue(0), delta=0.1)
         self.assertAlmostEqual(0.5, dist.getCDFValue(0), delta=0.1)
         self.assertAlmostEqual(-1.4482, dist.getDifferentialEntropy(), delta=0.25)
         self.assertIsNotNone(dist.getRandom())

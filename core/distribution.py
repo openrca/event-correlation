@@ -292,7 +292,7 @@ class KdeDistribution(Distribution):
         self.minValue = np.min(self.samples) - 2
         self.maxValue = np.max(self.samples) + 2
         if (np.min(self.samples) != np.max(self.samples)):
-            self.kernel = stats.gaussian_kde(self.samples)
+            self.kernel = stats.gaussian_kde(self.samples, 0.1)
         else:
             self.kernel = SingularKernel(np.min(self.samples))
         self.cachedMaxPdf = None
