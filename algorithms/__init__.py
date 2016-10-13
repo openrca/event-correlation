@@ -26,7 +26,8 @@ class Matcher(abc.ABC):
         self.name = name
         self.logger = logging.getLogger(self.name)
         self.logger.setLevel(logging.TRACE)
-        self.zScore = CONFIDENCE_90
+        self.trimCost = True
+        self.zScore = CONFIDENCE_50
         np.set_printoptions(precision=4, linewidth=150, threshold=10000)
 
         self.sequence = None
@@ -38,8 +39,11 @@ class Matcher(abc.ABC):
         This leads to worse results for simple associations but improves performance for complex associations with
         success < 1
         """
+        if (not self.trimCost):
+            return data
+
         data.sort()
-        result = data[abs(data - data.mean()) <= self.zScore * data.std()]
+        result = data[abs(data - np.median(data)) <= self.zScore * data.std()]
         self.logger.debug("Kept {} / {} samples".format(result.size, data.size))
         return result
 

@@ -12,5 +12,6 @@ class TestScript(unittest.TestCase):
         b = np.array([12, 25, 32])
 
         matcher = IcpMatcher()
+        matcher.trimCost = False
         res = matcher.compute(a, b)
         self.assertAlmostEqual(res[RESULT_MU], 17 / 3)
