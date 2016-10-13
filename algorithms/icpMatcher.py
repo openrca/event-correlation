@@ -74,7 +74,7 @@ class IcpMatcher(Matcher):
 
             subData, selectedIdx = self.getSubset(data, model)
             idx = IcpMatcher.findMinimalDistance(subData, model)
-            p = IcpMatcher.findOptimalTransformation(opt, subData, model[idx])
+            p = IcpMatcher.findOptimalTransformation(subData, model[idx])
             data += p
             opt += p
 
@@ -118,11 +118,11 @@ class IcpMatcher(Matcher):
         return np.argsort(delta, axis=0)[0:k, :].flatten()
 
     @staticmethod
-    def findOptimalTransformation(p, data, model):
+    def findOptimalTransformation(data, model):
         # Compute minimum of cost function
         #   sum( (data + p - model)^2 )
         # with p the variable.
-        result = optimize.minimize(IcpMatcher.costFunction, p, args=(data, model), method='Newton-CG',
+        result = optimize.minimize(IcpMatcher.costFunction, np.zeros(1), args=(data, model), method='Newton-CG',
                                    jac=IcpMatcher.jacobiMatrix, hess=IcpMatcher.hesseMatrix)
         return result.x[0]
 
@@ -231,7 +231,7 @@ class SampleConsensusInitialGuess(InitialGuess):
             dataSamples = self.selectSamples(data)
             modelSamples = self.findSimilarFeatures(dataSamples, model)
 
-            p = IcpMatcher.findOptimalTransformation(0, dataSamples, modelSamples)
+            p = IcpMatcher.findOptimalTransformation(dataSamples, modelSamples)
             d = dataSamples + p
             error = self.computeErrorMetric(d, model)
             if (error < minError):
