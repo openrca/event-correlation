@@ -63,6 +63,9 @@ class LpMatcher(Matcher):
         na = len(eventA)
         nb = len(eventB)
 
+        if (na == 0 or nb == 0):
+            raise ValueError('No events with id {} and/or {} found.'.format(self.eventA, self.eventB))
+
         [TA, TB] = np.meshgrid(eventA, eventB)
         delta = TB - TA
 
@@ -94,34 +97,18 @@ class LpMatcher(Matcher):
         Z = self.transformResult(Z, na, nb)
         self.logger.trace("Final (approximated) result: \n {}".format(Z.argmax(axis=0)))
 
-        cost = np.multiply(Z, delta)
-        cost[cost == 0] = cost.max() + 1
-        if (na < nb):
-            idx = cost.argmin(axis=0)
-            idx = np.column_stack((np.arange(idx.size), idx))
-            cost = cost.min(axis=0)
-        else:
-            idx = cost.argmin(axis=1)
-            idx = np.column_stack((idx, np.arange(idx.size)))
-            cost = cost.min(axis=1)
-
-        # if (na < nb):
-        #     idx = np.ones(na, dtype=int) * -1
-        #     for j in range(Z.shape[1]):
-        #         column = cost[:, j].copy()
-        #         if (column.sum() != 0):
-        #             column[column == 0] = column.max() + 1
-        #             idx[j] = column.argmin()
-        #     idx = np.column_stack((np.arange(idx.size), idx))
-        # else:
-        #     idx = np.ones(nb, dtype=int) * -1
-        #     for i in range(Z.shape[0]):
-        #         row = cost[i, :].copy()
-        #         if (row.sum() != 0):
-        #             row[row == 0] = row.max() + 1
-        #             idx[i] = row.argmin()
-        #     idx = np.column_stack((idx, np.arange(idx.size)))
-        # cost = cost[idx[:, 0], idx[:, 1]].flatten()
+        d = np.multiply(Z, delta)
+        idx = np.zeros(min(na, nb)).astype(int)
+        cost = np.zeros(min(na, nb))
+        for j in range(min(Z.shape)):
+            sub = d[j, :][Z[j, :] != 0]
+            minValue = sub.min()
+            cost[j] = minValue
+            for i in range(max(Z.shape)):
+                if (d[j, i] == minValue and Z[j, i] != 0):
+                    idx[j] = i
+                    break
+        idx = np.column_stack((idx, np.arange(idx.size))) if (nb < na) else np.column_stack((np.arange(idx.size), idx))
 
         cost = self.trimVector(cost)
         return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx}
@@ -213,18 +200,20 @@ class LpMatcher(Matcher):
 
         problem.setObjective(LpAffineExpression(objective))
 
-        if (na >= nb or True):  # TODO pulp violates these constraints. Leads to weird behaviour
-            for i in range(na):
-                oneToOneConstraint = {}
-                for j in np.arange(i, na * nb, na):
-                    oneToOneConstraint[variables[j]] = 1
-                problem.addConstraint(LpAffineExpression(oneToOneConstraint) <= 1)
+        # TODO something with the constraints is weird. See commented out lines
+        for i in range(na):
+            oneToOneConstraint = {}
+            for j in np.arange(i, na * nb, na):
+                oneToOneConstraint[variables[j]] = 1
+            problem.addConstraint(LpAffineExpression(oneToOneConstraint) <= 1)
+            # problem.addConstraint(LpAffineExpression(oneToOneConstraint) == 1)
 
         for j in range(nb):
             onlyOneConstraint = {}
             for i in range(j * na, (j + 1) * na):
                 onlyOneConstraint[variables[i]] = 1
             problem.addConstraint(LpAffineExpression(onlyOneConstraint) == 1)
+            # problem.addConstraint(LpAffineExpression(onlyOneConstraint) <= 1)
 
         self.logger.debug("Starting to solve with glpk")
         problem.solve()
