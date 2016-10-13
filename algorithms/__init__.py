@@ -25,6 +25,7 @@ class Matcher(abc.ABC):
             name = __name__
         self.name = name
         self.logger = logging.getLogger(self.name)
+        self.logger.setLevel(logging.TRACE)
         self.zScore = CONFIDENCE_90
         np.set_printoptions(precision=4, linewidth=150, threshold=10000)
 
@@ -137,7 +138,7 @@ class Matcher(abc.ABC):
             return
         t = self.sequence.getEvents(trigger)
         r = self.sequence.getEvents(response)
-        for idxResponse, idxTrigger in idx:
+        for idxTrigger, idxResponse in idx:
             t[idxTrigger].setTriggered(r[idxResponse])
 
 
