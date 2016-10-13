@@ -16,14 +16,20 @@ class SymantecParser():
         with open(os.path.toAbsolutePath("../contrib/symantecKnowledgeBase.json")) as f:
             self.knowledgeBase = json.load(f)["events"]
 
-    def parse(self, file, filter=[], whitelist=[]):
+    def parse(self, file, filter=None, whitelist=None, normalization=1):
         """
         This method parses a Symantec xml log file into a Sequence. For multiple consecutive calls, the parsed sequence
         is cached in 'cacheDir'.
+        :param normalization:
+        :param whitelist:
         :param file:
         :return:
         """
         # noinspection PyUnresolvedReferences
+        if filter is None:
+            filter = []
+        if whitelist is None:
+            whitelist = []
         file = os.path.toAbsolutePath(file)
 
         count = {}
@@ -32,7 +38,8 @@ class SymantecParser():
         for event in root:
             system = event.find("ev:System", namespaces=self.nameSpace)
             eventId = str(system.find("ev:EventID", namespaces=self.nameSpace).text)
-            time = self._parseISO8601(system.find("ev:TimeCreated", namespaces=self.nameSpace).attrib["SystemTime"])
+            time = self._parseISO8601(
+                system.find("ev:TimeCreated", namespaces=self.nameSpace).attrib["SystemTime"]) / normalization
 
             if (eventId in filter):
                 continue
