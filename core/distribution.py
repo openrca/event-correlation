@@ -285,7 +285,7 @@ class KdeDistribution(Distribution):
         :param samples: 1D-Samples to create distribution from
         """
         super().__init__(distType=KDE, param=([samples]))
-        self.samples = np.array(samples)
+        self.samples = np.array(sorted(samples))
         if (len(samples) == 0):
             raise ValueError("Unable to perform Kernel density estimation without samples.")
 
