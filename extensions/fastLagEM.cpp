@@ -27,7 +27,10 @@ static void expectation(double* a, double* b, double** r, double mu, double vari
             double sum = 0;
             for (int k = 0; k < sizeB; ++k)
                 sum += tmp[i][k];
-            r[i][j] = tmp[i][j] / sum;
+            if (sum != 0)
+                r[i][j] = tmp[i][j] / sum;
+            else
+                r[i][j] = 0;
         }
     }
     
@@ -86,6 +89,11 @@ static double* compute(double* a, double* b, double initMu, double initVariance,
         double deltaVar = std::abs(var - newVar);
         mu = newMu;
         var = newVar;
+
+        if (mu != mu || var != var) {
+            std::cout << "Numerical problems: Mu or Var is NaN. Aborting calculation" << std::endl;
+            break;
+        }
         
         if (deltaMu < 1e-2 && deltaVar < 1e-2)
             break;
