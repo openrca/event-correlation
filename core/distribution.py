@@ -363,6 +363,7 @@ class KdeDistribution(Distribution):
 class SingularKernel():
     def __init__(self, value, threshold=0.005):
         self.value = value
+        self.maxValue = sys.maxsize
         # threshold is a workaround to increase the probability that distribution is visible in plot
         self.threshold = threshold
 
@@ -371,10 +372,10 @@ class SingularKernel():
             result = np.zeros(len(x))
             for i in range(len(x)):
                 if (abs(x[i] - self.value) < self.threshold):
-                    result[i] = sys.maxsize
+                    result[i] = self.maxValue
             return result
         else:
-            return np.array([sys.maxsize if (abs(x - self.value) < self.threshold) else 0])
+            return np.array([self.maxValue if (abs(x - self.value) < self.threshold) else 0])
 
     def resample(self, n):
         return [np.array([self.value] * n)]
