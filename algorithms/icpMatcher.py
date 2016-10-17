@@ -45,13 +45,20 @@ class IcpMatcher(Matcher):
         if ("showVisualization" in kwargs):
             self.showVisualization = kwargs["showVisualization"]
 
-    def compute(self, src=None, model=None):
+    def compute(self, src=None, response=None):
         if (src is None):
             src = np.array(self.sequence.asVector(self.eventA))
-        if (model is None):
-            model = np.array(self.sequence.asVector(self.eventB))
+        if (response is None):
+            response = np.array(self.sequence.asVector(self.eventB))
 
         data = np.array(src, copy=True).astype(float)
+        model = np.array(response, copy=True).astype(float)
+
+        if (len(src) > len(response)):
+            self.logger.debug('Switching trigger and response for calculation')
+            tmp = data
+            data = model
+            model = tmp
 
         if (self.initPose is None):
             # TODO find better method for initial guess
@@ -87,7 +94,11 @@ class IcpMatcher(Matcher):
         tmp = model[idx[:, 1]]
         self.logger.info("Final distance {} ({} distance)".format(opt, IcpMatcher.costFunction(0, data, tmp)))
 
-        cost = tmp - src
+        if (len(src) > len(response)):
+            cost = (tmp - response) * -1
+            idx[:, 0], idx[:, 1] = idx[:, 1], idx[:, 0].copy()
+        else:
+            cost = tmp - src
         cost = self.trimVector(cost)
         return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx,
                 "Offset": opt}
