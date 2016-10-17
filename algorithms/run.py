@@ -45,7 +45,10 @@ if (args.method == "load"):
     seq = sequence.loadFromFile(args.input)
 if (args.method == "symantec"):
     logging.info("Parsing symantec file")
-    seq = symantec.SymantecParser().parse(args.input)
+    if (trigger is not None and response is not None):
+        seq = symantec.SymantecParser().parse(args.input, whitelist=[trigger, response], normalization=100)
+    else:
+        seq = symantec.SymantecParser().parse(args.input, normalization=100)
 
 logging.info("Processing sequence:\n{}".format(seq))
 
