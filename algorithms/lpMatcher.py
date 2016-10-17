@@ -102,6 +102,11 @@ class LpMatcher(Matcher):
         cost = np.zeros(min(na, nb))
         for j in range(min(Z.shape)):
             sub = d[j, :][Z[j, :] != 0]
+            if (len(sub) == 0):
+                idx[j] = -1
+                cost[j] = 0
+                continue
+
             minValue = sub.min()
             cost[j] = minValue
             for i in range(max(Z.shape)):
@@ -149,7 +154,7 @@ class LpMatcher(Matcher):
         """
         import scipy.optimize
 
-        self.logger.debug("Using scipy to solve optimization problem")
+        self.logger.debug("Solving problem with Scipy")
         res = scipy.optimize.linprog(f, A, b, Aeq, beq, bounds=((0, 1),) * n,
                                      options={"disp": True,
                                               "bland": True,
@@ -166,6 +171,8 @@ class LpMatcher(Matcher):
         Works for higher dimensions but requires quite some time.
         """
         from cvxopt import matrix, solvers
+
+        self.logger.debug("Solving problem with Cvxopt")
 
         # add boundaries as lp has no build-in boundaries
         A1 = np.concatenate((A, -np.eye(n), np.eye(n)))
@@ -185,8 +192,9 @@ class LpMatcher(Matcher):
 
         CPLEX LP (http://lpsolve.sourceforge.net/5.0/CPLEX-format.htm) is a format for formulating sparse problems.
         """
-
         from pulp.pulp import LpAffineExpression, LpMinimize, LpProblem, LpVariable
+
+        self.logger.debug("Solving problem with PULP")
         problem = LpProblem("test1", LpMinimize)
         template = "x{0:0" + str(len(str(na * nb))) + "d}"
 
