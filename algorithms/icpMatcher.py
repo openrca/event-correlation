@@ -45,16 +45,16 @@ class IcpMatcher(Matcher):
         if ("showVisualization" in kwargs):
             self.showVisualization = kwargs["showVisualization"]
 
-    def compute(self, src=None, response=None):
-        if (src is None):
-            src = np.array(self.sequence.asVector(self.eventA))
+    def compute(self, trigger=None, response=None):
+        if (trigger is None):
+            trigger = np.array(self.sequence.asVector(self.trigger))
         if (response is None):
-            response = np.array(self.sequence.asVector(self.eventB))
+            response = np.array(self.sequence.asVector(self.response))
 
-        data = np.array(src, copy=True).astype(float)
+        data = np.array(trigger, copy=True).astype(float)
         model = np.array(response, copy=True).astype(float)
 
-        if (len(src) > len(response)):
+        if (len(trigger) > len(response)):
             self.logger.debug('Switching trigger and response for calculation')
             tmp = data
             data = model
@@ -87,18 +87,18 @@ class IcpMatcher(Matcher):
 
             self.logger.debug("Offset {}\t Distance {}".format(opt, IcpMatcher.costFunction(0, subData, model[idx])))
             if (self.showVisualization):
-                IcpMatcher.visualizeCurrentStep(src, subData, selectedIdx, model, idx)
+                IcpMatcher.visualizeCurrentStep(trigger, subData, selectedIdx, model, idx)
 
         idx = IcpMatcher.findMinimalDistance(data, model)
         idx = np.column_stack((np.arange(idx.size), idx))
         tmp = model[idx[:, 1]]
         self.logger.info("Final distance {} ({} distance)".format(opt, IcpMatcher.costFunction(0, data, tmp)))
 
-        if (len(src) > len(response)):
+        if (len(trigger) > len(response)):
             cost = (tmp - response) * -1
             idx[:, 0], idx[:, 1] = idx[:, 1], idx[:, 0].copy()
         else:
-            cost = tmp - src
+            cost = tmp - trigger
         cost = self.trimVector(cost)
         return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx,
                 "Offset": opt}

@@ -4,7 +4,7 @@ import threading
 import numpy as np
 
 from algorithms import Matcher, RESULT_MU, RESULT_SIGMA, RESULT_IDX, RESULT_KDE
-from core.distribution import UniformDistribution, KdeDistribution, NormalDistribution
+from core.distribution import UniformDistribution, KdeDistribution
 
 
 class lagEM(Matcher):
@@ -20,15 +20,15 @@ class lagEM(Matcher):
         self.threshold = kwargs["threshold"]
 
     def compute(self):
-        self.logger.info("Matching event {} against {}".format(self.eventA, self.eventB))
-        a = self.sequence.asVector(self.eventA)
-        b = self.sequence.asVector(self.eventB)
+        self.logger.info("Matching event {} against {}".format(self.trigger, self.response))
+        trigger = self.sequence.asVector(self.trigger)
+        response = self.sequence.asVector(self.response)
 
         assignments = [[]] * 10
         result = np.zeros([10, 3])
         threads = []
         for i in range(10):
-            thread = threading.Thread(target=self.computeParallel, args=(a, b, result, assignments, i,))
+            thread = threading.Thread(target=self.computeParallel, args=(trigger, response, result, assignments, i,))
             thread.start()
             threads.append(thread)
 
@@ -40,8 +40,8 @@ class lagEM(Matcher):
         mu, std, likelihood = result.sum(axis=0) / np.count_nonzero(result[:, 0])
         idx = np.array(assignments[np.argmax(result[:, 2])])
 
-        [TA, TB] = np.meshgrid(a, b)
-        delta = TB - TA
+        [TTrigger, TResponse] = np.meshgrid(trigger, response)
+        delta = TResponse - TTrigger
         samples = delta[idx[:, 1], idx[:, 0]]
 
         return {RESULT_MU: mu, RESULT_SIGMA: std, "Likelihood": result[:, 2].max(), RESULT_IDX: idx,

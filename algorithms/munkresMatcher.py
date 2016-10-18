@@ -16,27 +16,28 @@ class MunkresMatcher(Matcher):
         pass
 
     def compute(self):
-        a = self.sequence.asVector(self.eventA)
-        b = self.sequence.asVector(self.eventB)
+        trigger = self.sequence.asVector(self.trigger)
+        response = self.sequence.asVector(self.response)
 
-        [A, B] = np.meshgrid(a, b)
-        c = B - A
+        [TTrigger, TResponse] = np.meshgrid(trigger, response)
+        delta = TResponse - TTrigger
         # square to make pair-wise distances asymmetric
-        c[c > 0] **= 2
+        delta[delta > 0] **= 2
 
         m = Munkres()
-        idx = m.compute(c)
+        idx = m.compute(delta)
         idx[:, [0, 1]] = idx[:, [1, 0]]
 
-        c[c > 0] = np.sqrt(c[c > 0])
-        cost = c[idx[:, 1], idx[:, 0]]
+        delta[delta > 0] = np.sqrt(delta[delta > 0])
+        cost = delta[idx[:, 1], idx[:, 0]]
         self.logger.debug("Found matchings with total cost {:.2f}".format(cost.sum()))
 
         if (self.logger.isEnabledFor(logging.TRACE)):
-            for i in range(min(len(a), len(b))):
+            for i in range(min(len(trigger), len(response))):
                 self.logger.trace("Matched ({}, {}) -> {:.4f} - {:.4f} = {:.4f}"
-                                  .format(idx[i][0], idx[i][1], b[idx[i][1]], a[idx[i][0]], c[idx[i][1], idx[i][0]]))
-            if (len(a) != len(b)):
+                                  .format(idx[i][0], idx[i][1], response[idx[i][1]], trigger[idx[i][0]],
+                                          delta[idx[i][1], idx[i][0]]))
+            if (len(trigger) != len(response)):
                 self.logger.trace("Remaining events were not assigned")
 
         cost = self.trimVector(cost)

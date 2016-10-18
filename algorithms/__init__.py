@@ -31,8 +31,8 @@ class Matcher(abc.ABC):
         np.set_printoptions(precision=4, linewidth=150, threshold=10000)
 
         self.sequence = None
-        self.eventA = None
-        self.eventB = None
+        self.trigger = None
+        self.response = None
 
     def trimVector(self, data):
         """ Remove potential outliers.
@@ -104,16 +104,16 @@ class Matcher(abc.ABC):
                 result.append(eventType)
         return result
 
-    def match(self, sequence, eventA, eventB, **kwargs):
+    def match(self, sequence, trigger, response, **kwargs):
         """ Computes a correlation of two event types. Check parseArgs for additional parameters. """
         self.sequence = sequence
-        self.eventA = eventA
-        self.eventB = eventB
+        self.trigger = trigger
+        self.response = response
         self.parseArgs(kwargs)
         data = self.compute()
-        rule = Rule(eventA, eventB, data[RESULT_KDE], data=data)
+        rule = Rule(trigger, response, data[RESULT_KDE], data=data)
         self._fillRuleData(rule, rule.distributionResponse)
-        self._connectEventPairs(eventA, eventB, data[RESULT_IDX])
+        self._connectEventPairs(trigger, response, data[RESULT_IDX])
         return (rule, data)
 
     @abc.abstractmethod

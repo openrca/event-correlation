@@ -57,49 +57,49 @@ class LpMatcher(Matcher):
 
     # noinspection PyUnboundLocalVariable, PyTypeChecker
     def compute(self):
-        eventA = self.sequence.asVector(self.eventA)
-        eventB = self.sequence.asVector(self.eventB)
+        trigger = self.sequence.asVector(self.trigger)
+        response = self.sequence.asVector(self.response)
 
-        na = len(eventA)
-        nb = len(eventB)
+        nTrigger = len(trigger)
+        nResponse = len(response)
 
-        if (na == 0 or nb == 0):
-            raise ValueError('No events with id {} and/or {} found.'.format(self.eventA, self.eventB))
+        if (nTrigger == 0 or nResponse == 0):
+            raise ValueError('No events with id {} and/or {} found.'.format(self.trigger, self.response))
 
-        [TA, TB] = np.meshgrid(eventA, eventB)
-        delta = TB - TA
+        [TTrigger, TResponse] = np.meshgrid(trigger, response)
+        delta = TResponse - TTrigger
 
         if (self.algorithm is not Method.PULP):
             A = -np.diag(delta.reshape(-1))
-            b = np.zeros(na * nb)
+            b = np.zeros(nTrigger * nResponse)
 
             # one to one matching
-            if (na >= nb):
-                A = np.concatenate((A, np.tile(np.eye(na), (1, nb))))
-                b = np.concatenate((b, np.ones(na)))
-            # TODO what happens if na < nb?
+            if (nTrigger >= nResponse):
+                A = np.concatenate((A, np.tile(np.eye(nTrigger), (1, nResponse))))
+                b = np.concatenate((b, np.ones(nTrigger)))
+            # TODO what happens if nTrigger < nResponse?
 
-            Aeq = np.kron(np.eye(nb), np.ones(na))
-            beq = np.ones(nb)
+            Aeq = np.kron(np.eye(nResponse), np.ones(nTrigger))
+            beq = np.ones(nResponse)
 
-        f = delta.flatten() ** 2 / (na - 1)
+        f = delta.flatten() ** 2 / (nTrigger - 1)
 
         Z = None
         if (self.algorithm == Method.PULP):
-            Z = self.solvePulp(f, -delta.reshape(-1), na, nb)
+            Z = self.solvePulp(f, -delta.reshape(-1), nTrigger, nResponse)
         elif (self.algorithm == Method.MATLAB):
-            Z = self.solveMatlab(f, A, b, Aeq, beq, na, nb)
+            Z = self.solveMatlab(f, A, b, Aeq, beq, nTrigger, nResponse)
         elif (self.algorithm == Method.SCIPY):
-            Z = self.solveScipy(f, A, b, Aeq, beq, na * nb)
+            Z = self.solveScipy(f, A, b, Aeq, beq, nTrigger * nResponse)
         elif (self.algorithm == Method.CVXOPT):
-            Z = self.solveCvxopt(f, A, b, Aeq, beq, na * nb)
+            Z = self.solveCvxopt(f, A, b, Aeq, beq, nTrigger * nResponse)
 
-        Z = self.transformResult(Z, na, nb)
+        Z = self.transformResult(Z, nTrigger, nResponse)
         self.logger.trace("Final (approximated) result: \n {}".format(Z.argmax(axis=0)))
 
         d = np.multiply(Z, delta)
-        idx = np.zeros(min(na, nb)).astype(int)
-        cost = np.zeros(min(na, nb))
+        idx = np.zeros(min(nTrigger, nResponse)).astype(int)
+        cost = np.zeros(min(nTrigger, nResponse))
         for j in range(min(Z.shape)):
             sub = d[j, :][Z[j, :] != 0]
             if (len(sub) == 0):
@@ -113,7 +113,7 @@ class LpMatcher(Matcher):
                 if (d[j, i] == minValue and Z[j, i] != 0):
                     idx[j] = i
                     break
-        idx = np.column_stack((idx, np.arange(idx.size))) if (nb < na) else np.column_stack((np.arange(idx.size), idx))
+        idx = np.column_stack((idx, np.arange(idx.size))) if (nResponse < nTrigger) else np.column_stack((np.arange(idx.size), idx))
 
         cost = self.trimVector(cost)
         return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx}
