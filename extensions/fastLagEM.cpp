@@ -6,6 +6,38 @@
 
 const static double PI = 3.141592653589793238463;
 
+struct Result {
+    double mu;
+    double std;
+    double likelihood;
+    PyObject *idx;
+};
+
+
+PyObject* parseAssignments(double **r, int sizeA, int sizeB) {
+    PyObject *list = PyList_New(0);
+
+    for (int i = 0; i < sizeA; ++i) {
+        double max = 0;
+        int idx = -1;
+        for (int j = 0; j < sizeB; ++j) {
+            if (r[i][j] > max) {
+                max = r[i][j];
+                idx = j;
+            }
+        }
+        if (idx >= 0) {
+            PyObject *list2 = PyList_New(2);
+            PyList_SetItem(list2, 0, PyLong_FromLong(i));
+            PyList_SetItem(list2, 1, PyLong_FromLong(idx));
+
+            PyList_Append(list, list2);
+        }
+    }
+    return list;
+}
+
+
 static double** computeNormalMatrix(double* a, double* b, double** r, double mu, double variance, int sizeA, int sizeB) {
     double** result = new double*[sizeA];
     double scalar = 1 / std::sqrt(2 * PI * variance);
@@ -67,7 +99,7 @@ static double* maximization(double* a, double* b, double** r, int sizeA, int siz
 }
 
 
-static double* compute(double* a, double* b, double initMu, double initVariance, int sizeA, int sizeB) {
+static Result* compute(double* a, double* b, double initMu, double initVariance, int sizeA, int sizeB) {
     double** r = new double*[sizeA];
     for (int i = 0; i < sizeA; ++i) {
         r[i] = new double[sizeB];
@@ -107,6 +139,12 @@ static double* compute(double* a, double* b, double initMu, double initVariance,
             sum += tmp[i][j];
         likelihood += std::log(sum);
     }
+
+    struct Result *returnValue = new Result;
+    returnValue->mu = mu;
+    returnValue->std = std::sqrt(var);
+    returnValue->likelihood = likelihood;
+    returnValue->idx = parseAssignments(r, sizeA, sizeB);
     
     for(int i = 0; i < sizeA; ++i) {
         delete[] r[i];
@@ -114,13 +152,7 @@ static double* compute(double* a, double* b, double initMu, double initVariance,
     }
     delete[] r;
     delete[] tmp;
-    
-    
-    double* result = new double[3];
-    result[0] = mu;
-    result[1] = std::sqrt(var);
-    result[2] = likelihood;
-    return result;
+    return returnValue;
 }
 
 
@@ -151,14 +183,14 @@ static PyObject* fastLagEM(PyObject *self, PyObject *args) {
     
     double* a = pyobjectToArray(arg0, sizeA);
     double* b = pyobjectToArray(arg1, sizeB);
-    
-    double* result = compute(a, b, initMu, initVar, sizeA, sizeB);
-    PyObject* res = Py_BuildValue("ddd", result[0], result[1], result[2]);
-    
-    delete[] result;
+
+    Result* result = compute(a, b, initMu, initVar, sizeA, sizeB);
+    PyObject* res = Py_BuildValue("dddO", result->mu, result->std, result->likelihood, result->idx);
+
+    delete result;
     delete[] a;
     delete[] b;
-    
+
     return res;
 }
 

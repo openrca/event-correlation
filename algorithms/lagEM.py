@@ -24,10 +24,11 @@ class lagEM(Matcher):
         a = self.sequence.asVector(self.eventA)
         b = self.sequence.asVector(self.eventB)
 
+        assignments = [[]] * 10
         result = np.zeros([10, 3])
         threads = []
         for i in range(10):
-            thread = threading.Thread(target=self.computeParallel, args=(a, b, result, i,))
+            thread = threading.Thread(target=self.computeParallel, args=(a, b, result, assignments, i,))
             thread.start()
             threads.append(thread)
 
@@ -35,16 +36,29 @@ class lagEM(Matcher):
             threads[i].join()
         threads.clear()
         self.logger.info("Results:\n {}".format(result))
-        tmp = result.sum(axis=0) / np.count_nonzero(result[:, 0])
-        return {RESULT_MU: tmp[0], RESULT_SIGMA: tmp[1], "Likelihood": result[:, 2].max(), RESULT_IDX: None,
-                RESULT_KDE: KdeDistribution(NormalDistribution(tmp[0], tmp[1]).getRandom(min(a.size, b.size)))}
 
-    def computeParallel(self, a, b, result, index):
+        mu, std, likelihood = result.sum(axis=0) / np.count_nonzero(result[:, 0])
+        idx = np.array(assignments[np.argmax(result[:, 2])])
+
+        [TA, TB] = np.meshgrid(a, b)
+        delta = TB - TA
+        samples = delta[idx[:, 1], idx[:, 0]]
+
+        return {RESULT_MU: mu, RESULT_SIGMA: std, "Likelihood": result[:, 2].max(), RESULT_IDX: idx,
+                RESULT_KDE: KdeDistribution(samples)}
+
+    def computeParallel(self, a, b, result, assignments, index):
         self.logger.info("Processing batch {}".format(index))
         tmp = np.zeros([20, 3])
+        tmp2 = []
         for j in range(20):
             self.logger.debug("Worker[{}]: Processing round {}".format(index, j))
             mu = UniformDistribution(0, 100).getRandom()
             var = UniformDistribution(3, 25).getRandom() ** 2
-            tmp[j] = fastLagEM.compute(a, b, mu, var, len(a), len(b))
-        result[index] = tmp[np.argmax(tmp[:, 2])]
+            mu, std, likelihood, r = fastLagEM.compute(a, b, 36, var, len(a), len(b))
+            tmp[j] = np.array([mu, std, likelihood])
+            tmp2.append(r)
+
+        idx = np.argmax(tmp[:, 2])
+        result[index] = tmp[idx]
+        assignments[index] = tmp2[idx]
