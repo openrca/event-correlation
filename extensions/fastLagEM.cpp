@@ -2,6 +2,7 @@
 #include <cmath>
 #include <iostream>
 #include <Python.h>
+#include <limits>
 
 
 const static double PI = 3.141592653589793238463;
@@ -37,6 +38,54 @@ PyObject* parseAssignments(double **r, int sizeA, int sizeB) {
     return list;
 }
 
+static int findClosest(double *a, int sizeA, double t) {
+    double dist = std::numeric_limits<double>::max();
+    int idx = -1;
+    for (int i = 0; i < sizeA; ++i) {
+        if (std::abs(a[i] - t) < dist) {
+            dist = std::abs(a[i] - t);
+            idx = i;
+        }
+    }
+    return idx;
+}
+
+static int* greedyBound(double *a, int sizeA, double **r, int j, double b, double mu, double epsilon) {
+    double t = b - mu;
+    int i = findClosest(a, sizeA, t);
+
+    int min = i;
+    int max = i;
+
+    double prob = 0;
+    while (prob < 1 - epsilon) {
+        if (min == 0 && max == sizeA - 1)
+            break;
+
+        if (min == 0) {
+            i = max + 1;
+            max = i;
+        }
+        else if (max == sizeA - 1) {
+            i = min - 1;
+            min = i;
+        }
+        else if (r[std::max(0, min - 1)][j] >= r[std::min(sizeA - 1, max + 1)][j]) {
+            i = std::max(0, min - 1);
+            min = i;
+        }
+        else {
+            i = std::min(sizeA - 1, max + 1);
+            max = i;
+        }
+        prob += r[i][j];
+    }
+
+    int *res = new int[2];
+    res[0] = min;
+    res[1] = max;
+    return res;
+}
 
 static double** computeNormalMatrix(double* a, double* b, double** r, double mu, double variance, int sizeA, int sizeB) {
     double** result = new double*[sizeA];
@@ -51,24 +100,21 @@ static double** computeNormalMatrix(double* a, double* b, double** r, double mu,
 }
 
 
-static void expectation(double* a, double* b, double** r, double mu, double variance, int sizeA, int sizeB) {
+static void expectation(double* a, double* b, double** r, int j, int min, int max, double mu, double variance, int sizeA, int sizeB) {
     double** tmp = computeNormalMatrix(a, b, r, mu, variance, sizeA, sizeB);
-    
-    for (int i = 0; i < sizeA; ++i) {
-        for (int j = 0; j < sizeB; ++j) {
-            double sum = 0;
-            for (int k = 0; k < sizeB; ++k)
-                sum += tmp[i][k];
-            if (sum != 0)
-                r[i][j] = tmp[i][j] / sum;
-            else
-                r[i][j] = 0;
-        }
+
+    for (int i = min; i < max; ++i) {
+        double sum = 0;
+        for (int k = 0; k < sizeB; ++k)
+            sum += tmp[i][k];
+        if (sum != 0)
+            r[i][j] = tmp[i][j] / sum;
+        else
+            r[i][j] = 0;
     }
-    
-    for (int i = 0; i < sizeA; ++i) {
+
+    for (int i = 0; i < sizeA; ++i)
         delete[] tmp[i];
-    }
     delete[] tmp;
 }
 
@@ -108,10 +154,15 @@ static Result* compute(double* a, double* b, double initMu, double initVariance,
     }
     double mu = initMu;
     double var = initVariance;
-    
-    
+    double epsilon = 0.2;
+
     while (true) {
-        expectation(a, b, r, mu, var, sizeA, sizeB);
+        for (int j = 0; j < sizeB; ++j) {
+//            int *bounds = greedyBound(a, sizeA, r, j, b[j], mu, epsilon);
+//            expectation(a, b, r, j, bounds[0], bounds[1], mu, var, sizeA, sizeB);
+            expectation(a, b, r, j, 0, sizeA, mu, var, sizeA, sizeB);
+//            delete[] bounds;
+        }
         double* result = maximization(a, b, r, sizeA, sizeB);
         double newMu = result[0];
         double newVar = result[1];
