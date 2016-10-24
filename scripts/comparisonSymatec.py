@@ -1,5 +1,5 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from core.distribution import KdeDistribution, NormalDistribution, SingularKernel
 
@@ -32,8 +32,6 @@ correlation34054_34057 = {
 correlation7_66 = {
     CORRECT: [15.08, 16.63, 17.62, 19.78, 28.58, 42.85, 50.37, 50.39, 53.65, 54.13, 54.66, 59.36, 65.67, 68.27, 72.66,
               87.61, 89.09, 90.64, 91.57, 93.74, 94.49, 96.35, 280.82, 442.09, 840.24],
-    # 69.32, 89.52, 91.26, 94.02, 96.94, 576.03, 689.66, 695.42, 712.74, 721.27, 721.32, 725.95, 726.82, 758.67,
-    #     771.61, 782.8, 788.16, 856.2],
     LP: [15.08, 16.63, 17.62, 19.78, 28.58, 42.85, 50.37, 50.39, 53.65, 54.13, 54.66, 59.36, 65.67, 68.27, 72.66, 87.61,
          89.09, 90.64, 91.57, 93.74, 94.49, 96.35, 280.82, 442.09, 840.24, 1098.99, 1124.59, 1710.95],
     ICP: [-91.85, -34.84, -19.71, -18.64, -13.92, -13.22, -12.81, -8.48, -7.87, -7.56, -4.57, 15.08, 16.63, 17.62,
@@ -210,11 +208,11 @@ def plotDistributions(data, title):
     plt.legend(loc='best')
 
 
-# plotDistributions(correlation66_65, '66-65')
-# plotDistributions(correlation34054_34057, '34054-34057')
-# plotDistributions(correlation7_66, '7-66')
-# plotDistributions(correlation202_200, '202-200')
-# plotDistributions(correlation2_3, '2-3')
-# plotDistributions(correlation201_6, '201-6')
+plotDistributions(correlation66_65, '66-65')
+plotDistributions(correlation34054_34057, '34054-34057')
+plotDistributions(correlation7_66, '7-66')
+plotDistributions(correlation202_200, '202-200')
+plotDistributions(correlation2_3, '2-3')
+plotDistributions(correlation201_6, '201-6')
 plotDistributions(correlation101_100, '101-100')
 plt.show()
