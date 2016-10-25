@@ -5,12 +5,11 @@ import argparse
 import logging
 import os
 
-import generation
 import visualization
 from algorithms import lpMatcher, lagEM, munkresMatcher, icpMatcher
 from core import sequence, distribution
 from core.timer import Timer
-from generation import symantec
+from provider import symantec, generator
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-m", "--method", action="store", type=str, required=True, choices=["gen", "load", "symantec"],
@@ -39,16 +38,16 @@ if (trigger is not None and response is None):
 seq = None
 if (args.method == "gen"):
     logging.info("Creating new sequence")
-    seq = generation.createSequences(config=args.input)
+    seq = generator.Generator().create(args.input)
 if (args.method == "load"):
     logging.info("Loading sequence")
     seq = sequence.loadFromFile(args.input)
 if (args.method == "symantec"):
     logging.info("Parsing symantec file")
     if (trigger is not None and response is not None):
-        seq = symantec.SymantecParser().parse(args.input, whitelist=[trigger, response], normalization=100)
+        seq = symantec.SymantecParser().create(args.input, whitelist=[trigger, response], normalization=100)
     else:
-        seq = symantec.SymantecParser().parse(args.input, normalization=100)
+        seq = symantec.SymantecParser().create(args.input, normalization=100)
 
 logging.info("Processing sequence:\n{}".format(seq))
 

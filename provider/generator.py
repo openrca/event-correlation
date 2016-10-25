@@ -1,14 +1,18 @@
 """ Automatically generated documentation for Generator """
 import copy
+import json
 import math
+import os
 
 import core.distribution
 import core.rule
+from core import rule
 from core.event import Event
 from core.sequence import Sequence
+from provider import SequenceParser
 
 
-class Generator:
+class Generator(SequenceParser):
     def __init__(self):
         self.length = -1
         self.numberEvents = -1
@@ -51,24 +55,34 @@ class Generator:
         self.discrete = True
         return self
 
-    def createSequence(self, count=1):
+    def create(self, file, filter=None, whitelist=None, normalization=1):
+        rulesFile = None
+        if (file is not None and isinstance(file, str)):
+            # noinspection PyUnresolvedReferences
+            config = os.path.toAbsolutePath(file)
+            with open(config) as f:
+                config = json.load(f)
+
+            rulesFile = config["rules"] if "rules" in config else None
+            self.numberEvents = int(config["count"]) if "count" in config else -1
+            self.length = int(config["length"]) if "length" in config else -1
+
+        if (self.length == -1 and self.numberEvents == -1):
+            raise ValueError("Neither sequence length nor event count specified. Please provide at exactly one")
+        if (self.length != -1 and self.numberEvents != -1):
+            raise ValueError("Sequence length and event count specified. Please provide exactly one")
+        if (len(self.rules) == 0 and rulesFile is not None):
+            rules = rule.loadFromFile(rulesFile)
+            self.setRules(rules)
+        if (self.rules is None or len(self.rules) == 0):
+            raise RuntimeError("Configuration not valid. Please provide rules")
+
         if (self.length != -1):
             self._create = self._createByLength
-        elif (self.numberEvents != -1):
-            self._create = self._createByNumberEvents
         else:
-            raise RuntimeError("Configuration not valid. Please set either numberEvents or sequence length")
+            self._create = self._createByNumberEvents
 
-        if (len(self.rules) == 0):
-            raise RuntimeError("Configuration not valid. Please provide entries")
-
-        if (count == 1):
-            return self._create()
-
-        sequences = []
-        for i in range(count):
-            sequences.append(self._create())
-        return sequences
+        return self._create()
 
     def _createByNumberEvents(self):
         timeline = {}

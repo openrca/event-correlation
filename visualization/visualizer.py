@@ -9,9 +9,9 @@ from PySide.QtGui import QMainWindow, QWidget, QVBoxLayout, QPainter, QPainterPa
     QGraphicsItem, QFont, QFontMetrics, QBrush, QColor, QPen, QAction, QFileDialog, QMessageBox, QApplication
 
 import core
-import generation
 from core.rule import Rule
 from core.sequence import Sequence
+from provider import generator
 from visualization.details import DetailsContainer
 
 
@@ -277,7 +277,7 @@ class Visualizer(QMainWindow):
 
     def createSequence(self):
         # TODO make generic
-        sequence = generation.createSequences(config="../contrib/generation.json")
+        sequence = generator.Generator().create("../contrib/generation.json")
         # TODO parse sequence
         self.setSequence(sequence)
 

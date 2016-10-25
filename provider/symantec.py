@@ -2,13 +2,12 @@ import json
 import os
 from xml.etree.ElementTree import ElementTree
 
-import aniso8601
-
 from core.event import Event
 from core.sequence import Sequence
+from provider import SequenceParser
 
 
-class SymantecParser():
+class SymantecParser(SequenceParser):
     def __init__(self):
         self.nameSpace = {"ev": "http://schemas.microsoft.com/win/2004/08/events/event"}
 
@@ -16,7 +15,7 @@ class SymantecParser():
         with open(os.path.toAbsolutePath("../contrib/symantecKnowledgeBase.json")) as f:
             self.knowledgeBase = json.load(f)["events"]
 
-    def parse(self, file, filter=None, whitelist=None, normalization=1):
+    def create(self, file, filter=None, whitelist=None, normalization=1):
         """
         This method parses a Symantec xml log file into a Sequence. For multiple consecutive calls, the parsed sequence
         is cached in 'cacheDir'.
@@ -52,10 +51,6 @@ class SymantecParser():
                     count[eventId] = 1
         self._printStatistic(root, count)
         return Sequence(events)
-
-    # noinspection PyMethodMayBeStatic
-    def _parseISO8601(self, timeString):
-        return aniso8601.parse_datetime(timeString).timestamp()
 
     def _printStatistic(self, root, count):
         print("# Events: {}".format(len(root)))
