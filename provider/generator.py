@@ -14,13 +14,14 @@ from provider import SequenceParser
 
 class Generator(SequenceParser):
     def __init__(self):
+        super().__init__()
         self.length = -1
         self.numberEvents = -1
         self.rules = []
         self.lastTime = {}
         self.rndNumber = core.distribution.UniformDistribution()
         self.discrete = False
-        self._create = None
+        self._createFunction = None
 
     def setRndNumber(self, dist):
         self.rndNumber = dist
@@ -55,7 +56,7 @@ class Generator(SequenceParser):
         self.discrete = True
         return self
 
-    def create(self, file, filter=None, whitelist=None, normalization=1):
+    def _create(self, file, normalization):
         rulesFile = None
         if (file is not None and isinstance(file, str)):
             # noinspection PyUnresolvedReferences
@@ -78,11 +79,11 @@ class Generator(SequenceParser):
             raise RuntimeError("Configuration not valid. Please provide rules")
 
         if (self.length != -1):
-            self._create = self._createByLength
+            self._createFunction = self._createByLength
         else:
-            self._create = self._createByNumberEvents
+            self._createFunction = self._createByNumberEvents
 
-        return self._create()
+        return self._createFunction()
 
     def _createByNumberEvents(self):
         timeline = {}
