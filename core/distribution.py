@@ -201,7 +201,10 @@ class NormalDistribution(AbstractDistribution):
         return math.log(self.sigma * math.sqrt(2 * math.pi * math.e))
 
     def _checkParam(self):
-        if (self.sigma <= 0):
+        if (self.sigma == 0):
+            self.sigma = 0.0000001
+
+        if (self.sigma < 0):
             raise ValueError("Variance is not positive. Sigma: {}".format(self.sigma))
 
     def __str__(self):
