@@ -92,7 +92,7 @@ class IcpMatcher(Matcher):
         idx = IcpMatcher.findMinimalDistance(data, model)
         idx = np.column_stack((np.arange(idx.size), idx))
         tmp = model[idx[:, 1]]
-        self.logger.info("Final distance {} ({} distance)".format(opt, IcpMatcher.costFunction(0, data, tmp)))
+        self.logger.info("Final offset {} ({} distance)".format(opt, IcpMatcher.costFunction(0, data, tmp)))
 
         if (len(trigger) > len(response)):
             cost = (tmp - response) * -1
