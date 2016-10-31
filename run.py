@@ -10,7 +10,7 @@ import visualization
 from algorithms import lpMatcher, lagEM, munkresMatcher, icpMatcher
 from core import sequence, distribution
 from core.timer import Timer
-from provider import symantec, generator
+from provider import symantec, generator, printer
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-m", "--method", action="store", type=str, required=True, choices=provider.CHOICES,
@@ -49,6 +49,12 @@ if (args.method == provider.SYMANTEC):
         seq = symantec.SymantecParser().create(args.input, whitelist=[trigger, response], normalization=100)
     else:
         seq = symantec.SymantecParser().create(args.input, normalization=100)
+if (args.method == provider.PRINTER):
+    logging.info("Parsing printer file")
+    if (trigger is not None and response is not None):
+        seq = printer.PrinterParser().create(args.input, whitelist=[trigger, response], normalization=100)
+    else:
+        seq = printer.PrinterParser().create(args.input, normalization=100)
 
 logging.info("Processing sequence:\n{}".format(seq))
 
