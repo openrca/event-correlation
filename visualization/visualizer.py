@@ -22,6 +22,7 @@ class EventWidget(QGraphicsItem):
         self.pos = pos
         self.size = min(max(size, 10), 50)
         self.parent = parent
+        self.setToolTip(event.eventType)
 
         self.callbackParam = None
 
@@ -30,8 +31,9 @@ class EventWidget(QGraphicsItem):
 
     def paint(self, painter: QPainter, option, widget):
         size = self.getTextSize()
-        painter.drawText(self.pos.x() + (self.size - size[0]) // 2, self.pos.y() + (self.size + size[1]) // 2,
-                         self.eventType.getExternalRepresentation())
+        if (len(self.eventType.getExternalRepresentation()) < 3):
+            painter.drawText(self.pos.x() + (self.size - size[0]) // 2, self.pos.y() + (self.size + size[1]) // 2,
+                             self.eventType.getExternalRepresentation())
         painter.drawEllipse(self.boundingRect())
 
     def getTextSize(self):
