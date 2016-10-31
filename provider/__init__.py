@@ -8,6 +8,13 @@ from core.event import Event
 
 logging.getLogger().setLevel(logging.DEBUG)
 
+GENERATE = 'gen'
+LOAD = 'load'
+SYMANTEC = 'symantec'
+PRINTER = 'printer'
+
+CHOICES = [GENERATE, LOAD, SYMANTEC, PRINTER]
+
 
 class SequenceParser(abc.ABC):
     def __init__(self):
