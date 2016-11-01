@@ -13,12 +13,14 @@ from core.rule import Rule
 from core.sequence import Sequence
 from provider import generator
 from visualization.details import DetailsContainer
+from visualization.settings import Settings
 
 
 class EventWidget(QGraphicsItem):
-    def __init__(self, event, pos, size, parent=None):
+    def __init__(self, event, highLight, pos, size, parent=None):
         super().__init__()
         self.eventType = event
+        self.highLight = highLight
         self.pos = pos
         self.size = min(max(size, 10), 50)
         self.parent = parent
@@ -31,10 +33,15 @@ class EventWidget(QGraphicsItem):
 
     def paint(self, painter: QPainter, option, widget):
         size = self.getTextSize()
-        if (len(self.eventType.getExternalRepresentation()) < 3):
+        painter.setPen(QPen(QColor(0, 0, 0)))
+        painter.setBrush(QBrush(QColor(255, 255, 255)))
+        if (self.highLight):
+            painter.setBrush(QBrush(QColor(150, 150, 150)))
+
+        painter.drawEllipse(self.boundingRect())
+        if (len(self.eventType.getExternalRepresentation()) <= 3):
             painter.drawText(self.pos.x() + (self.size - size[0]) // 2, self.pos.y() + (self.size + size[1]) // 2,
                              self.eventType.getExternalRepresentation())
-        painter.drawEllipse(self.boundingRect())
 
     def getTextSize(self):
         font = QFont()
@@ -125,7 +132,7 @@ class SequenceWidget(QGraphicsScene):
         self.detailsView = None
         self.detailsSignal.connect(self.showDetails)
 
-    def paint(self, sequence):
+    def paint(self, sequence, highLight, hidden):
         self.sequence = sequence
 
         # truncate sequence for faster rendering
@@ -137,19 +144,21 @@ class SequenceWidget(QGraphicsScene):
 
         eventCount = 0
         prevTime = -1
-        for i in range(len(self.sequence.events)):
-            padding = sequence.getPaddedEvent(self.sequence.events[i], prevTime)
-            prevTime = self.sequence.events[i].timestamp
-            for event in padding:
-                widget = EventWidget(event, QPoint(eventCount * (self.eventWidth + self.offset), self.eventY),
+        for event in self.sequence.getRelevantEvents(True):
+            padding = sequence.getPaddedEvent(event, prevTime)
+            prevTime = event.timestamp
+            for event2 in padding:
+                widget = EventWidget(event2, event2.eventType in highLight,
+                                     QPoint(eventCount * (self.eventWidth + self.offset), self.eventY),
                                      self.eventWidth, self)
                 self.addItem(widget)
-                self.eventWidgets[event] = widget
+                self.eventWidgets[event2] = widget
                 eventCount += 1
 
         for event, widget in self.eventWidgets.items():
             response = event.triggered
-            if (response is None or response.timestamp >= self.sequence.length):
+            if (response is None or response.timestamp >= self.sequence.length
+                or event.eventType in hidden or response.eventType in hidden):
                 continue
 
             rule = sequence.getCalculatedRule(event, response)
@@ -178,13 +187,15 @@ class SequenceWidget(QGraphicsScene):
 
 
 class Visualizer(QMainWindow):
-    paintSeq = Signal(Sequence)
+    paintSeq = Signal(Sequence, list, list)
 
     def __init__(self):
         super().__init__()
         self.sequenceWidget = None
         self.layout = None
         self.view = None
+        self.sequence = None
+        self.settingsView = Settings(self)
         self.initGui()
         self.initActions()
 
@@ -231,6 +242,12 @@ class Visualizer(QMainWindow):
         saveAction.setStatusTip('Save current sequence')
         saveAction.triggered.connect(self.saveSequence)
         sequenceMenu.addAction(saveAction)
+
+        settingsAction = QAction('Settings', self)
+        settingsAction.setShortcut('Ctrl+Shift+S')
+        settingsAction.setStatusTip('Open settings')
+        settingsAction.triggered.connect(self.openSettings)
+        fileMenu.addAction(settingsAction)
 
         exitAction = QAction('Exit', self)
         exitAction.setShortcut('Ctrl+Q')
@@ -284,11 +301,20 @@ class Visualizer(QMainWindow):
         self.setSequence(sequence)
 
     def setSequence(self, sequence):
+        self.sequence = sequence
+        self.settingsView.setSequence(sequence)
+        self.repaintSequence()
+        self.statusBar().showMessage("Loaded sequence")
+
+    def repaintSequence(self):
         self.view.items().clear()
         self.sequenceWidget.cleanUp()
-        self.paintSeq.emit(sequence)
+        self.paintSeq.emit(self.sequence, self.settingsView.highLights, self.settingsView.hidden)
         self.sequenceWidget.update()
-        self.statusBar().showMessage("Loaded sequence")
+        self.statusBar().showMessage("Redraw sequence")
+
+    def openSettings(self):
+        self.settingsView.show()
 
 
 if __name__ == '__main__':
