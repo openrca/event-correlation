@@ -152,7 +152,7 @@ class SequenceWidget(QGraphicsScene):
 
         eventCount = 0
         prevTime = -1
-        for event in self.sequence.getRelevantEvents(True):
+        for event in self.sequence.events:
             padding = sequence.getPaddedEvent(event, prevTime)
             prevTime = event.timestamp
             for event2 in padding:

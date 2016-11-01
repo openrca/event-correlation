@@ -32,7 +32,7 @@ class Settings(QWidget):
 
     def setSequence(self, sequence):
         self.sequence = sequence
-        self.events = sorted(set([e.eventType for e in sequence.getRelevantEvents()]))
+        self.events = sorted(set([e.eventType for e in sequence.events]))
 
         self.table.setColumnCount(3)
         self.table.setRowCount(len(self.events))

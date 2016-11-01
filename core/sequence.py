@@ -62,21 +62,6 @@ class Sequence:
         """
         return self._getRule(trigger, response, self.rules)
 
-    def getRelevantEvents(self, filtered=True):
-        """ Returns only events that are involved in at least one rule """
-        if (not filtered):
-            return self.events
-
-        relevantEventTypes = set([])
-        for r in self.calculatedRules:
-            relevantEventTypes.add(r.trigger)
-            relevantEventTypes.add(r.response)
-        for r in self.rules:
-            relevantEventTypes.add(r.trigger)
-            relevantEventTypes.add(r.response)
-
-        return [e for e in self.events if e.eventType in relevantEventTypes]
-
     def getBaseDistribution(self, calculatedRule):
         """ For a given calculatedRule the corresponding real distribution is searched.
         Works only for synthetic sequences. """
