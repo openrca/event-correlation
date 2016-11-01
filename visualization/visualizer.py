@@ -72,8 +72,16 @@ class ArrowWidget(QGraphicsItem):
         self.arcOffset = 50
         self.triangleSize = 5
 
-        self.rect = QRectF(start.boundingRect().x(), start.boundingRect().y() - self.arcOffset,
-                           end.boundingRect().x() - start.boundingRect().x() + end.boundingRect().width(),
+        startX = start.boundingRect().x()
+        endX = end.boundingRect().x()
+
+        if (startX > endX):
+            tmp = startX
+            startX = endX
+            endX = tmp
+
+        self.rect = QRectF(startX, start.boundingRect().y() - self.arcOffset,
+                           endX - startX + end.boundingRect().width(),
                            self.arcOffset)
 
     def boundingRect(self):
@@ -84,7 +92,7 @@ class ArrowWidget(QGraphicsItem):
         if (self.rule is not None):
             distance = self.end.eventType.timestamp - self.start.eventType.timestamp
             prob = self.rule.distributionResponse.getPDFValue(distance) / self.rule.distributionResponse.getMaximumPDF()
-            color = max(10, (1 - prob) * 255)
+            color = min(200, (1 - prob) * 255)
         color = QColor(color, color, color)
 
         painter.setPen(QPen(color))
