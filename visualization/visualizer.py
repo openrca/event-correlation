@@ -144,10 +144,11 @@ class SequenceWidget(QGraphicsScene):
         self.sequence = sequence
 
         # truncate sequence for faster rendering
-        if (len(sequence) > 1000):
-            logging.info("Truncating sequence to 1000 events to limit rendering time")
-            seq = Sequence(sequence.events[0: 1000], math.ceil(sequence.events[999].timestamp) + 1, sequence.rules,
-                           sequence.calculatedRules)
+        renderLimit = 1000
+        if (len(sequence) > renderLimit):
+            logging.info("Truncating sequence to {} events to limit rendering time".format(renderLimit))
+            seq = Sequence(sequence.events[0: renderLimit], math.ceil(sequence.events[renderLimit - 1].timestamp) + 1,
+                           sequence.rules, sequence.calculatedRules)
             self.sequence = seq
 
         eventCount = 0
