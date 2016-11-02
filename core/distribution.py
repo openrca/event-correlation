@@ -51,6 +51,10 @@ class Distribution(abc.ABC):
     def getCompleteInterval(self):
         return self.dist.interval(0.99)
 
+    def getRelativePdf(self, x):
+        """ Compute the ratio between x and the maximal pdf value """
+        return min(1, self.getPDFValue(x) / self.getMaximumPDF())
+
     def __eq__(self, other):
         if (not isinstance(other, Distribution)):
             return False

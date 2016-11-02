@@ -91,7 +91,7 @@ class ArrowWidget(QGraphicsItem):
         color = 0
         if (self.rule is not None):
             distance = self.end.eventType.timestamp - self.start.eventType.timestamp
-            prob = self.rule.distributionResponse.getPDFValue(distance) / self.rule.distributionResponse.getMaximumPDF()
+            prob = self.rule.distributionResponse.getRelativePdf(distance)
             color = min(200, (1 - prob) * 255)
         color = QColor(color, color, color)
 
