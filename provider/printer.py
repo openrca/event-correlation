@@ -8,24 +8,19 @@ from provider import SequenceParser
 class PrinterParser(SequenceParser):
     def __init__(self):
         super().__init__()
-        self.COLUMN_TIMESTAMP = 0
-        self.COLUMN_EVENT_ID = 1
-        self.COLUMN_COMPONENT_ID = 2
-        self.COLUMN_STATUS = 3
+        self.COLUMN_TIMESTAMP = 2
+        self.COLUMN_EVENT_ID = 3
+        self.COLUMN_STATUS = 5
 
     def _create(self, file, normalization):
         with open(file) as csvFile:
             reader = csv.reader(csvFile, delimiter=';')
-            next(reader, None)  # skip the headers
+            next(reader, None)  # skip the header
 
             for row in reader:
                 timestamp = self._parseISO8601(row[self.COLUMN_TIMESTAMP]) / normalization
                 eventId = row[self.COLUMN_EVENT_ID]
                 status = row[self.COLUMN_STATUS]
-                componentId = row[self.COLUMN_COMPONENT_ID]
-
-                # if (eventId != componentId):
-                #     continue
 
                 if (status == 'RESET'):
                     continue
