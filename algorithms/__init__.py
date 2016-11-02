@@ -47,17 +47,6 @@ class Matcher(abc.ABC):
         self.logger.debug("Kept {} / {} samples".format(result.size, data.size))
         return result
 
-    @staticmethod
-    def idxToSamples(idx, samples):
-        """
-        Takes the vector of occurrence timestamps and transforms them to samples of an underlying distribution.
-        The idx vector indicates which samples are really relevant. The inter-arrival distance is considered.
-        """
-
-        tmp = np.concatenate(([0], samples))
-        tmp = np.diff(tmp)
-        return tmp[idx]
-
     def matchAll(self, sequence, **kwargs):
         """ Finds all reasonable correlation in a sequence of events.
         Check parseArgs for additional parameters. All detected correlations are return as a list and stored in
