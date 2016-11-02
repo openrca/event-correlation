@@ -54,30 +54,30 @@ class Sequence:
 
     def getCalculatedRule(self, trigger, response):
         """ Returns the calculated rule with the given trigger and response. """
-        return self._getRule(trigger, response, self.calculatedRules)
+        return self.__getRule(trigger, response, self.calculatedRules)
 
     def getRule(self, trigger, response):
         """ Returns the rule used to create the sequence with the given trigger and response. Works only for synthetic
         sequences.
         """
-        return self._getRule(trigger, response, self.rules)
+        return self.__getRule(trigger, response, self.rules)
 
     def getBaseDistribution(self, calculatedRule):
         """ For a given calculatedRule the corresponding real distribution is searched.
         Works only for synthetic sequences. """
 
-        rule = self._getRule(calculatedRule.trigger, calculatedRule.response, self.rules)
+        rule = self.__getRule(calculatedRule.trigger, calculatedRule.response, self.rules)
         if (rule is not None):
             return rule.distributionResponse
 
         # search for opposite rule
-        rule = self._getRule(calculatedRule.response, calculatedRule.trigger, self.rules)
+        rule = self.__getRule(calculatedRule.response, calculatedRule.trigger, self.rules)
         if (rule is not None):
             return -rule.distributionResponse
         return None
 
     @staticmethod
-    def _getRule(trigger, response, rules):
+    def __getRule(trigger, response, rules):
         for r in rules:
             if (r.matches(trigger, response)):
                 return r
@@ -89,7 +89,7 @@ class Sequence:
         return np.array(l)
 
     def getMissingIdx(self, eventType):
-        """ Returns the indices of events that did not occure. Works only for synthetic sequences. """
+        """ Returns the indices of events that did not occur. Works only for synthetic sequences. """
         l = np.array([e.occurred for e in self.getEvents(eventType)])
         return np.where(np.arange(len(l)) * np.invert(l))[0]
 

@@ -20,7 +20,7 @@ class Settings(QWidget):
         self.table = QTableWidget()
         self.save = QPushButton('Save')
         # noinspection PyUnresolvedReferences
-        self.save.clicked.connect(self.saveAndClose)
+        self.save.clicked.connect(self.__saveAndClose)
 
         layout = QVBoxLayout()
         layout.addWidget(QLabel('Settings'))
@@ -48,13 +48,13 @@ class Settings(QWidget):
             self.table.setItem(index, 2, hideItem)
 
         # noinspection PyUnresolvedReferences
-        self.table.cellClicked.connect(self.handleItemClicked)
+        self.table.cellClicked.connect(self.__handleItemClicked)
         self.table.setSelectionMode(QAbstractItemView.NoSelection)
         self.table.resizeColumnsToContents()
         self.table.setHorizontalHeaderLabels(["Event", "HighLight", "Hide"])
         self.table.horizontalHeader().setResizeMode(QHeaderView.Stretch)
 
-    def handleItemClicked(self, row, column):
+    def __handleItemClicked(self, row, column):
         if (column == 0):
             return
         event = self.events[row]
@@ -71,6 +71,6 @@ class Settings(QWidget):
             if (column == 2):
                 self.hidden.remove(event)
 
-    def saveAndClose(self):
+    def __saveAndClose(self):
         self.close.emit()
         self.hide()

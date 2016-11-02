@@ -34,7 +34,7 @@ class Matcher(abc.ABC):
         self.trigger = None
         self.response = None
 
-    def trimVector(self, data):
+    def _trimVector(self, data):
         """ Remove potential outliers.
         This leads to worse results for simple associations but improves performance for complex associations with
         success < 1
@@ -59,7 +59,7 @@ class Matcher(abc.ABC):
             alpha = kwargs["alpha"]
 
         performance = EnergyStatistic()
-        eventTypes = self._cleanUpEventTypes(sequence)
+        eventTypes = self.__cleanUpEventTypes(sequence)
         result = []
 
         for trigger in eventTypes:
@@ -86,7 +86,7 @@ class Matcher(abc.ABC):
         return result
 
     # noinspection PyMethodMayBeStatic
-    def _cleanUpEventTypes(self, sequence):
+    def __cleanUpEventTypes(self, sequence):
         result = []
         for eventType in sequence.eventTypes:
             if (len(sequence.getEvents(eventType)) > 5):
@@ -98,23 +98,22 @@ class Matcher(abc.ABC):
         self.sequence = sequence
         self.trigger = trigger
         self.response = response
-        self.parseArgs(kwargs)
-        data = self.compute()
+        self._parseArgs(kwargs)
+        data = self._compute()
         rule = Rule(trigger, response, data[RESULT_KDE], data=data)
-        self._fillRuleData(rule, rule.distributionResponse)
-        self._connectEventPairs(trigger, response, data[RESULT_IDX])
+        self.__fillRuleData(rule, rule.distributionResponse)
+        self.__connectEventPairs(trigger, response, data[RESULT_IDX])
         return (rule, data)
 
-    @abc.abstractmethod
-    def parseArgs(self, kwargs):
+    def _parseArgs(self, kwargs):
         pass
 
     @abc.abstractmethod
-    def compute(self):
+    def _compute(self):
         pass
 
     # noinspection PyMethodMayBeStatic
-    def _fillRuleData(self, rule, distribution):
+    def __fillRuleData(self, rule, distribution):
         rule.data["Performance Range"] = RangePerformance().getValueByDistribution(distribution)
         rule.data["Performance Variance"] = VariancePerformance().getValueByDistribution(distribution)
         rule.data["Performance Std"] = StdPerformance().getValueByDistribution(distribution)
@@ -125,7 +124,7 @@ class Matcher(abc.ABC):
         rule.data["Metric Distance"] = 0
         rule.data["Metric Energy"] = 0
 
-    def _connectEventPairs(self, trigger, response, idx):
+    def __connectEventPairs(self, trigger, response, idx):
         # TODO what happens if one event is connected several times?
         if (idx is None):
             return

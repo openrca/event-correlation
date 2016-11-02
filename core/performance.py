@@ -77,16 +77,16 @@ class CondProbPerformance(Performance):
     def getValueByDistribution(self, dist):
         if (self.samples is None):
             return 0
-        return self._compute(self.samples, dist)
+        return self.__compute(self.samples, dist)
 
     def getValueBySamples(self, samples):
         dist = self.dist
         if (isinstance(self.dist, numbers.Number)):
             dist = distribution.samplesToDistribution(samples, self.dist)
-        return self._compute(samples, dist)
+        return self.__compute(samples, dist)
 
     @staticmethod
-    def _compute(samples, dist):
+    def __compute(samples, dist):
         return np.log(dist.getPDFValue(samples)).mean()
 
 
@@ -158,19 +158,19 @@ class DistanceCorrelation(Metric):
 
     def compute(self, eventA, eventB):
         """ Compute sample distance correlation """
-        value = self.computeCov(eventA, eventB) / np.sqrt(self.computeVar(eventA) * self.computeVar(eventB))
-        p = self._computePValue(eventA, eventB)
+        value = self.__computeCov(eventA, eventB) / np.sqrt(self.__computeVar(eventA) * self.__computeVar(eventB))
+        p = self.__computePValue(eventA, eventB)
 
         # values are in [0, 1]. Use anti-proportional value to obtain metric
         return (1 - value, p)
 
     # noinspection PyMethodMayBeStatic
-    def computeCov(self, eventA, eventB):
+    def __computeCov(self, eventA, eventB):
         if (eventA.size != eventB.size):
             raise ValueError("Input vectors do not have the same length")
 
-        a = DistanceCorrelation._createPairwiseDist(eventA)
-        b = DistanceCorrelation._createPairwiseDist(eventB)
+        a = DistanceCorrelation.__createPairwiseDist(eventA)
+        b = DistanceCorrelation.__createPairwiseDist(eventB)
 
         A = (a - a.mean(axis=1)).T - a.mean(axis=0) + a.mean()
         B = (b - b.mean(axis=1)).T - b.mean(axis=0) + b.mean()
@@ -178,25 +178,25 @@ class DistanceCorrelation(Metric):
         tmp = np.dot(A.flatten(), B.flatten())
         return math.sqrt(tmp / (eventA.size * eventB.size))
 
-    def computeVar(self, event):
-        return self.computeCov(event, event)
+    def __computeVar(self, event):
+        return self.__computeCov(event, event)
 
     @staticmethod
-    def _createPairwiseDist(event):
+    def __createPairwiseDist(event):
         [A, B] = np.meshgrid(event, event)
         return np.abs(A - B)
 
-    def _computePValue(self, eventA, eventB, n=999):
+    def __computePValue(self, eventA, eventB, n=999):
         """
         The hypothesis test is done by random permutation of eventB. This definitely breaks the possible dependency
         between A and B. Next, the distance correlation V* is computed. This procedure is repeated n times. The fraction
         of V* > V is used as a p-value.
         """
 
-        ref = self.computeCov(eventA, eventB)
+        ref = self.__computeCov(eventA, eventB)
         p = 0.0
         for i in range(n):
-            cov = self.computeCov(eventA, np.random.permutation(eventB))
+            cov = self.__computeCov(eventA, np.random.permutation(eventB))
             if (ref < cov):
                 p += 1
         return p / n

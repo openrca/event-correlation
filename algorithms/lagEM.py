@@ -12,14 +12,14 @@ class lagEM(Matcher):
         super().__init__(__name__)
         self.threshold = None
 
-    def parseArgs(self, kwargs):
+    def _parseArgs(self, kwargs):
         """
         Additional parameters:
             threshold: Defines a threshold for parameter convergence
         """
         self.threshold = kwargs["threshold"]
 
-    def compute(self):
+    def _compute(self):
         self.logger.info("Matching event {} against {}".format(self.trigger, self.response))
         trigger = self.sequence.asVector(self.trigger)
         response = self.sequence.asVector(self.response)
@@ -28,7 +28,7 @@ class lagEM(Matcher):
         result = np.zeros([10, 3])
         threads = []
         for i in range(10):
-            thread = threading.Thread(target=self.computeParallel, args=(trigger, response, result, assignments, i,))
+            thread = threading.Thread(target=self.__computeParallel, args=(trigger, response, result, assignments, i,))
             thread.start()
             threads.append(thread)
 
@@ -47,7 +47,7 @@ class lagEM(Matcher):
         return {RESULT_MU: mu, RESULT_SIGMA: std, "Likelihood": result[:, 2].max(), RESULT_IDX: idx,
                 RESULT_KDE: KdeDistribution(samples)}
 
-    def computeParallel(self, a, b, result, assignments, index):
+    def __computeParallel(self, a, b, result, assignments, index):
         self.logger.info("Processing batch {}".format(index))
         tmp = np.zeros([20, 3])
         tmp2 = []
@@ -55,7 +55,7 @@ class lagEM(Matcher):
             self.logger.debug("Worker[{}]: Processing round {}".format(index, j))
             mu = UniformDistribution(0, 100).getRandom()
             var = UniformDistribution(3, 25).getRandom() ** 2
-            mu, std, likelihood, r = fastLagEM.compute(a, b, 36, var, len(a), len(b))
+            mu, std, likelihood, r = fastLagEM.compute(a, b, mu, var, len(a), len(b))
             tmp[j] = np.array([mu, std, likelihood])
             tmp2.append(r)
 

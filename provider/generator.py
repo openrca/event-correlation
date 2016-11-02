@@ -79,64 +79,64 @@ class Generator(SequenceParser):
             raise RuntimeError("Configuration not valid. Please provide rules")
 
         if (self.length != -1):
-            self._createFunction = self._createByLength
+            self._createFunction = self.__createByLength
         else:
-            self._createFunction = self._createByNumberEvents
+            self._createFunction = self.__createByNumberEvents
 
         return self._createFunction()
 
-    def _createByNumberEvents(self):
+    def __createByNumberEvents(self):
         timeline = {}
         while len(timeline) < self.numberEvents:
             for rule in self.rules:
                 if (len(timeline) >= self.numberEvents):
                     break
 
-                timeTrigger = self._getTimeStamp(rule.distributionTrigger, self.lastTime[rule], timeline)
+                timeTrigger = self.__getTimeStamp(rule.distributionTrigger, self.lastTime[rule], timeline)
                 self.lastTime[rule] = timeTrigger
                 trigger = Event(rule.trigger)
-                self._addEvent(timeline, timeTrigger, trigger, rule.successTrigger)
+                self.__addEvent(timeline, timeTrigger, trigger, rule.successTrigger)
 
                 if (len(timeline) >= self.numberEvents):
                     break
 
                 if (rule.response is not None):
-                    timeResponse = self._getTimeStamp(rule.distributionResponse, self.lastTime[rule], timeline)
+                    timeResponse = self.__getTimeStamp(rule.distributionResponse, self.lastTime[rule], timeline)
                     response = Event(rule.response)
                     trigger.setTriggered(response)
-                    self._addEvent(timeline, timeResponse, response, rule.successResponse)
+                    self.__addEvent(timeline, timeResponse, response, rule.successResponse)
         for rule in self.rules:
             self.lastTime[rule] = 0
-        return self._asSequence(timeline)
+        return self.__asSequence(timeline)
 
-    def _createByLength(self):
+    def __createByLength(self):
         timeline = {}
 
         rules = copy.copy(self.rules)
         while (len(rules) > 0):
             for rule in rules:
-                timeTrigger = self._getTimeStamp(rule.distributionTrigger, self.lastTime[rule], timeline)
+                timeTrigger = self.__getTimeStamp(rule.distributionTrigger, self.lastTime[rule], timeline)
                 if (timeTrigger >= self.length):
                     rules.remove(rule)
                     continue
 
                 self.lastTime[rule] = timeTrigger
                 trigger = Event(rule.trigger)
-                self._addEvent(timeline, timeTrigger, trigger, rule.successTrigger)
+                self.__addEvent(timeline, timeTrigger, trigger, rule.successTrigger)
 
                 if (rule.response is not None):
-                    timeResponse = self._getTimeStamp(rule.distributionResponse, self.lastTime[rule], timeline)
+                    timeResponse = self.__getTimeStamp(rule.distributionResponse, self.lastTime[rule], timeline)
                     if (timeResponse >= self.length):
                         continue
 
                     response = Event(rule.response)
                     trigger.setTriggered(response)
-                    self._addEvent(timeline, timeResponse, response, rule.successResponse)
+                    self.__addEvent(timeline, timeResponse, response, rule.successResponse)
         for rule in self.rules:
             self.lastTime[rule] = 0
-        return self._asSequence(timeline, self.length)
+        return self.__asSequence(timeline, self.length)
 
-    def _getTimeStamp(self, dist, lastTime, timeline):
+    def __getTimeStamp(self, dist, lastTime, timeline):
         time = dist.getRandom() + lastTime
         stepSize = 0.01
         if (self.discrete):
@@ -146,13 +146,13 @@ class Generator(SequenceParser):
             time += stepSize
         return time
 
-    def _addEvent(self, timeline, timestamp, event, success):
+    def __addEvent(self, timeline, timestamp, event, success):
         if (self.rndNumber.getRandom() > success):
             event.occurred = False
         event.timestamp = timestamp
         timeline[timestamp] = event
 
-    def _asSequence(self, dictionary, length=-1):
+    def __asSequence(self, dictionary, length=-1):
         seq = list(dictionary.values())
         seq.sort()
         return Sequence(seq, length if length != -1 else math.ceil(seq[-1].timestamp) + 1, self.rules)

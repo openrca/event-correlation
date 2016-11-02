@@ -26,7 +26,7 @@ class LpMatcher(Matcher):
         self.algorithm = None
         self.transformation = Transformation.RANDOMIZED_ROUNDING
 
-    def parseArgs(self, kwargs):
+    def _parseArgs(self, kwargs):
         """
         Additional parameters:
             algorithm: Defines the algorithm to solve the optimization problem. Allowed values are
@@ -56,7 +56,7 @@ class LpMatcher(Matcher):
                 self.transformation = transformation
 
     # noinspection PyUnboundLocalVariable, PyTypeChecker
-    def compute(self):
+    def _compute(self):
         trigger = self.sequence.asVector(self.trigger)
         response = self.sequence.asVector(self.response)
 
@@ -86,15 +86,15 @@ class LpMatcher(Matcher):
 
         Z = None
         if (self.algorithm == Method.PULP):
-            Z = self.solvePulp(f, -delta.reshape(-1), nTrigger, nResponse)
+            Z = self.__solvePulp(f, -delta.reshape(-1), nTrigger, nResponse)
         elif (self.algorithm == Method.MATLAB):
-            Z = self.solveMatlab(f, A, b, Aeq, beq, nTrigger, nResponse)
+            Z = self.__solveMatlab(f, A, b, Aeq, beq, nTrigger, nResponse)
         elif (self.algorithm == Method.SCIPY):
-            Z = self.solveScipy(f, A, b, Aeq, beq, nTrigger * nResponse)
+            Z = self.__solveScipy(f, A, b, Aeq, beq, nTrigger * nResponse)
         elif (self.algorithm == Method.CVXOPT):
-            Z = self.solveCvxopt(f, A, b, Aeq, beq, nTrigger * nResponse)
+            Z = self.__solveCvxopt(f, A, b, Aeq, beq, nTrigger * nResponse)
 
-        Z = self.transformResult(Z, nTrigger, nResponse)
+        Z = self.__transformResult(Z, nTrigger, nResponse)
         self.logger.trace("Final (approximated) result: \n {}".format(Z.argmax(axis=0)))
 
         d = np.multiply(Z, delta)
@@ -113,12 +113,13 @@ class LpMatcher(Matcher):
                 if (d[j, i] == minValue and Z[j, i] != 0):
                     idx[j] = i
                     break
-        idx = np.column_stack((idx, np.arange(idx.size))) if (nResponse < nTrigger) else np.column_stack((np.arange(idx.size), idx))
+        idx = np.column_stack((idx, np.arange(idx.size))) if (nResponse < nTrigger) else np.column_stack(
+            (np.arange(idx.size), idx))
 
-        cost = self.trimVector(cost)
+        cost = self._trimVector(cost)
         return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx}
 
-    def solveMatlab(self, f, A, b, Aeq, beq, na, nb):
+    def __solveMatlab(self, f, A, b, Aeq, beq, na, nb):
         """ Solve the optimization problem with Matlabs linprog """
 
         from pymatbridge import Matlab
@@ -147,7 +148,7 @@ class LpMatcher(Matcher):
         self.logger.debug("Closing connection to Matlab")
         return z_opt
 
-    def solveScipy(self, f, A, b, Aeq, beq, n):
+    def __solveScipy(self, f, A, b, Aeq, beq, n):
         """ Solve the optimization problem using scipy.optimize.linprog().
 
         Performance highly depends on the maximum number of iterations
@@ -165,7 +166,7 @@ class LpMatcher(Matcher):
 
         return res.x
 
-    def solveCvxopt(self, f, A, b, Aeq, beq, n):
+    def __solveCvxopt(self, f, A, b, Aeq, beq, n):
         """ Solve the optimization problem using cvxopt.solvers.cpl().
 
         Works for higher dimensions but requires quite some time.
@@ -187,7 +188,7 @@ class LpMatcher(Matcher):
 
         return sol["x"]
 
-    def solvePulp(self, f, A, na, nb):
+    def __solvePulp(self, f, A, na, nb):
         """ Solve the problem by formulating it as a CPLEX LP problem.
 
         CPLEX LP (http://lpsolve.sourceforge.net/5.0/CPLEX-format.htm) is a format for formulating sparse problems.
@@ -231,7 +232,7 @@ class LpMatcher(Matcher):
             result[i] = v.varValue
         return result
 
-    def transformResult(self, Z, na, nb):
+    def __transformResult(self, Z, na, nb):
         tmp = np.reshape(Z, (nb, na))
         if (self.transformation == Transformation.ROUNDING):
             return np.around(tmp)

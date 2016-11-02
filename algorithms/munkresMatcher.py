@@ -11,11 +11,7 @@ class MunkresMatcher(Matcher):
     def __init__(self):
         super().__init__(__name__)
 
-    def parseArgs(self, kwargs):
-        """No additional arguments."""
-        pass
-
-    def compute(self):
+    def _compute(self):
         trigger = self.sequence.asVector(self.trigger)
         response = self.sequence.asVector(self.response)
 
@@ -40,7 +36,7 @@ class MunkresMatcher(Matcher):
             if (len(trigger) != len(response)):
                 self.logger.trace("Remaining events were not assigned")
 
-        cost = self.trimVector(cost)
+        cost = self._trimVector(cost)
         return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx}
 
 

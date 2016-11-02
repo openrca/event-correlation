@@ -13,5 +13,5 @@ class TestScript(unittest.TestCase):
 
         matcher = IcpMatcher()
         matcher.trimCost = False
-        res = matcher.compute(a, b)
+        res = matcher._compute(a, b)
         self.assertAlmostEqual(res[RESULT_MU], 17 / 3)

@@ -20,7 +20,7 @@ class IcpMatcher(Matcher):
         self.threshold = 1e-6
         self.showVisualization = False
 
-    def parseArgs(self, kwargs):
+    def _parseArgs(self, kwargs):
         """
         Additional parameters:
             maxiter: Maximum number of iterations. Default is 50.
@@ -45,7 +45,7 @@ class IcpMatcher(Matcher):
         if ("showVisualization" in kwargs):
             self.showVisualization = kwargs["showVisualization"]
 
-    def compute(self, trigger=None, response=None):
+    def _compute(self, trigger=None, response=None):
         if (trigger is None):
             trigger = np.array(self.sequence.asVector(self.trigger))
         if (response is None):
@@ -79,32 +79,32 @@ class IcpMatcher(Matcher):
             if (p is not None and abs(p) < self.threshold):
                 break
 
-            subData, selectedIdx = self.getSubset(data, model)
-            idx = IcpMatcher.findMinimalDistance(subData, model)
-            p = IcpMatcher.findOptimalTransformation(subData, model[idx])
+            subData, selectedIdx = self.__getSubset(data, model)
+            idx = IcpMatcher._findMinimalDistance(subData, model)
+            p = IcpMatcher._findOptimalTransformation(subData, model[idx])
             data += p
             opt += p
 
-            self.logger.debug("Offset {}\t Distance {}".format(opt, IcpMatcher.costFunction(0, subData, model[idx])))
+            self.logger.debug("Offset {}\t Distance {}".format(opt, IcpMatcher.__costFunction(0, subData, model[idx])))
             if (self.showVisualization):
-                IcpMatcher.visualizeCurrentStep(trigger, subData, selectedIdx, model, idx)
+                IcpMatcher.__visualizeCurrentStep(trigger, subData, selectedIdx, model, idx)
 
-        idx = IcpMatcher.findMinimalDistance(data, model)
+        idx = IcpMatcher._findMinimalDistance(data, model)
         idx = np.column_stack((np.arange(idx.size), idx))
         tmp = model[idx[:, 1]]
-        self.logger.info("Final offset {} ({} distance)".format(opt, IcpMatcher.costFunction(0, data, tmp)))
+        self.logger.info("Final offset {} ({} distance)".format(opt, IcpMatcher.__costFunction(0, data, tmp)))
 
         if (len(trigger) > len(response)):
             cost = (tmp - response) * -1
             idx[:, 0], idx[:, 1] = idx[:, 1], idx[:, 0].copy()
         else:
             cost = tmp - trigger
-        cost = self.trimVector(cost)
+        cost = self._trimVector(cost)
         return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx,
-                "Offset": opt}
+                "Offset": opt, "TIMES_A": trigger[idx[:, 0]], "TIMES_B": model[idx[:, 1]]}
 
     @staticmethod
-    def visualizeCurrentStep(src, data, dataIdx, model, modelIdx):
+    def __visualizeCurrentStep(src, data, dataIdx, model, modelIdx):
         plt.clf()
         plt.scatter(model, [0] * len(model), marker='x', c='b', label="Model")
         plt.scatter(src, [-1] * len(src), marker='x', c='r', label="Data")
@@ -121,7 +121,7 @@ class IcpMatcher(Matcher):
         sleep(1)
 
     @staticmethod
-    def findMinimalDistance(data, model, k=1):
+    def _findMinimalDistance(data, model, k=1):
         [A, B] = np.meshgrid(data, model)
         delta = abs(B - A)
         if (k == 1):
@@ -129,19 +129,19 @@ class IcpMatcher(Matcher):
         return np.argsort(delta, axis=0)[0:k, :].flatten()
 
     @staticmethod
-    def findOptimalTransformation(data, model):
+    def _findOptimalTransformation(data, model):
         # Compute minimum of cost function
         #   sum( (data + p - model)^2 )
         # with p the variable.
-        result = optimize.minimize(IcpMatcher.costFunction, np.zeros(1), args=(data, model), method='Newton-CG',
-                                   jac=IcpMatcher.jacobiMatrix, hess=IcpMatcher.hesseMatrix)
+        result = optimize.minimize(IcpMatcher.__costFunction, np.zeros(1), args=(data, model), method='Newton-CG',
+                                   jac=IcpMatcher.__jacobiMatrix, hess=IcpMatcher.__hesseMatrix)
         return result.x[0]
 
     @staticmethod
-    def costFunction(p, data, model):
+    def __costFunction(p, data, model):
         return math.sqrt(np.sum(np.square((data + p) - model)))
 
-    def getSubset(self, data, model):
+    def __getSubset(self, data, model):
         if (self.f == 1 or self.f is None):
             return data, np.arange(data.size)
 
@@ -169,13 +169,13 @@ class IcpMatcher(Matcher):
 
     # noinspection PyTypeChecker
     @staticmethod
-    def jacobiMatrix(p, data, model):
+    def __jacobiMatrix(p, data, model):
         d = (data + p) - model
         return np.array([np.sum(2 * d)])
 
     # noinspection PyUnusedLocal
     @staticmethod
-    def hesseMatrix(p, data, model):
+    def __hesseMatrix(p, data, model):
         # This function has to have the same arguments as IcpMatcher.jacobiMatrix and IcpMatcher.totalDistance.
         # See http://docs.scipy.org/doc/scipy-0.17.1/reference/generated/scipy.optimize.minimize.html
         return 2 * np.size(data, 0)
@@ -197,7 +197,23 @@ class SampleConsensusInitialGuess(InitialGuess):
         self.distanceThreshold = 50
         self.kCorrespondence = 2
 
-    def selectSamples(self, data):
+    def computeOffset(self, data, model):
+        guess = 0
+        minError = sys.maxsize
+        for i in range(self.maxIterations):
+            dataSamples = self.__selectSamples(data)
+            modelSamples = self.__findSimilarFeatures(dataSamples, model)
+
+            # noinspection PyProtectedMember
+            p = IcpMatcher._findOptimalTransformation(dataSamples, modelSamples)
+            d = dataSamples + p
+            error = self.__computeErrorMetric(d, model)
+            if (error < minError):
+                guess = p
+                minError = error
+        return guess
+
+    def __selectSamples(self, data):
         result = []
         iterationsWithoutSample = 0
         while (len(result) < self.nrSamples):
@@ -219,36 +235,23 @@ class SampleConsensusInitialGuess(InitialGuess):
 
         return np.array(result).flatten()
 
-    def findSimilarFeatures(self, data, model):
+    def __findSimilarFeatures(self, data, model):
         result = []
         for d in data:
-            idx = IcpMatcher.findMinimalDistance(d, model, self.kCorrespondence)
+            # noinspection PyProtectedMember
+            idx = IcpMatcher._findMinimalDistance(d, model, self.kCorrespondence)
             result.append(np.random.choice(idx, 1)[0])
 
         return model[result]
 
-    def computeErrorMetric(self, data, model):
+    def __computeErrorMetric(self, data, model):
         error = 0
-        idx = IcpMatcher.findMinimalDistance(data, model)
+        # noinspection PyProtectedMember
+        idx = IcpMatcher._findMinimalDistance(data, model)
         dist = data - model[idx]
         for d in dist:
             error += min(abs(d) / self.distanceThreshold, 1)
         return error
-
-    def computeOffset(self, data, model):
-        guess = 0
-        minError = sys.maxsize
-        for i in range(self.maxIterations):
-            dataSamples = self.selectSamples(data)
-            modelSamples = self.findSimilarFeatures(dataSamples, model)
-
-            p = IcpMatcher.findOptimalTransformation(dataSamples, modelSamples)
-            d = dataSamples + p
-            error = self.computeErrorMetric(d, model)
-            if (error < minError):
-                guess = p
-                minError = error
-        return guess
 
 
 class BinAlignmentInitialGuess(InitialGuess):
@@ -265,30 +268,30 @@ class BinAlignmentInitialGuess(InitialGuess):
         self.model = model
         self.data = data
 
-        self.setNumberOfBins(data, model)
+        self.__setNumberOfBins(data, model)
         self.interval = (min(data.min(), model.min()), max(data.max(), model.max()))
         self.binLength = (self.interval[1] - self.interval[0]) / self.nrBins
-        self.modelBins = self.countBinAssignments(model, 0)
+        self.modelBins = self.__countBinAssignments(model, 0)
 
-        result = optimize.minimize(self.costFunction, 0, method="TNC", jac=self.jacobiFunction,
+        result = optimize.minimize(self.__costFunction, np.zeros(1), method="TNC", jac=self.__jacobiFunction,
                                    bounds=[(-self.interval[1], self.interval[1])])
         return result.x
 
-    def setNumberOfBins(self, data, model):
+    def __setNumberOfBins(self, data, model):
         # Based on Sturges rules
         dataBins = math.log2(data.size) + 1
         modelBins = math.log2(model.size) + 1
         self.nrBins = math.floor(max(dataBins, modelBins))
 
-    def countBinAssignments(self, points, offset):
+    def __countBinAssignments(self, points, offset):
         borders = np.arange(self.nrBins + 1) * self.binLength + self.interval[0]
         return np.histogram(points - offset, borders)[0]
 
-    def costFunction(self, offset):
-        dataBins = self.countBinAssignments(self.data, offset)
+    def __costFunction(self, offset):
+        dataBins = self.__countBinAssignments(self.data, offset)
         return abs(dataBins - self.modelBins).sum() ** 2
 
-    def jacobiFunction(self, offset):
+    def __jacobiFunction(self, offset):
         modelMean = self.model.mean() - offset
         dataMean = self.data.mean()
         return dataMean - modelMean

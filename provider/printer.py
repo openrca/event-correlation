@@ -27,7 +27,7 @@ class PrinterParser(SequenceParser):
 
                 self._createEvent(eventId, timestamp)
 
-        self._printStatistic()
+        self.__printStatistic()
         return Sequence(self.events)
 
     def chunkSequence(self, file, output, offset=1800):
@@ -65,7 +65,7 @@ class PrinterParser(SequenceParser):
                 events.append(event)
         Sequence(list(reversed(events))).store(output)
 
-    def _printStatistic(self):
+    def __printStatistic(self):
         print("# Events: {}".format(len(self.events)))
         l = list(self.count.keys())
         l.sort()

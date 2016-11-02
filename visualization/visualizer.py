@@ -32,7 +32,7 @@ class EventWidget(QGraphicsItem):
         return QRectF(self.pos.x(), self.pos.y(), self.size, self.size)
 
     def paint(self, painter: QPainter, option, widget):
-        size = self.getTextSize()
+        size = self.__getTextSize()
         painter.setPen(QPen(QColor(0, 0, 0)))
         painter.setBrush(QBrush(QColor(255, 255, 255)))
         if (self.highLight):
@@ -43,7 +43,7 @@ class EventWidget(QGraphicsItem):
             painter.drawText(self.pos.x() + (self.size - size[0]) // 2, self.pos.y() + (self.size + size[1]) // 2,
                              self.eventType.getExternalRepresentation())
 
-    def getTextSize(self):
+    def __getTextSize(self):
         font = QFont()
         metric = QFontMetrics(font)
         width = metric.width(self.eventType.getExternalRepresentation())
@@ -138,7 +138,7 @@ class SequenceWidget(QGraphicsScene):
         self.eventY = 0
 
         self.detailsView = None
-        self.detailsSignal.connect(self.showDetails)
+        self.detailsSignal.connect(self.__showDetails)
 
     def paint(self, sequence, highLight, hidden):
         self.sequence = sequence
@@ -182,7 +182,7 @@ class SequenceWidget(QGraphicsScene):
                 widget.callbackParam = rule
                 triggeredWidget.callbackParam = rule
 
-    def showDetails(self, rule):
+    def __showDetails(self, rule):
         if (rule is None):
             self.parent().statusBar().showMessage("No details available")
             return
@@ -205,10 +205,10 @@ class Visualizer(QMainWindow):
         self.view = None
         self.sequence = None
         self.settingsView = Settings(self)
-        self.initGui()
-        self.initActions()
+        self.__initGui()
+        self.__initActions()
 
-    def initGui(self):
+    def __initGui(self):
         self.setGeometry(100, 300, 1200, 250)
         self.setWindowTitle("Sequence Visualizer")
 
@@ -229,7 +229,7 @@ class Visualizer(QMainWindow):
         self.statusBar().showMessage("Sequence Visualizer")
 
     # noinspection PyUnresolvedReferences
-    def initActions(self):
+    def __initActions(self):
         menuBar = self.menuBar()
         fileMenu = menuBar.addMenu('File')
         sequenceMenu = menuBar.addMenu('Sequence')
@@ -237,25 +237,25 @@ class Visualizer(QMainWindow):
         generateAction = QAction('Generate Sequence', self)
         generateAction.setShortcut('Ctrl+G')
         generateAction.setStatusTip('Generate new sequence')
-        generateAction.triggered.connect(self.createSequence)
+        generateAction.triggered.connect(self.__createSequence)
         sequenceMenu.addAction(generateAction)
 
         loadAction = QAction('Load Sequence', self)
         loadAction.setShortcut('Ctrl+O')
         loadAction.setStatusTip('Load sequence')
-        loadAction.triggered.connect(self.loadSequence)
+        loadAction.triggered.connect(self.__loadSequence)
         sequenceMenu.addAction(loadAction)
 
         saveAction = QAction('Save Sequence', self)
         saveAction.setShortcut('Ctrl+S')
         saveAction.setStatusTip('Save current sequence')
-        saveAction.triggered.connect(self.saveSequence)
+        saveAction.triggered.connect(self.__saveSequence)
         sequenceMenu.addAction(saveAction)
 
         settingsAction = QAction('Settings', self)
         settingsAction.setShortcut('Ctrl+Shift+S')
         settingsAction.setStatusTip('Open settings')
-        settingsAction.triggered.connect(self.openSettings)
+        settingsAction.triggered.connect(self.__openSettings)
         fileMenu.addAction(settingsAction)
 
         exitAction = QAction('Exit', self)
@@ -264,7 +264,7 @@ class Visualizer(QMainWindow):
         exitAction.triggered.connect(self.close)
         fileMenu.addAction(exitAction)
 
-    def loadSequence(self):
+    def __loadSequence(self):
         # noinspection PyCallByClass
         fileName = QFileDialog.getOpenFileName(self, "Load Sequence", os.path.expanduser("~"))[0]
         if (len(fileName) == 0):
@@ -283,7 +283,7 @@ class Visualizer(QMainWindow):
             return
         self.setSequence(seq)
 
-    def saveSequence(self):
+    def __saveSequence(self):
         # noinspection PyCallByClass
         fileName = QFileDialog.getSaveFileName(self, "Load Sequence", os.path.expanduser("~"))[0]
         if (len(fileName) == 0):
@@ -303,7 +303,7 @@ class Visualizer(QMainWindow):
             messageBox.exec()
             return
 
-    def createSequence(self):
+    def __createSequence(self):
         # TODO make generic
         sequence = generator.Generator().create("../contrib/generation.json")
         # TODO parse sequence
@@ -322,7 +322,7 @@ class Visualizer(QMainWindow):
         self.sequenceWidget.update()
         self.statusBar().showMessage("Redraw sequence")
 
-    def openSettings(self):
+    def __openSettings(self):
         self.settingsView.show()
 
 

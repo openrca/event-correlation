@@ -39,7 +39,7 @@ class Distribution(abc.ABC):
         self.dist = None
 
         d = datetime.datetime.now()
-        self.seed(int(time.mktime(d.timetuple())))
+        np.random.seed(int(time.mktime(d.timetuple())))
 
     def asJson(self):
         return {"name": distributions[self.distType], "param": self.param}
@@ -65,10 +65,6 @@ class Distribution(abc.ABC):
 
     def __neg__(self):
         return self
-
-    @staticmethod
-    def seed(seed):
-        np.random.seed(seed)
 
     @abc.abstractmethod
     def getRandom(self, n=None):
@@ -150,7 +146,7 @@ class StaticDistribution(Distribution):
             n = 1
         result = []
         for i in range(n):
-            self.rvsIdx, value = self._get(self.rvsIdx, self.rvs)
+            self.rvsIdx, value = self.__get(self.rvsIdx, self.rvs)
             result.append(value)
 
         if (n == 1):
@@ -158,11 +154,11 @@ class StaticDistribution(Distribution):
         return result
 
     def getPDFValue(self, x):
-        self.pdfIdx, value = self._get(self.pdfIdx, self.pdf)
+        self.pdfIdx, value = self.__get(self.pdfIdx, self.pdf)
         return value
 
     def getCDFValue(self, x):
-        self.cdfIdx, value = self._get(self.cdfIdx, self.cdf)
+        self.cdfIdx, value = self.__get(self.cdfIdx, self.cdf)
         return value
 
     # noinspection PyArgumentList
@@ -178,7 +174,7 @@ class StaticDistribution(Distribution):
         return self.pdf.var()
 
     @staticmethod
-    def _get(idx, lst):
+    def __get(idx, lst):
         if (idx >= len(lst)):
             idx = 0
         return (idx + 1, lst[idx])
@@ -198,13 +194,13 @@ class NormalDistribution(AbstractDistribution):
         super().__init__(distType=NORMAL, param=(mu, sigma))
         self.mu = mu
         self.sigma = sigma
-        self._checkParam()
+        self.__checkParam()
         self.dist = stats.norm(mu, sigma)
 
     def getDifferentialEntropy(self):
         return math.log(self.sigma * math.sqrt(2 * math.pi * math.e))
 
-    def _checkParam(self):
+    def __checkParam(self):
         if (self.sigma == 0):
             self.sigma = 0.0000001
 
@@ -229,11 +225,11 @@ class UniformDistribution(AbstractDistribution):
         super().__init__(distType=UNIFORM, param=(lower, upper))
         self.lower = lower
         self.upper = upper
-        self._checkParam()
+        self.__checkParam()
         # scipy expects size of interval as second parameter
         self.dist = stats.uniform(lower, upper - lower)
 
-    def _checkParam(self):
+    def __checkParam(self):
         if (self.lower >= self.upper):
             raise ValueError("Lower border is greater or equal to upper border. Lower: {}, Upper: {}"
                              .format(self.lower, self.upper))
@@ -263,10 +259,10 @@ class ExponentialDistribution(AbstractDistribution):
         super().__init__(distType=EXP, param=(offset, beta))
         self.beta = beta
         self.offset = offset
-        self._checkParam()
+        self.__checkParam()
         self.dist = stats.expon(offset, beta)
 
-    def _checkParam(self):
+    def __checkParam(self):
         if (self.beta <= 0):
             raise ValueError("Exponent is not positive. Exponent: {}".format(self.beta))
 

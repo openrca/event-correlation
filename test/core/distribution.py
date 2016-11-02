@@ -42,7 +42,7 @@ class TestScript(unittest.TestCase):
 
     def test_normal_invalid(self):
         with self.assertRaises(ValueError):
-            NormalDistribution(0, 0)
+            NormalDistribution(0, -1)
 
     def test_uniform(self):
         dist = UniformDistribution(0, 1)

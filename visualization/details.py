@@ -13,7 +13,7 @@ from algorithms import RESULT_IDX
 class MplCanvas(FigureCanvas):
     def __init__(self, parent=None):
         self.figure = Figure()
-        self.fillFigure()
+        self._fillFigure()
 
         super().__init__(self.figure)
         self.setParent(parent)
@@ -21,7 +21,7 @@ class MplCanvas(FigureCanvas):
         FigureCanvas.setSizePolicy(self, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-    def fillFigure(self):
+    def _fillFigure(self):
         pass
 
 
@@ -32,11 +32,11 @@ class DetailsCanvas(MplCanvas):
         self.rule = rule
         super().__init__()
 
-    def fillFigure(self):
-        self.showDistributions(self.figure.add_subplot(121))
+    def _fillFigure(self):
+        self.__showDistributions(self.figure.add_subplot(121))
         self.showFinalAssignment(self.figure.add_subplot(122))
 
-    def showDistributions(self, ax):
+    def __showDistributions(self, ax):
         estimatedDist = self.rule.distributionResponse
         trueDist = self.sequence.getBaseDistribution(self.rule)
 
@@ -93,13 +93,13 @@ class DetailsTable(QTableWidget):
     def __init__(self, data):
         super().__init__()
         self.data = data
-        self.fillTable()
+        self.__fillTable()
         self.resizeColumnsToContents()
         self.horizontalHeader().setStretchLastSection(True)
         self.setHorizontalHeaderLabels(["Key", "Value"])
         self.sortByColumn(0, QtCore.Qt.AscendingOrder)
 
-    def fillTable(self):
+    def __fillTable(self):
         self.setColumnCount(2)
         self.setRowCount(len(self.data))
 
@@ -119,7 +119,7 @@ class DetailsContainer(QWidget):
 
         self.externalFiguresButton = QPushButton('External Figures')
         # noinspection PyUnresolvedReferences
-        self.externalFiguresButton.clicked.connect(self.externalFigures)
+        self.externalFiguresButton.clicked.connect(self.__externalFigures)
 
         layout = QVBoxLayout()
         layout.addWidget(self.canvas)
@@ -128,9 +128,9 @@ class DetailsContainer(QWidget):
 
         self.setLayout(layout)
 
-    def externalFigures(self):
+    def __externalFigures(self):
         fig, ax = plt.subplots(1, 1)
-        self.canvas.showDistributions(ax)
+        self.canvas.__showDistributions(ax)
         fig, ax = plt.subplots(1, 1)
         self.canvas.showFinalAssignment(ax)
         plt.show()

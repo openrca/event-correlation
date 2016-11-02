@@ -7,20 +7,6 @@ from core.rule import Rule
 
 
 class TestScript(unittest.TestCase):
-    def test_getTimestamp(self):
-        timeline = {}
-        gen = provider.generator.Generator()
-        dist = StaticDistribution([5], rvs=[5])
-        self.assertEqual(5, gen._getTimeStamp(dist, 0, timeline))
-        timeline[5] = None
-        self.assertEqual(5.01, gen._getTimeStamp(dist, 0, timeline))
-        timeline[5.01] = None
-
-        gen.setDiscrete()
-        self.assertEqual(6, gen._getTimeStamp(dist, 0, timeline))
-        timeline[6] = None
-        self.assertEqual(7, gen._getTimeStamp(dist, 0, timeline))
-        timeline[7] = None
 
     def test_createSequenceByLength(self):
         length = 10

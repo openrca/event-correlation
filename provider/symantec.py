@@ -24,10 +24,10 @@ class SymantecParser(SequenceParser):
                 system.find("ev:TimeCreated", namespaces=self.nameSpace).attrib["SystemTime"]) / normalization
             self._createEvent(eventId, time)
 
-        self._printStatistic()
+        self.__printStatistic()
         return Sequence(self.events)
 
-    def _printStatistic(self):
+    def __printStatistic(self):
         print("# Events: {}".format(len(self.events)))
         l = list(self.count.keys())
         l.sort()
