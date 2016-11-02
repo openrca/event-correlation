@@ -444,19 +444,6 @@ def samplesToDistribution(samples, distribution):
         raise ValueError("Unknown distribution '{}'".format(distribution))
 
 
-def kstest(dist1, dist2, n=20):
-    if (dist1 is None or dist2 is None):
-        return 0
-
-    if (not isinstance(dist1, Distribution)):
-        raise TypeError("dist1 is not an instance of core.distribution.Distribution")
-    if (not isinstance(dist2, Distribution)):
-        raise TypeError("dist2 is not an instance of core.distribution.Distribution")
-
-    # noinspection PyTypeChecker
-    return stats.kstest(dist1.getRandom(n), dist2.getCDFValue).statistic
-
-
 def approximateIntervalBorders(dist, alpha, lower=-10):
     prevArea = dist.getCDFValue(lower)
     i = lower
@@ -465,24 +452,6 @@ def approximateIntervalBorders(dist, alpha, lower=-10):
         if area - prevArea >= alpha or area == 1:
             return (lower, i)
         i += 0.01
-
-
-def chi2test(dist1, dist2, n=2000):
-    # Number of bins based on L. White, The Choice of the Number of Bins for the M Statistic
-    nrBins = int(n / 5)
-    if (n >= 35):
-        nrBins = int(1.88 * n ** 0.4)
-
-    a = np.sort(dist1.getRandom(n))
-    bins = np.zeros(nrBins)
-
-    lower = -10
-    percent = 1 / nrBins
-    for i in range(nrBins):
-        lower, bins[i] = approximateIntervalBorders(dist2, percent, lower)
-
-    counts = np.bincount(np.digitize(a, bins))
-    return stats.chisquare(counts).statistic
 
 
 def getEmpiricalDist(seq, trigger, response):

@@ -97,8 +97,6 @@ for rule in calculatedRules:
     baseDist = seq.getBaseDistribution(rule)
 
     rule.data["Shared Area"] = distribution.getAreaBetweenDistributions(resultDist, baseDist)
-    rule.data["Distance KS"] = distribution.kstest(resultDist, empiricalDist)
-    rule.data["Distance Chi2"] = 0
     if (baseDist is not None):
         rule.data["True Dist"] = baseDist
     if (empiricalDist is not None):

@@ -129,24 +129,11 @@ class TestScript(unittest.TestCase):
         kde = distribution.load({'param': [[1, 2, 3, 4, 5]], 'name': 'Kde'})
         self.assertEqual(KdeDistribution([1, 2, 3, 4, 5]), kde)
 
-    def test_kstest(self):
-        dist1 = NormalDistribution()
-        dist2 = NormalDistribution()
-        with self.assertRaises(TypeError):
-            distribution.kstest("a", dist2)
-        with self.assertRaises(TypeError):
-            distribution.kstest(dist1, "a")
-        self.assertLess(distribution.kstest(dist1, dist2), 1)
-
     def test_approximateIntervalBorders(self):
         dist = UniformDistribution()
         lower, upper = distribution.approximateIntervalBorders(dist, 0.1)
         self.assertEqual(-10, lower)
         self.assertAlmostEqual(0.10, upper, delta=0.01)
-
-    def test_chi2test(self):
-        dist = NormalDistribution()
-        self.assertLess(distribution.chi2test(dist, dist), 100000)
 
     def test_singularKernel(self):
         kernel = SingularKernel(value=0.0)
