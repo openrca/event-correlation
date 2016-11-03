@@ -29,7 +29,7 @@ class Settings(QWidget):
         self.close.connect(parent.repaintSequence)
 
     def setSequence(self, sequence):
-        self.__events = sorted(set([e.eventType for e in sequence.events]))
+        self.__events = sorted(list(sequence.eventTypes))
 
         self.table.setColumnCount(3)
         self.table.setRowCount(len(self.__events))

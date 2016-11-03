@@ -23,9 +23,11 @@ class Sequence:
         self.rules = rules
         self.calculatedRules = calculatedRules
 
+        self.eventTypes = set()
         self.firstTimestamp = max(self.events[0].timestamp - 1, 0) if (len(self.events) > 0) else 0
         for e in self.events:
             e.timestamp -= self.firstTimestamp
+            self.eventTypes.add(e.eventType)
 
         if (length == 0 and len(self.events) > 0):
             self.length = int(self.events[-1].timestamp) + 1
