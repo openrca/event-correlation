@@ -236,12 +236,6 @@ class Visualizer(QMainWindow):
         fileMenu = menuBar.addMenu('File')
         sequenceMenu = menuBar.addMenu('Sequence')
 
-        generateAction = QAction('Generate Sequence', self)
-        generateAction.setShortcut('Ctrl+G')
-        generateAction.setStatusTip('Generate new sequence')
-        generateAction.triggered.connect(self.__createSequence)
-        sequenceMenu.addAction(generateAction)
-
         loadAction = QAction('Load Sequence', self)
         loadAction.setShortcut('Ctrl+O')
         loadAction.setStatusTip('Load sequence')
@@ -304,12 +298,6 @@ class Visualizer(QMainWindow):
             messageBox.setText(msg)
             messageBox.exec()
             return
-
-    def __createSequence(self):
-        # TODO make generic
-        sequence = generator.Generator().create("../contrib/generation.json")
-        # TODO parse sequence
-        self.setSequence(sequence)
 
     def setSequence(self, sequence):
         self.__sequence = sequence
