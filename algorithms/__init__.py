@@ -103,6 +103,11 @@ class Matcher(abc.ABC):
         rule = Rule(trigger, response, data[RESULT_KDE], data=data)
         self.__fillRuleData(rule, rule.distributionResponse)
         self.__connectEventPairs(trigger, response, data[RESULT_IDX])
+
+        performance = EnergyStatistic()
+        score, pValue = performance.compute(triggerVector, responseVector)
+        rule.likelihood = score
+
         return (rule, data)
 
     def _parseArgs(self, kwargs):
