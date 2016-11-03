@@ -32,9 +32,7 @@ response = args.response
 if (trigger is None and response is not None):
     logging.fatal('No trigger defined. Please add a trigger or remove response. {}'.format(parser.format_help()))
     exit()
-if (trigger is not None and response is None):
-    logging.fatal('No response defined. Please add a response or remove trigger. {}'.format(parser.format_help()))
-    exit()
+
 
 seq = None
 if (args.method == provider.GENERATE):
@@ -55,11 +53,9 @@ if (args.method == provider.PRINTER):
         seq = printer.PrinterParser().create(args.input, whitelist=[trigger, response], normalization=100)
     else:
         seq = printer.PrinterParser().create(args.input, normalization=100)
-
 logging.info("Processing sequence:\n{}".format(seq))
 
-timer = Timer()
-timer.start()
+
 algorithm = None
 kwargs = {}
 if (args.algorithm == lpMatcher.LpMatcher.__name__):
@@ -82,13 +78,18 @@ if (algorithm is None):
     logging.fatal("Unknown algorithm: '{}'".format(args.algorithm))
     exit(1)
 
-if (trigger is None and response is None):
-    calculatedRules = algorithm.matchAll(sequence=seq, **kwargs)
+
+timer = Timer()
+timer.start()
+if (trigger is None):
+    calculatedRules = algorithm.matchAll(seq, **kwargs)
+elif (response is None):
+    calculatedRules = algorithm.matchTransitive(seq, trigger, **kwargs)
 else:
     calculatedRules = [algorithm.match(seq, trigger, response, **kwargs)[0]]
-
 timer.stop()
 logging.info("Calculation time: {} minutes".format(timer))
+
 
 for rule in calculatedRules:
     seq.calculatedRules.append(rule)

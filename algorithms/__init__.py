@@ -31,64 +31,71 @@ class Matcher(abc.ABC):
 
         self._sequence = None
 
-    def _trimVector(self, data):
-        """ Remove potential outliers.
-        This leads to worse results for simple associations but improves performance for complex associations with
-        success < 1
-        """
-        if (not self.trimCost):
-            return data
-
-        data.sort()
-        result = data[abs(data - np.median(data)) <= self.zScore * data.std()]
-        self._logger.debug("Kept {} / {} samples".format(result.size, data.size))
-        return result
-
-    def matchAll(self, sequence, **kwargs):
+    def matchAll(self, sequence, alpha=0.05, **kwargs):
         """ Finds all reasonable correlation in a sequence of events.
         Check parseArgs for additional parameters. All detected correlations are return as a list and stored in
         sequence.calculatedRules.
-        Additional parameters:
-            alpha: Significance level alpha for correlation hypothesis test. Default is 0.05.
         """
-        alpha = 0.05
-        if ("alpha" in kwargs):
-            alpha = kwargs["alpha"]
-
-        performance = EnergyStatistic()
         eventTypes = self.__cleanUpEventTypes(sequence)
         result = []
 
         for trigger in eventTypes:
             for response in eventTypes:
                 # TODO decide A -> B or B -> A
-
-                if (trigger == response):
-                    continue
-                self._logger.debug("Matching '{}' with '{}'".format(trigger, response))
-
-                seqTrigger = sequence.asVector(trigger)
-                seqResponse = sequence.asVector(response)
-
-                score, pValue = performance.compute(seqTrigger, seqResponse)
-                if (pValue <= alpha):
-                    self._logger.info("Found correlated events '{}' and '{}'".format(trigger, response))
-                    if (len(seqTrigger) < len(sequence.events) / 200 or len(seqResponse) < len(sequence.events) / 200):
-                        self._logger.warn("Too few samples. Skipping events")
-                        continue
-
-                    # noinspection PyNoneFunctionAssignment
-                    rule, data = self.match(sequence, trigger, response, **kwargs)
+                rule = self.__matchIfReasonable(sequence, trigger, response, alpha, **kwargs)
+                if (rule is not None):
                     result.append(rule)
         return result
 
+    def matchTransitive(self, sequence, start, alpha=0.05, **kwargs):
+        nodes = [start]
+        visited = []
+
+        eventTypes = self.__cleanUpEventTypes(sequence)
+        result = []
+
+        while (len(nodes)):
+            trigger = nodes.pop()
+            if (trigger in visited):
+                continue
+            visited.append(trigger)
+            self._logger.info("Testing '{}'".format(trigger))
+
+            for response in eventTypes:
+                rule = self.__matchIfReasonable(sequence, trigger, response, alpha, **kwargs)
+                if (rule is not None):
+                    result.append(rule)
+                    nodes.append(response)
+        return result
+
     # noinspection PyMethodMayBeStatic
-    def __cleanUpEventTypes(self, sequence):
+    def __cleanUpEventTypes(self, sequence, limit=5):
         result = []
         for eventType in sequence.eventTypes:
-            if (len(sequence.getEvents(eventType)) > 5):
+            if (len(sequence.getEvents(eventType)) > limit):
                 result.append(eventType)
         return result
+
+    def __matchIfReasonable(self, sequence, trigger, response, alpha, **kwargs):
+        if (trigger == response):
+            return None
+        self._logger.debug("Matching '{}' with '{}'".format(trigger, response))
+
+        seqTrigger = sequence.asVector(trigger)
+        seqResponse = sequence.asVector(response)
+
+        performance = EnergyStatistic()
+        score, pValue = performance.compute(seqTrigger, seqResponse)
+        if (pValue <= alpha):
+            self._logger.info("Found correlated events '{}' and '{}'".format(trigger, response))
+            if (len(seqTrigger) < len(sequence.events) / 200 or len(seqResponse) < len(sequence.events) / 200):
+                self._logger.warn("Too few samples. Skipping events")
+                return None
+
+            # noinspection PyNoneFunctionAssignment
+            rule, data = self.match(sequence, trigger, response, **kwargs)
+            return rule
+        return None
 
     def match(self, sequence, trigger, response, **kwargs):
         """ Computes a correlation of two event types. Check parseArgs for additional parameters. """
@@ -116,6 +123,19 @@ class Matcher(abc.ABC):
     @abc.abstractmethod
     def _compute(self, trigger, response):
         pass
+
+    def _trimVector(self, data):
+        """ Remove potential outliers.
+        This leads to worse results for simple associations but improves performance for complex associations with
+        success < 1
+        """
+        if (not self.trimCost):
+            return data
+
+        data.sort()
+        result = data[abs(data - np.median(data)) <= self.zScore * data.std()]
+        self._logger.debug("Kept {} / {} samples".format(result.size, data.size))
+        return result
 
     # noinspection PyMethodMayBeStatic
     def __fillRuleData(self, rule, distribution):
