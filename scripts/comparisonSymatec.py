@@ -163,6 +163,7 @@ correlation101_100 = {
 }
 
 
+# noinspection PyProtectedMember
 def plotDistributions(data, title):
     correct = None
     if (len(data[CORRECT]) > 0):
@@ -171,12 +172,12 @@ def plotDistributions(data, title):
     icp = KdeDistribution(data[ICP])
     lagEM = NormalDistribution(data[LAGEM][0], data[LAGEM][1])
 
-    if (hasattr(correct, 'kernel') and isinstance(correct.kernel, SingularKernel)):
-        correct.kernel.maxValue = 500
-    if (isinstance(lp.kernel, SingularKernel)):
-        lp.kernel.maxValue = 500
-    if (isinstance(icp.kernel, SingularKernel)):
-        icp.kernel.maxValue = 500
+    if (hasattr(correct, 'kernel') and isinstance(correct._KdeDistribution__kernel, SingularKernel)):
+        correct.__kernel.maxValue = 500
+    if (isinstance(lp._KdeDistribution__kernel, SingularKernel)):
+        lp._KdeDistribution__kernel.maxValue = 500
+    if (isinstance(icp._KdeDistribution__kernel, SingularKernel)):
+        icp._KdeDistribution__kernel.maxValue = 500
 
     borders1 = correct.getCompleteInterval() if (correct is not None) else lp.getCompleteInterval()
     borders2 = lp.getCompleteInterval()

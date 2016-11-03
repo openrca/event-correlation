@@ -2,10 +2,8 @@
 
 
 class Event:
-    def __init__(self, eventType="_", timestamp=None):
+    def __init__(self, eventType="_", timestamp=-1):
         self.eventType = str(eventType)
-        if (timestamp is None):
-            timestamp = -1
         self.timestamp = timestamp
         self.occurred = True
         self.triggeredBy = None

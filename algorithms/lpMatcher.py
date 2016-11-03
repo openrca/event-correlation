@@ -23,8 +23,8 @@ class Transformation(Enum):
 class LpMatcher(Matcher):
     def __init__(self):
         super().__init__(__name__)
-        self.algorithm = None
-        self.transformation = Transformation.RANDOMIZED_ROUNDING
+        self.__algorithm = None
+        self.__transformation = Transformation.RANDOMIZED_ROUNDING
 
     def _parseArgs(self, kwargs):
         """
@@ -45,7 +45,7 @@ class LpMatcher(Matcher):
         algorithm = kwargs["algorithm"]
         if (algorithm == Method.MATLAB or algorithm == Method.SCIPY or algorithm == Method.CVXOPT or
                     algorithm == Method.PULP):
-            self.algorithm = algorithm
+            self.__algorithm = algorithm
         else:
             raise ValueError("No algorithm specified.")
 
@@ -53,23 +53,17 @@ class LpMatcher(Matcher):
             transformation = kwargs["transformation"]
             if (transformation == Transformation.RANDOMIZED_ROUNDING or transformation == Transformation.ROUNDING or
                         algorithm == Transformation.MAXIMUM):
-                self.transformation = transformation
+                self.__transformation = transformation
 
     # noinspection PyUnboundLocalVariable, PyTypeChecker
-    def _compute(self):
-        trigger = self.sequence.asVector(self.trigger)
-        response = self.sequence.asVector(self.response)
-
+    def _compute(self, trigger, response):
         nTrigger = len(trigger)
         nResponse = len(response)
-
-        if (nTrigger == 0 or nResponse == 0):
-            raise ValueError('No events with id {} and/or {} found.'.format(self.trigger, self.response))
 
         [TTrigger, TResponse] = np.meshgrid(trigger, response)
         delta = TResponse - TTrigger
 
-        if (self.algorithm is not Method.PULP):
+        if (self.__algorithm is not Method.PULP):
             A = -np.diag(delta.reshape(-1))
             b = np.zeros(nTrigger * nResponse)
 
@@ -85,17 +79,17 @@ class LpMatcher(Matcher):
         f = delta.flatten() ** 2 / (nTrigger - 1)
 
         Z = None
-        if (self.algorithm == Method.PULP):
+        if (self.__algorithm == Method.PULP):
             Z = self.__solvePulp(f, -delta.reshape(-1), nTrigger, nResponse)
-        elif (self.algorithm == Method.MATLAB):
+        elif (self.__algorithm == Method.MATLAB):
             Z = self.__solveMatlab(f, A, b, Aeq, beq, nTrigger, nResponse)
-        elif (self.algorithm == Method.SCIPY):
+        elif (self.__algorithm == Method.SCIPY):
             Z = self.__solveScipy(f, A, b, Aeq, beq, nTrigger * nResponse)
-        elif (self.algorithm == Method.CVXOPT):
+        elif (self.__algorithm == Method.CVXOPT):
             Z = self.__solveCvxopt(f, A, b, Aeq, beq, nTrigger * nResponse)
 
         Z = self.__transformResult(Z, nTrigger, nResponse)
-        self.logger.trace("Final (approximated) result: \n {}".format(Z.argmax(axis=0)))
+        self._logger.trace("Final (approximated) result: \n {}".format(Z.argmax(axis=0)))
 
         d = np.multiply(Z, delta)
         idx = np.zeros(min(nTrigger, nResponse)).astype(int)
@@ -127,7 +121,7 @@ class LpMatcher(Matcher):
         if (shutil.which("matlab") is None):
             raise RuntimeError("Matlab not found. Please ensure that Matlab is in the path.")
 
-        self.logger.debug("Connecting to Matlab")
+        self._logger.debug("Connecting to Matlab")
         matlab = Matlab()
         matlab.start()
 
@@ -145,9 +139,10 @@ class LpMatcher(Matcher):
         matlab.run_code("[z_opt, val] = linprog(f, A, b, Aeq, beq, lb, ub, z);")
         z_opt = matlab.get_variable("z_opt")
         matlab.stop()
-        self.logger.debug("Closing connection to Matlab")
+        self._logger.debug("Closing connection to Matlab")
         return z_opt
 
+    # noinspection PyUnresolvedReferences
     def __solveScipy(self, f, A, b, Aeq, beq, n):
         """ Solve the optimization problem using scipy.optimize.linprog().
 
@@ -155,14 +150,14 @@ class LpMatcher(Matcher):
         """
         import scipy.optimize
 
-        self.logger.debug("Solving problem with Scipy")
+        self._logger.debug("Solving problem with Scipy")
         res = scipy.optimize.linprog(f, A, b, Aeq, beq, bounds=((0, 1),) * n,
                                      options={"disp": True,
                                               "bland": True,
                                               "tol": 1e-12,
                                               "maxiter": 5000})
         if (not res.success):
-            self.logger.warn("Unable to find solution: {}. Results may be bad.".format(res.message))
+            self._logger.warn("Unable to find solution: {}. Results may be bad.".format(res.message))
 
         return res.x
 
@@ -173,17 +168,17 @@ class LpMatcher(Matcher):
         """
         from cvxopt import matrix, solvers
 
-        self.logger.debug("Solving problem with Cvxopt")
+        self._logger.debug("Solving problem with Cvxopt")
 
         # add boundaries as lp has no build-in boundaries
         A1 = np.concatenate((A, -np.eye(n), np.eye(n)))
         b1 = np.concatenate((b, np.zeros(n), np.ones(n)))
 
-        self.logger.debug("Using cvxopt to solve optimization problem")
+        self._logger.debug("Using cvxopt to solve optimization problem")
         sol = solvers.lp(matrix(f), matrix(A1), matrix(b1), matrix(Aeq), matrix(beq), solver="glpk")
 
         if (sol["x"] is None):
-            self.logger.warn("Unable to find solution")
+            self._logger.warn("Unable to find solution")
             return np.zeros(n)
 
         return sol["x"]
@@ -195,7 +190,7 @@ class LpMatcher(Matcher):
         """
         from pulp.pulp import LpAffineExpression, LpMinimize, LpProblem, LpVariable
 
-        self.logger.debug("Solving problem with PULP")
+        self._logger.debug("Solving problem with PULP")
         problem = LpProblem("test1", LpMinimize)
         template = "x{0:0" + str(len(str(na * nb))) + "d}"
 
@@ -224,7 +219,7 @@ class LpMatcher(Matcher):
             problem.addConstraint(LpAffineExpression(onlyOneConstraint) == 1)
             # problem.addConstraint(LpAffineExpression(onlyOneConstraint) <= 1)
 
-        self.logger.debug("Starting to solve with glpk")
+        self._logger.debug("Starting to solve with glpk")
         problem.solve()
 
         result = np.zeros(na * nb)
@@ -234,14 +229,14 @@ class LpMatcher(Matcher):
 
     def __transformResult(self, Z, na, nb):
         tmp = np.reshape(Z, (nb, na))
-        if (self.transformation == Transformation.ROUNDING):
+        if (self.__transformation == Transformation.ROUNDING):
             return np.around(tmp)
-        elif (self.transformation == Transformation.MAXIMUM):
+        elif (self.__transformation == Transformation.MAXIMUM):
             idx = tmp.argmax(axis=1)
             Z = np.zeros(tmp.shape)
             Z[np.arange(idx.size), idx] = 1
             return Z
-        elif (self.transformation == Transformation.RANDOMIZED_ROUNDING):
+        elif (self.__transformation == Transformation.RANDOMIZED_ROUNDING):
             random = UniformDistribution().getRandom(Z.size)
             tmp = np.zeros(Z.size)
             tmp[random <= Z] = 1

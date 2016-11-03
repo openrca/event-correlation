@@ -23,11 +23,9 @@ class Sequence:
         self.rules = rules
         self.calculatedRules = calculatedRules
 
-        self.eventTypes = set()
         self.firstTimestamp = max(self.events[0].timestamp - 1, 0) if (len(self.events) > 0) else 0
         for e in self.events:
             e.timestamp -= self.firstTimestamp
-            self.eventTypes.add(e.eventType)
 
         if (length == 0 and len(self.events) > 0):
             self.length = int(self.events[-1].timestamp) + 1
@@ -65,13 +63,12 @@ class Sequence:
     def getBaseDistribution(self, calculatedRule):
         """ For a given calculatedRule the corresponding real distribution is searched.
         Works only for synthetic sequences. """
-
-        rule = self.__getRule(calculatedRule.trigger, calculatedRule.response, self.rules)
+        rule = self.getRule(calculatedRule.trigger, calculatedRule.response)
         if (rule is not None):
             return rule.distributionResponse
 
         # search for opposite rule
-        rule = self.__getRule(calculatedRule.response, calculatedRule.trigger, self.rules)
+        rule = self.getRule(calculatedRule.response, calculatedRule.trigger)
         if (rule is not None):
             return -rule.distributionResponse
         return None

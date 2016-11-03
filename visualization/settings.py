@@ -11,11 +11,9 @@ class Settings(QWidget):
 
     def __init__(self, parent):
         super().__init__()
-        self.parentView = parent
-        self.sequence = None
         self.highLights = []
         self.hidden = []
-        self.events = []
+        self.__events = []
 
         self.table = QTableWidget()
         self.save = QPushButton('Save')
@@ -28,16 +26,15 @@ class Settings(QWidget):
         layout.addWidget(self.save)
         self.setLayout(layout)
 
-        self.close.connect(self.parentView.repaintSequence)
+        self.close.connect(parent.repaintSequence)
 
     def setSequence(self, sequence):
-        self.sequence = sequence
-        self.events = sorted(set([e.eventType for e in sequence.events]))
+        self.__events = sorted(set([e.eventType for e in sequence.events]))
 
         self.table.setColumnCount(3)
-        self.table.setRowCount(len(self.events))
+        self.table.setRowCount(len(self.__events))
 
-        for index, key in enumerate(self.events):
+        for index, key in enumerate(self.__events):
             eventItem = QTableWidgetItem(str(key))
             highLightItem = QTableWidgetItem()
             highLightItem.setCheckState(Qt.Unchecked)
@@ -57,7 +54,7 @@ class Settings(QWidget):
     def __handleItemClicked(self, row, column):
         if (column == 0):
             return
-        event = self.events[row]
+        event = self.__events[row]
         item = self.table.item(row, column)
 
         if (item.checkState() == Qt.Checked):

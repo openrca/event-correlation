@@ -8,9 +8,9 @@ from provider import SequenceParser
 class PrinterParser(SequenceParser):
     def __init__(self):
         super().__init__()
-        self.COLUMN_TIMESTAMP = 2
-        self.COLUMN_EVENT_ID = 3
-        self.COLUMN_STATUS = 5
+        self.__COLUMN_TIMESTAMP = 2
+        self.__COLUMN_EVENT_ID = 3
+        self.__COLUMN_STATUS = 5
 
     def _create(self, file, normalization):
         with open(file) as csvFile:
@@ -18,9 +18,9 @@ class PrinterParser(SequenceParser):
             next(reader, None)  # skip the header
 
             for row in reader:
-                timestamp = self._parseISO8601(row[self.COLUMN_TIMESTAMP]) / normalization
-                eventId = row[self.COLUMN_EVENT_ID]
-                status = row[self.COLUMN_STATUS]
+                timestamp = self._parseISO8601(row[self.__COLUMN_TIMESTAMP]) / normalization
+                eventId = row[self.__COLUMN_EVENT_ID]
+                status = row[self.__COLUMN_STATUS]
 
                 if (status == 'RESET'):
                     continue
@@ -28,7 +28,7 @@ class PrinterParser(SequenceParser):
                 self._createEvent(eventId, timestamp)
 
         self.__printStatistic()
-        return Sequence(self.events)
+        return Sequence(self._events)
 
     def chunkSequence(self, file, output, offset=1800):
         self.create(file)
@@ -36,7 +36,7 @@ class PrinterParser(SequenceParser):
         subSequences = []
         current = None
         start = None
-        for event in reversed(self.events):
+        for event in reversed(self._events):
             if (re.match('^0X5001[\dA-F]$', event.eventType) is not None):
                 if (current is None):
                     current = [event]
@@ -58,7 +58,7 @@ class PrinterParser(SequenceParser):
 
         events = []
         start = None
-        for event in reversed(self.events):
+        for event in reversed(self._events):
             if (re.match('^0X5001[\dA-F]$', event.eventType) is not None):
                 start = event
             if (start is not None and start.timestamp - event.timestamp < offset):
@@ -66,8 +66,8 @@ class PrinterParser(SequenceParser):
         Sequence(list(reversed(events))).store(output)
 
     def __printStatistic(self):
-        print("# Events: {}".format(len(self.events)))
-        l = list(self.count.keys())
+        print("# Events: {}".format(len(self._events)))
+        l = list(self._count.keys())
         l.sort()
         for i in l:
-            print("EventID {}: \t#{}".format(i, self.count[i]))
+            print("EventID {}: \t#{}".format(i, self._count[i]))

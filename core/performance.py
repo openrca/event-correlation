@@ -71,18 +71,18 @@ class CondProbPerformance(Performance):
 
     def __init__(self, dist=KDE, samples=None):
         super().__init__()
-        self.dist = dist
-        self.samples = samples
+        self.__dist = dist
+        self.__samples = samples
 
     def getValueByDistribution(self, dist):
-        if (self.samples is None):
+        if (self.__samples is None):
             return 0
-        return self.__compute(self.samples, dist)
+        return self.__compute(self.__samples, dist)
 
     def getValueBySamples(self, samples):
-        dist = self.dist
-        if (isinstance(self.dist, numbers.Number)):
-            dist = distribution.samplesToDistribution(samples, self.dist)
+        dist = self.__dist
+        if (isinstance(self.__dist, numbers.Number)):
+            dist = distribution.samplesToDistribution(samples, self.__dist)
         return self.__compute(samples, dist)
 
     @staticmethod
@@ -101,7 +101,7 @@ class EntropyPerformance(Performance):
 
     def __init__(self, dist=KDE):
         super().__init__()
-        self.dist = dist
+        self.__dist = dist
 
     def getValueByDistribution(self, dist, n=10000):
         borders = dist.getCompleteInterval()
@@ -109,9 +109,9 @@ class EntropyPerformance(Performance):
         return (h - (borders[1] - borders[0]) / n) / math.log2(n)
 
     def getValueBySamples(self, samples):
-        dist = self.dist
-        if (isinstance(self.dist, numbers.Number)):
-            dist = distribution.samplesToDistribution(samples, self.dist)
+        dist = self.__dist
+        if (isinstance(self.__dist, numbers.Number)):
+            dist = distribution.samplesToDistribution(samples, self.__dist)
         return self.getValueByDistribution(dist)
 
 

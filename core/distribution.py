@@ -34,22 +34,22 @@ class Distribution(abc.ABC):
     """ Base class for all distributions """
 
     def __init__(self, distType, param):
-        self.distType = distType
-        self.param = param
-        self.dist = None
+        self.__distType = distType
+        self.__param = param
+        self._dist = None
 
         d = datetime.datetime.now()
         np.random.seed(int(time.mktime(d.timetuple())))
 
     def asJson(self):
-        return {"name": distributions[self.distType], "param": self.param}
+        return {"name": distributions[self.__distType], "param": self.__param}
 
     def getMaximumPDF(self):
         """ Compute the maximum PDF for normalization """
-        return self.dist.pdf(self.dist.mean())
+        return self._dist.pdf(self._dist.mean())
 
     def getCompleteInterval(self):
-        return self.dist.interval(0.99)
+        return self._dist.interval(0.99)
 
     def getRelativePdf(self, x):
         """ Compute the ratio between x and the maximal pdf value """
@@ -58,10 +58,10 @@ class Distribution(abc.ABC):
     def __eq__(self, other):
         if (not isinstance(other, Distribution)):
             return False
-        return self.param == other.param
+        return self.__param == other.__param
 
     def __hash__(self):
-        return hash(self.param)
+        return hash(self.__param)
 
     def __neg__(self):
         return self
@@ -100,19 +100,19 @@ class AbstractDistribution(Distribution, abc.ABC):
         pass
 
     def getCDFValue(self, x):
-        return self.dist.cdf(x)
+        return self._dist.cdf(x)
 
     def getRandom(self, n=None):
-        return self.dist.rvs(n)
+        return self._dist.rvs(n)
 
     def getPDFValue(self, x):
-        return self.dist.pdf(x)
+        return self._dist.pdf(x)
 
     def getVar(self):
-        return self.dist.var()
+        return self._dist.var()
 
     def getStd(self):
-        return self.dist.std()
+        return self._dist.std()
 
 
 class StaticDistribution(Distribution):
@@ -134,19 +134,19 @@ class StaticDistribution(Distribution):
         if (rvs is None):
             rvs = [0.5]
         super().__init__(distType=STATIC, param=())
-        self.pdfIdx = 0
-        self.cdfIdx = 0
-        self.rvsIdx = 0
-        self.pdf = np.array(pdf)
-        self.cdf = np.array(cdf)
-        self.rvs = np.array(rvs)
+        self.__pdfIdx = 0
+        self.__cdfIdx = 0
+        self.__rvsIdx = 0
+        self.__pdf = np.array(pdf)
+        self.__cdf = np.array(cdf)
+        self.__rvs = np.array(rvs)
 
     def getRandom(self, n=None):
         if (n is None):
             n = 1
         result = []
         for i in range(n):
-            self.rvsIdx, value = self.__get(self.rvsIdx, self.rvs)
+            self.__rvsIdx, value = self.__get(self.__rvsIdx, self.__rvs)
             result.append(value)
 
         if (n == 1):
@@ -154,24 +154,24 @@ class StaticDistribution(Distribution):
         return result
 
     def getPDFValue(self, x):
-        self.pdfIdx, value = self.__get(self.pdfIdx, self.pdf)
+        self.__pdfIdx, value = self.__get(self.__pdfIdx, self.__pdf)
         return value
 
     def getCDFValue(self, x):
-        self.cdfIdx, value = self.__get(self.cdfIdx, self.cdf)
+        self.__cdfIdx, value = self.__get(self.__cdfIdx, self.__cdf)
         return value
 
     # noinspection PyArgumentList
     def getDifferentialEntropy(self):
         """ Static distribution has no continuous entropy. Compute normal entropy instead. """
-        count = np.array(list(collections.Counter(self.pdf).values()))
+        count = np.array(list(collections.Counter(self.__pdf).values()))
         return stats.entropy(np.divide(count, count.sum()))
 
     def getStd(self):
-        return self.pdf.std()
+        return self.__pdf.std()
 
     def getVar(self):
-        return self.pdf.var()
+        return self.__pdf.var()
 
     @staticmethod
     def __get(idx, lst):
@@ -180,7 +180,7 @@ class StaticDistribution(Distribution):
         return (idx + 1, lst[idx])
 
     def __str__(self):
-        return "{}: pdf: {} cdf: {} rvs: {}".format(distributions[STATIC], self.pdf, self.cdf, self.rvs)
+        return "{}: pdf: {} cdf: {} rvs: {}".format(distributions[STATIC], self.__pdf, self.__cdf, self.__rvs)
 
 
 class NormalDistribution(AbstractDistribution):
@@ -192,26 +192,26 @@ class NormalDistribution(AbstractDistribution):
         :param sigma: Standard deviation
         """
         super().__init__(distType=NORMAL, param=(mu, sigma))
-        self.mu = mu
-        self.sigma = sigma
+        self.__mu = mu
+        self.__sigma = sigma
         self.__checkParam()
-        self.dist = stats.norm(mu, sigma)
+        self._dist = stats.norm(mu, sigma)
 
     def getDifferentialEntropy(self):
-        return math.log(self.sigma * math.sqrt(2 * math.pi * math.e))
+        return math.log(self.__sigma * math.sqrt(2 * math.pi * math.e))
 
     def __checkParam(self):
-        if (self.sigma == 0):
-            self.sigma = 0.0000001
+        if (self.__sigma == 0):
+            self.__sigma = 0.0000001
 
-        if (self.sigma < 0):
-            raise ValueError("Variance is not positive. Sigma: {}".format(self.sigma))
+        if (self.__sigma < 0):
+            raise ValueError("Variance is not positive. Sigma: {}".format(self.__sigma))
 
     def __str__(self):
-        return "{}: Mu: {} Sigma: {}".format(distributions[NORMAL], self.mu, self.sigma)
+        return "{}: Mu: {} Sigma: {}".format(distributions[NORMAL], self.__mu, self.__sigma)
 
     def __neg__(self):
-        return NormalDistribution(-self.mu, self.sigma)
+        return NormalDistribution(-self.__mu, self.__sigma)
 
 
 class UniformDistribution(AbstractDistribution):
@@ -223,25 +223,25 @@ class UniformDistribution(AbstractDistribution):
         :param upper: Upper bound
         """
         super().__init__(distType=UNIFORM, param=(lower, upper))
-        self.lower = lower
-        self.upper = upper
+        self.__lower = lower
+        self.__upper = upper
         self.__checkParam()
         # scipy expects size of interval as second parameter
-        self.dist = stats.uniform(lower, upper - lower)
+        self._dist = stats.uniform(lower, upper - lower)
 
     def __checkParam(self):
-        if (self.lower >= self.upper):
+        if (self.__lower >= self.__upper):
             raise ValueError("Lower border is greater or equal to upper border. Lower: {}, Upper: {}"
-                             .format(self.lower, self.upper))
+                             .format(self.__lower, self.__upper))
 
     def getDifferentialEntropy(self):
-        return math.log(self.upper - self.lower)
+        return math.log(self.__upper - self.__lower)
 
     def __str__(self):
-        return "{}: Lower: {} Upper: {}".format(distributions[UNIFORM], self.lower, self.upper)
+        return "{}: Lower: {} Upper: {}".format(distributions[UNIFORM], self.__lower, self.__upper)
 
     def __neg__(self):
-        return UniformDistribution(-self.upper, -self.lower)
+        return UniformDistribution(-self.__upper, -self.__lower)
 
 
 class ExponentialDistribution(AbstractDistribution):
@@ -257,23 +257,23 @@ class ExponentialDistribution(AbstractDistribution):
         :param beta: Scaling of slope 1 / lambda
         """
         super().__init__(distType=EXP, param=(offset, beta))
-        self.beta = beta
-        self.offset = offset
+        self.__beta = beta
+        self.__offset = offset
         self.__checkParam()
-        self.dist = stats.expon(offset, beta)
+        self._dist = stats.expon(offset, beta)
 
     def __checkParam(self):
-        if (self.beta <= 0):
-            raise ValueError("Exponent is not positive. Exponent: {}".format(self.beta))
+        if (self.__beta <= 0):
+            raise ValueError("Exponent is not positive. Exponent: {}".format(self.__beta))
 
     def getDifferentialEntropy(self):
-        return 1 - math.log(1 / self.beta)
+        return 1 - math.log(1 / self.__beta)
 
     def __str__(self):
-        return "{}: Offset: {} Beta: {}".format(distributions[EXP], self.offset, self.beta)
+        return "{}: Offset: {} Beta: {}".format(distributions[EXP], self.__offset, self.__beta)
 
     def __neg__(self):
-        return ExponentialDistribution(-self.offset, self.beta)
+        return ExponentialDistribution(-self.__offset, self.__beta)
 
 
 class KdeDistribution(Distribution):
@@ -288,45 +288,45 @@ class KdeDistribution(Distribution):
         :param samples: 1D-Samples to create distribution from
         """
         super().__init__(distType=KDE, param=([samples]))
-        self.samples = np.array(sorted(samples))
         if (len(samples) == 0):
             raise ValueError("Unable to perform Kernel density estimation without samples.")
 
-        self.minValue = np.min(self.samples) - 2
-        self.maxValue = np.max(self.samples) + 2
+        self.samples = np.array(sorted(samples))
+        self.__minValue = np.min(self.samples) - 2
+        self.__maxValue = np.max(self.samples) + 2
         if (np.min(self.samples) != np.max(self.samples)):
-            self.kernel = stats.gaussian_kde(self.samples, 0.1)
+            self.__kernel = stats.gaussian_kde(self.samples, 0.1)
         else:
-            self.kernel = SingularKernel(np.min(self.samples))
-        self.cachedMaxPdf = None
+            self.__kernel = SingularKernel(np.min(self.samples))
+        self.__cachedMaxPdf = None
 
     def getPDFValue(self, x):
-        pdf = self.kernel.evaluate(x)
-        if (self.cachedMaxPdf is not None and len(pdf) == 1 and pdf > self.cachedMaxPdf):
-            self.cachedMaxPdf = pdf
+        pdf = self.__kernel.evaluate(x)
+        if (self.__cachedMaxPdf is not None and len(pdf) == 1 and pdf > self.__cachedMaxPdf):
+            self.__cachedMaxPdf = pdf
         return pdf
 
     def getRandom(self, n=None):
         if (n is None):
             n = 1
-        return self.kernel.resample(n)[0]
+        return self.__kernel.resample(n)[0]
 
     def getCDFValue(self, x):
         if (isinstance(x, numbers.Number)):
-            upper = min(x, self.maxValue)
-            if (upper <= self.minValue):
+            upper = min(x, self.__maxValue)
+            if (upper <= self.__minValue):
                 return 0
-            return self.kernel.integrate_box_1d(self.minValue, upper)
+            return self.__kernel.integrate_box_1d(self.__minValue, upper)
 
         res = np.zeros(len(x))
         for i in range(len(x)):
-            upper = min(x[i], self.maxValue)
-            if (upper > self.minValue):
-                res[i] = self.kernel.integrate_box_1d(self.minValue, upper)
+            upper = min(x[i], self.__maxValue)
+            if (upper > self.__minValue):
+                res[i] = self.__kernel.integrate_box_1d(self.__minValue, upper)
         return res
 
     def getCompleteInterval(self):
-        return (self.minValue, self.maxValue)
+        return (self.__minValue, self.__maxValue)
 
     def getDifferentialEntropy(self):
         """
@@ -337,15 +337,15 @@ class KdeDistribution(Distribution):
         [1] http://thirdorderscientist.org/homoclinic-orbit/2013/5/8/bridging-discrete-and-differential-entropy
         [2] Elements of information theory, Cover, Thomas, page 247-248
         """
-        x = np.linspace(self.minValue, self.maxValue, 10000)
+        x = np.linspace(self.__minValue, self.__maxValue, 10000)
         pdf = self.getPDFValue(x)
-        return stats.entropy(pdf) + math.log2((self.maxValue - self.minValue) / 10000)
+        return stats.entropy(pdf) + math.log2((self.__maxValue - self.__minValue) / 10000)
 
     def getMaximumPDF(self):
-        if (self.cachedMaxPdf is None):
-            x = np.linspace(self.minValue, self.maxValue, 10000)
-            self.cachedMaxPdf = self.getPDFValue(x).max()
-        return self.cachedMaxPdf
+        if (self.__cachedMaxPdf is None):
+            x = np.linspace(self.__minValue, self.__maxValue, 10000)
+            self.__cachedMaxPdf = self.getPDFValue(x).max()
+        return self.__cachedMaxPdf
 
     def getStd(self):
         return self.samples.std()

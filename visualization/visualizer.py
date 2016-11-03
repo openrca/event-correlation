@@ -19,56 +19,58 @@ from visualization.settings import Settings
 class EventWidget(QGraphicsItem):
     def __init__(self, event, highLight, pos, size, parent=None):
         super().__init__()
-        self.eventType = event
-        self.highLight = highLight
-        self.pos = pos
-        self.size = min(max(size, 10), 50)
-        self.parent = parent
+        self._eventType = event
+        self._callbackParam = None
+        self.__highLight = highLight
+        self.__pos = pos
+        self.__size = min(max(size, 10), 50)
+        self.__parent = parent
+        self.__rect = QRectF(self.__pos.x(), self.__pos.y(), self.__size, self.__size)
+
         self.setToolTip(event.eventType)
 
-        self.callbackParam = None
-
     def boundingRect(self):
-        return QRectF(self.pos.x(), self.pos.y(), self.size, self.size)
+        return self.__rect
 
     def paint(self, painter: QPainter, option, widget):
         size = self.__getTextSize()
         painter.setPen(QPen(QColor(0, 0, 0)))
         painter.setBrush(QBrush(QColor(255, 255, 255)))
-        if (self.highLight):
+        if (self.__highLight):
             painter.setBrush(QBrush(QColor(150, 150, 150)))
 
         painter.drawEllipse(self.boundingRect())
-        if (len(self.eventType.getExternalRepresentation()) <= 3):
-            painter.drawText(self.pos.x() + (self.size - size[0]) // 2, self.pos.y() + (self.size + size[1]) // 2,
-                             self.eventType.getExternalRepresentation())
+        if (len(self._eventType.getExternalRepresentation()) <= 3):
+            painter.drawText(self.__pos.x() + (self.__size - size[0]) // 2,
+                             self.__pos.y() + (self.__size + size[1]) // 2,
+                             self._eventType.getExternalRepresentation())
 
     def __getTextSize(self):
         font = QFont()
         metric = QFontMetrics(font)
-        width = metric.width(self.eventType.getExternalRepresentation())
-        height = metric.width(self.eventType.getExternalRepresentation())
+        width = metric.width(self._eventType.getExternalRepresentation())
+        height = metric.width(self._eventType.getExternalRepresentation())
         return (width, height)
 
     def mouseDoubleClickEvent(self, event):
-        if (self.parent is not None):
-            self.parent.detailsSignal.emit(self.callbackParam)
+        if (self.__parent is not None):
+            self.__parent.detailsSignal.emit(self._callbackParam)
 
     def __eq__(self, other):
         if (not isinstance(other, EventWidget)):
             return False
-        return other.eventType == self.eventType
+        return other._eventType == self._eventType
 
     def __hash__(self):
-        return hash(self.eventType)
+        return hash(self._eventType)
 
 
 class ArrowWidget(QGraphicsItem):
     def __init__(self, start, end, rule):
         super().__init__()
-        self.start = start
-        self.end = end
-        self.rule = rule
+        self.__start = start
+        self.__end = end
+        self.__rule = rule
         self.arcOffset = 50
         self.triangleSize = 5
 
@@ -89,16 +91,17 @@ class ArrowWidget(QGraphicsItem):
 
     def paint(self, painter: QPainter, option, widget):
         color = 0
-        if (self.rule is not None):
-            distance = self.end.eventType.timestamp - self.start.eventType.timestamp
-            prob = self.rule.distributionResponse.getRelativePdf(distance)
+        if (self.__rule is not None):
+            # noinspection PyProtectedMember
+            distance = self.__end._eventType.timestamp - self.__start._eventType.timestamp
+            prob = self.__rule.distributionResponse.getRelativePdf(distance)
             color = min(200, (1 - prob) * 255)
         color = QColor(color, color, color)
 
         painter.setPen(QPen(color))
 
-        startRect = self.start.boundingRect()
-        endRect = self.end.boundingRect()
+        startRect = self.__start.boundingRect()
+        endRect = self.__end.boundingRect()
 
         startPos = QPoint(startRect.x() + startRect.width() // 2, startRect.y())
         endPos = QPoint(endRect.x() + startRect.width() // 2, endRect.y())
@@ -130,30 +133,30 @@ class SequenceWidget(QGraphicsScene):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.sequence = None
-        self.eventWidgets = {}
+        self.__sequence = None
+        self.__eventWidgets = {}
+        self.__detailsView = None
 
         self.offset = 10
         self.eventWidth = 20
         self.eventY = 0
 
-        self.detailsView = None
         self.detailsSignal.connect(self.__showDetails)
 
     def paint(self, sequence, highLight, hidden):
-        self.sequence = sequence
+        self.__sequence = sequence
 
         # truncate sequence for faster rendering
         renderLimit = 1000
         if (len(sequence) > renderLimit):
             logging.info("Truncating sequence to {} events to limit rendering time".format(renderLimit))
-            seq = Sequence(sequence.events[0: renderLimit], math.ceil(sequence.events[renderLimit - 1].timestamp) + 1,
-                           sequence.rules, sequence.calculatedRules)
-            self.sequence = seq
+            self.__sequence = Sequence(sequence.events[0: renderLimit],
+                                       math.ceil(sequence.events[renderLimit - 1].timestamp) + 1,
+                                       sequence.rules, sequence.calculatedRules)
 
         eventCount = 0
         prevTime = -1
-        for event in self.sequence.events:
+        for event in self.__sequence.events:
             padding = sequence.getPaddedEvent(event, prevTime)
             prevTime = event.timestamp
             for event2 in padding:
@@ -161,12 +164,12 @@ class SequenceWidget(QGraphicsScene):
                                      QPoint(eventCount * (self.eventWidth + self.offset), self.eventY),
                                      self.eventWidth, self)
                 self.addItem(widget)
-                self.eventWidgets[event2] = widget
+                self.__eventWidgets[event2] = widget
                 eventCount += 1
 
-        for event, widget in self.eventWidgets.items():
+        for event, widget in self.__eventWidgets.items():
             response = event.triggered
-            if (response is None or response.timestamp >= self.sequence.length
+            if (response is None or response.timestamp >= self.__sequence.length
                 or event.eventType in hidden or response.eventType in hidden):
                 continue
 
@@ -174,37 +177,36 @@ class SequenceWidget(QGraphicsScene):
             if (rule is None):
                 rule = sequence.getRule(event, response)
 
-            if (event.triggered in self.eventWidgets):
-                triggeredWidget = self.eventWidgets[event.triggered]
+            if (event.triggered in self.__eventWidgets):
+                triggeredWidget = self.__eventWidgets[event.triggered]
                 self.addItem(ArrowWidget(widget, triggeredWidget, rule))
 
                 # set up callbacks
-                widget.callbackParam = rule
-                triggeredWidget.callbackParam = rule
+                widget._callbackParam = rule
+                triggeredWidget._callbackParam = rule
 
     def __showDetails(self, rule):
         if (rule is None):
             self.parent().statusBar().showMessage("No details available")
             return
-        self.detailsView = DetailsContainer(self.sequence, rule)
-        self.detailsView.show()
+        # Store instance to prevent premature deletion
+        self.__detailsView = DetailsContainer(self.__sequence, rule)
+        self.__detailsView.show()
 
     def cleanUp(self):
-        self.sequence = None
-        self.eventWidgets = {}
+        self.__eventWidgets = {}
         self.clear()
 
 
 class Visualizer(QMainWindow):
-    paintSeq = Signal(Sequence, list, list)
+    __paintSeq = Signal(Sequence, list, list)
 
     def __init__(self):
         super().__init__()
-        self.sequenceWidget = None
-        self.layout = None
-        self.view = None
-        self.sequence = None
-        self.settingsView = Settings(self)
+        self.__sequenceWidget = None
+        self.__view = None
+        self.__sequence = None
+        self.__settingsView = Settings(self)
         self.__initGui()
         self.__initActions()
 
@@ -214,17 +216,17 @@ class Visualizer(QMainWindow):
 
         widget = QWidget()
 
-        self.layout = QVBoxLayout()
-        widget.setLayout(self.layout)
+        layout = QVBoxLayout()
+        widget.setLayout(layout)
 
-        self.view = QGraphicsView()
-        self.layout.addWidget(self.view, 0, 0)
+        self.__view = QGraphicsView()
+        layout.addWidget(self.__view, 0, 0)
 
-        self.sequenceWidget = SequenceWidget(self)
-        self.view.setScene(self.sequenceWidget)
+        self.__sequenceWidget = SequenceWidget(self)
+        self.__view.setScene(self.__sequenceWidget)
 
         self.setCentralWidget(widget)
-        self.paintSeq.connect(self.sequenceWidget.paint)
+        self.__paintSeq.connect(self.__sequenceWidget.paint)
 
         self.statusBar().showMessage("Sequence Visualizer")
 
@@ -293,7 +295,7 @@ class Visualizer(QMainWindow):
 
         logging.info("Saving sequence to file " + fileName)
         try:
-            self.sequenceWidget.sequence.store(fileName)
+            self.__sequenceWidget.sequence.store(fileName)
             self.statusBar().showMessage("Stored sequence in " + fileName)
         except (OSError, IOError) as ex:
             msg = "Unable to store sequence: " + str(ex)
@@ -310,20 +312,20 @@ class Visualizer(QMainWindow):
         self.setSequence(sequence)
 
     def setSequence(self, sequence):
-        self.sequence = sequence
-        self.settingsView.setSequence(sequence)
+        self.__sequence = sequence
+        self.__settingsView.setSequence(sequence)
         self.repaintSequence()
         self.statusBar().showMessage("Loaded sequence")
 
     def repaintSequence(self):
-        self.view.items().clear()
-        self.sequenceWidget.cleanUp()
-        self.paintSeq.emit(self.sequence, self.settingsView.highLights, self.settingsView.hidden)
-        self.sequenceWidget.update()
+        self.__view.items().clear()
+        self.__sequenceWidget.cleanUp()
+        self.__paintSeq.emit(self.__sequence, self.__settingsView.highLights, self.__settingsView.hidden)
+        self.__sequenceWidget.update()
         self.statusBar().showMessage("Redraw sequence")
 
     def __openSettings(self):
-        self.settingsView.show()
+        self.__settingsView.show()
 
 
 if __name__ == '__main__':

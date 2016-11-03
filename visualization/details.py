@@ -12,10 +12,10 @@ from algorithms import RESULT_IDX
 # noinspection PyAbstractClass
 class MplCanvas(FigureCanvas):
     def __init__(self, parent=None):
-        self.figure = Figure()
+        self._figure = Figure()
         self._fillFigure()
 
-        super().__init__(self.figure)
+        super().__init__(self._figure)
         self.setParent(parent)
 
         FigureCanvas.setSizePolicy(self, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
@@ -28,17 +28,17 @@ class MplCanvas(FigureCanvas):
 # noinspection PyAbstractClass
 class DetailsCanvas(MplCanvas):
     def __init__(self, sequence, rule):
-        self.sequence = sequence
-        self.rule = rule
+        self.__sequence = sequence
+        self.__rule = rule
         super().__init__()
 
     def _fillFigure(self):
-        self.__showDistributions(self.figure.add_subplot(121))
-        self.showFinalAssignment(self.figure.add_subplot(122))
+        self._showDistributions(self._figure.add_subplot(121))
+        self._showFinalAssignment(self._figure.add_subplot(122))
 
-    def __showDistributions(self, ax):
-        estimatedDist = self.rule.distributionResponse
-        trueDist = self.sequence.getBaseDistribution(self.rule)
+    def _showDistributions(self, ax):
+        estimatedDist = self.__rule.distributionResponse
+        trueDist = self.__sequence.getBaseDistribution(self.__rule)
 
         borders1 = estimatedDist.getCompleteInterval()
         borders2 = trueDist.getCompleteInterval() if (trueDist is not None) else estimatedDist.getCompleteInterval()
@@ -62,16 +62,16 @@ class DetailsCanvas(MplCanvas):
         ax.set_xlabel("Time Lag")
         ax.set_ylabel("Probability")
 
-    def showFinalAssignment(self, ax):
-        if (RESULT_IDX not in self.rule.data):
+    def _showFinalAssignment(self, ax):
+        if (RESULT_IDX not in self.__rule.data):
             return
 
-        trigger = self.rule.trigger
-        response = self.rule.response
-        idx = np.array(self.rule.data[RESULT_IDX])
+        trigger = self.__rule.trigger
+        response = self.__rule.response
+        idx = np.array(self.__rule.data[RESULT_IDX])
 
-        missingTrigger = self.sequence.getMissingIdx(trigger)
-        missingResponse = self.sequence.getMissingIdx(response)
+        missingTrigger = self.__sequence.getMissingIdx(trigger)
+        missingResponse = self.__sequence.getMissingIdx(response)
 
         i = np.array(idx, copy=True)
         for j in range(idx.shape[0]):
@@ -92,7 +92,7 @@ class DetailsCanvas(MplCanvas):
 class DetailsTable(QTableWidget):
     def __init__(self, data):
         super().__init__()
-        self.data = data
+        self.__data = data
         self.__fillTable()
         self.resizeColumnsToContents()
         self.horizontalHeader().setStretchLastSection(True)
@@ -101,9 +101,9 @@ class DetailsTable(QTableWidget):
 
     def __fillTable(self):
         self.setColumnCount(2)
-        self.setRowCount(len(self.data))
+        self.setRowCount(len(self.__data))
 
-        for index, (key, value) in enumerate(self.data.items()):
+        for index, (key, value) in enumerate(self.__data.items()):
             leftItem = QTableWidgetItem(str(key))
             rightItem = QTableWidgetItem(str(value))
             self.setItem(index, 0, leftItem)
@@ -114,23 +114,25 @@ class DetailsContainer(QWidget):
     def __init__(self, sequence, rule):
         super().__init__()
 
-        self.canvas = DetailsCanvas(sequence, rule)
-        self.details = DetailsTable(rule.data)
+        self.__canvas = DetailsCanvas(sequence, rule)
+        self.__details = DetailsTable(rule.data)
 
-        self.externalFiguresButton = QPushButton('External Figures')
+        self.__externalFiguresButton = QPushButton('External Figures')
         # noinspection PyUnresolvedReferences
-        self.externalFiguresButton.clicked.connect(self.__externalFigures)
+        self.__externalFiguresButton.clicked.connect(self.__externalFigures)
 
         layout = QVBoxLayout()
-        layout.addWidget(self.canvas)
-        layout.addWidget(self.details)
-        layout.addWidget(self.externalFiguresButton)
+        layout.addWidget(self.__canvas)
+        layout.addWidget(self.__details)
+        layout.addWidget(self.__externalFiguresButton)
 
         self.setLayout(layout)
 
     def __externalFigures(self):
         fig, ax = plt.subplots(1, 1)
-        self.canvas.__showDistributions(ax)
+        # noinspection PyProtectedMember
+        self.__canvas._showDistributions(ax)
         fig, ax = plt.subplots(1, 1)
-        self.canvas.showFinalAssignment(ax)
+        # noinspection PyProtectedMember
+        self.__canvas._showFinalAssignment(ax)
         plt.show()

@@ -25,11 +25,11 @@ class SymantecParser(SequenceParser):
             self._createEvent(eventId, time)
 
         self.__printStatistic()
-        return Sequence(self.events)
+        return Sequence(self._events)
 
     def __printStatistic(self):
-        print("# Events: {}".format(len(self.events)))
-        l = list(self.count.keys())
+        print("# Events: {}".format(len(self._events)))
+        l = list(self._count.keys())
         l.sort()
         for i in l:
-            print("EventID {}:\t{},\t#{}".format(i, self.knowledgeBase[str(i)]["desc"], self.count[i]))
+            print("EventID {}:\t{},\t#{}".format(i, self.knowledgeBase[str(i)]["desc"], self._count[i]))

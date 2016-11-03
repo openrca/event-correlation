@@ -11,10 +11,7 @@ class MunkresMatcher(Matcher):
     def __init__(self):
         super().__init__(__name__)
 
-    def _compute(self):
-        trigger = self.sequence.asVector(self.trigger)
-        response = self.sequence.asVector(self.response)
-
+    def _compute(self, trigger, response):
         [TTrigger, TResponse] = np.meshgrid(trigger, response)
         delta = TResponse - TTrigger
         # square to make pair-wise distances asymmetric
@@ -26,15 +23,15 @@ class MunkresMatcher(Matcher):
 
         delta[delta > 0] = np.sqrt(delta[delta > 0])
         cost = delta[idx[:, 1], idx[:, 0]]
-        self.logger.debug("Found matchings with total cost {:.2f}".format(cost.sum()))
+        self._logger.debug("Found matchings with total cost {:.2f}".format(cost.sum()))
 
-        if (self.logger.isEnabledFor(logging.TRACE)):
+        if (self._logger.isEnabledFor(logging.TRACE)):
             for i in range(min(len(trigger), len(response))):
-                self.logger.trace("Matched ({}, {}) -> {:.4f} - {:.4f} = {:.4f}"
-                                  .format(idx[i][0], idx[i][1], response[idx[i][1]], trigger[idx[i][0]],
+                self._logger.trace("Matched ({}, {}) -> {:.4f} - {:.4f} = {:.4f}"
+                                   .format(idx[i][0], idx[i][1], response[idx[i][1]], trigger[idx[i][0]],
                                           delta[idx[i][1], idx[i][0]]))
             if (len(trigger) != len(response)):
-                self.logger.trace("Remaining events were not assigned")
+                self._logger.trace("Remaining events were not assigned")
 
         cost = self._trimVector(cost)
         return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx}

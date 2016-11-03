@@ -18,10 +18,10 @@ CHOICES = [GENERATE, LOAD, SYMANTEC, PRINTER]
 
 class SequenceParser(abc.ABC):
     def __init__(self):
-        self.count = {}
-        self.events = []
-        self.filter = []
-        self.whitelist = []
+        self._count = {}
+        self._events = []
+        self._filter = []
+        self._whitelist = []
 
     # noinspection PyShadowingBuiltins
     def create(self, file, filter=None, whitelist=None, normalization=1):
@@ -35,9 +35,9 @@ class SequenceParser(abc.ABC):
         """
         # noinspection PyUnresolvedReferences
         if filter is not None:
-            self.filter = filter
+            self._filter = filter
         if whitelist is not None:
-            self.whitelist = whitelist
+            self._whitelist = whitelist
         if (file is not None):
             # noinspection PyUnresolvedReferences
             file = os.path.toAbsolutePath(file)
@@ -53,9 +53,9 @@ class SequenceParser(abc.ABC):
         return aniso8601.parse_datetime(timeString).timestamp()
 
     def _createEvent(self, eventId, timestamp):
-        if (eventId not in self.filter and (len(self.whitelist) == 0 or eventId in self.whitelist)):
-            self.events.append(Event(eventId, timestamp))
-            if eventId in self.count:
-                self.count[eventId] += 1
+        if (eventId not in self._filter and (len(self._whitelist) == 0 or eventId in self._whitelist)):
+            self._events.append(Event(eventId, timestamp))
+            if eventId in self._count:
+                self._count[eventId] += 1
             else:
-                self.count[eventId] = 1
+                self._count[eventId] = 1

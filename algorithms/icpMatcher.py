@@ -14,11 +14,11 @@ from core.distribution import KdeDistribution
 class IcpMatcher(Matcher):
     def __init__(self):
         super().__init__(__name__)
-        self.initPose = None
-        self.f = None
-        self.maxiter = 50
-        self.threshold = 1e-6
-        self.showVisualization = False
+        self.__initPose = None
+        self.__f = None
+        self.__maxiter = 50
+        self.__threshold = 1e-6
+        self.__showVisualization = False
 
     def _parseArgs(self, kwargs):
         """
@@ -35,48 +35,43 @@ class IcpMatcher(Matcher):
             showVisualization: Show a visualization of the current assignment after each iteration. Default is False.
         """
         if ("maxiter" in kwargs):
-            self.maxiter = kwargs["maxiter"]
+            self.__maxiter = kwargs["maxiter"]
         if ("threshold" in kwargs):
-            self.threshold = kwargs["threshold"]
+            self.__threshold = kwargs["threshold"]
         if ("initPos" in kwargs):
-            self.initPose = kwargs["initPos"]
+            self.__initPose = kwargs["initPos"]
         if ("f" in kwargs):
-            self.f = kwargs["f"]
+            self.__f = kwargs["f"]
         if ("showVisualization" in kwargs):
-            self.showVisualization = kwargs["showVisualization"]
+            self.__showVisualization = kwargs["showVisualization"]
 
-    def _compute(self, trigger=None, response=None):
-        if (trigger is None):
-            trigger = np.array(self.sequence.asVector(self.trigger))
-        if (response is None):
-            response = np.array(self.sequence.asVector(self.response))
-
+    def _compute(self, trigger, response):
         data = np.array(trigger, copy=True).astype(float)
         model = np.array(response, copy=True).astype(float)
 
         if (len(trigger) > len(response)):
-            self.logger.debug('Switching trigger and response for calculation')
+            self._logger.debug('Switching trigger and response for calculation')
             tmp = data
             data = model
             model = tmp
 
-        if (self.initPose is None):
+        if (self.__initPose is None):
             # TODO find better method for initial guess
             mean = MeanDistanceInitialGuess().computeOffset(data, model)
             sac = SampleConsensusInitialGuess().computeOffset(data, model)
             binAlignment = BinAlignmentInitialGuess().computeOffset(data, model)
-            self.logger.trace("Mean initial guess: {}".format(mean))
-            self.logger.trace("SAC initial guess: {}".format(sac))
-            self.logger.trace("Bin alignment initial guess: {}".format(binAlignment))
-            self.initPose = (mean + sac + binAlignment) / 3
-            self.logger.info("Estimated initial guess as {}".format(self.initPose))
+            self._logger.trace("Mean initial guess: {}".format(mean))
+            self._logger.trace("SAC initial guess: {}".format(sac))
+            self._logger.trace("Bin alignment initial guess: {}".format(binAlignment))
+            self.__initPose = (mean + sac + binAlignment) / 3
+            self._logger.info("Estimated initial guess as {}".format(self.__initPose))
 
-        opt = np.array(self.initPose).astype(np.float32)
+        opt = np.array(self.__initPose).astype(np.float32)
         data += opt
 
         p = None
-        for i in range(self.maxiter):
-            if (p is not None and abs(p) < self.threshold):
+        for i in range(self.__maxiter):
+            if (p is not None and abs(p) < self.__threshold):
                 break
 
             subData, selectedIdx = self.__getSubset(data, model)
@@ -85,14 +80,14 @@ class IcpMatcher(Matcher):
             data += p
             opt += p
 
-            self.logger.debug("Offset {}\t Distance {}".format(opt, IcpMatcher.__costFunction(0, subData, model[idx])))
-            if (self.showVisualization):
+            self._logger.debug("Offset {}\t Distance {}".format(opt, IcpMatcher.__costFunction(0, subData, model[idx])))
+            if (self.__showVisualization):
                 IcpMatcher.__visualizeCurrentStep(trigger, subData, selectedIdx, model, idx)
 
         idx = IcpMatcher._findMinimalDistance(data, model)
         idx = np.column_stack((np.arange(idx.size), idx))
         tmp = model[idx[:, 1]]
-        self.logger.info("Final offset {} ({} distance)".format(opt, IcpMatcher.__costFunction(0, data, tmp)))
+        self._logger.info("Final offset {} ({} distance)".format(opt, IcpMatcher.__costFunction(0, data, tmp)))
 
         if (len(trigger) > len(response)):
             cost = (tmp - response) * -1
@@ -142,7 +137,7 @@ class IcpMatcher(Matcher):
         return math.sqrt(np.sum(np.square((data + p) - model)))
 
     def __getSubset(self, data, model):
-        if (self.f == 1 or self.f is None):
+        if (self.__f == 1 or self.__f is None):
             return data, np.arange(data.size)
 
         [A, B] = np.meshgrid(data, model)
@@ -152,10 +147,10 @@ class IcpMatcher(Matcher):
         values = delta[minIdx[:, 0], minIdx[:, 1]]
 
         selectedIdx = values
-        if (isinstance(self.f, numbers.Number)):
+        if (isinstance(self.__f, numbers.Number)):
             # based on The Trimmed Iterative Closest Point algorithm, Chetverikov, Svirko and Stepanov
-            selectedIdx = values.argsort()[:math.floor(self.f * data.size)]
-        if (self.f == "confidence"):
+            selectedIdx = values.argsort()[:math.floor(self.__f * data.size)]
+        if (self.__f == "confidence"):
             # based on The Dual-Bootstrap Iterative Closest Point Algorithm With Application to Retinal Image
             # Registration, Stewart, Tsai and Roysam
             selectedIdx = np.arange(values.size)[abs(values - values.mean()) < 1.282 * values.std()]
@@ -164,7 +159,7 @@ class IcpMatcher(Matcher):
         if (selectedIdx.size > model.size):
             selectedIdx = values[selectedIdx].argsort()[:model.size]
 
-        self.logger.trace("Selected {} from {} values".format(selectedIdx.size, data.size))
+        self._logger.trace("Selected {} from {} values".format(selectedIdx.size, data.size))
         return data[minIdx[:, 1][selectedIdx]], selectedIdx
 
     # noinspection PyTypeChecker
@@ -191,16 +186,16 @@ class SampleConsensusInitialGuess(InitialGuess):
     """
 
     def __init__(self):
-        self.nrSamples = 3
-        self.maxIterations = 500
-        self.minSampleDistance = 0
-        self.distanceThreshold = 50
-        self.kCorrespondence = 2
+        self.__nrSamples = 3
+        self.__maxIterations = 500
+        self.__minSampleDistance = 0
+        self.__distanceThreshold = 50
+        self.__kCorrespondence = 2
 
     def computeOffset(self, data, model):
         guess = 0
         minError = sys.maxsize
-        for i in range(self.maxIterations):
+        for i in range(self.__maxIterations):
             dataSamples = self.__selectSamples(data)
             modelSamples = self.__findSimilarFeatures(dataSamples, model)
 
@@ -216,12 +211,12 @@ class SampleConsensusInitialGuess(InitialGuess):
     def __selectSamples(self, data):
         result = []
         iterationsWithoutSample = 0
-        while (len(result) < self.nrSamples):
+        while (len(result) < self.__nrSamples):
             d = np.random.choice(data, 1)
             valid = True
 
             for i in result:
-                if (abs(d - i) < self.minSampleDistance):
+                if (abs(d - i) < self.__minSampleDistance):
                     valid = False
 
             if (valid):
@@ -230,7 +225,7 @@ class SampleConsensusInitialGuess(InitialGuess):
             else:
                 iterationsWithoutSample += 1
             if (iterationsWithoutSample > 3 * data.size):
-                self.minSampleDistance /= 2
+                self.__minSampleDistance /= 2
                 iterationsWithoutSample = 0
 
         return np.array(result).flatten()
@@ -239,7 +234,7 @@ class SampleConsensusInitialGuess(InitialGuess):
         result = []
         for d in data:
             # noinspection PyProtectedMember
-            idx = IcpMatcher._findMinimalDistance(d, model, self.kCorrespondence)
+            idx = IcpMatcher._findMinimalDistance(d, model, self.__kCorrespondence)
             result.append(np.random.choice(idx, 1)[0])
 
         return model[result]
@@ -250,50 +245,50 @@ class SampleConsensusInitialGuess(InitialGuess):
         idx = IcpMatcher._findMinimalDistance(data, model)
         dist = data - model[idx]
         for d in dist:
-            error += min(abs(d) / self.distanceThreshold, 1)
+            error += min(abs(d) / self.__distanceThreshold, 1)
         return error
 
 
 class BinAlignmentInitialGuess(InitialGuess):
     def __init__(self):
-        self.nrBins = None
-        self.binLength = None
-        self.interval = None
-        self.modelBins = None
+        self.__nrBins = None
+        self.__binLength = None
+        self.__interval = None
+        self.__modelBins = None
 
-        self.data = None
-        self.model = None
+        self.__data = None
+        self.__model = None
 
     def computeOffset(self, data, model):
-        self.model = model
-        self.data = data
+        self.__model = model
+        self.__data = data
 
         self.__setNumberOfBins(data, model)
-        self.interval = (min(data.min(), model.min()), max(data.max(), model.max()))
-        self.binLength = (self.interval[1] - self.interval[0]) / self.nrBins
-        self.modelBins = self.__countBinAssignments(model, 0)
+        self.__interval = (min(data.min(), model.min()), max(data.max(), model.max()))
+        self.__binLength = (self.__interval[1] - self.__interval[0]) / self.__nrBins
+        self.__modelBins = self.__countBinAssignments(model, 0)
 
         result = optimize.minimize(self.__costFunction, np.zeros(1), method="TNC", jac=self.__jacobiFunction,
-                                   bounds=[(-self.interval[1], self.interval[1])])
+                                   bounds=[(-self.__interval[1], self.__interval[1])])
         return result.x
 
     def __setNumberOfBins(self, data, model):
         # Based on Sturges rules
         dataBins = math.log2(data.size) + 1
         modelBins = math.log2(model.size) + 1
-        self.nrBins = math.floor(max(dataBins, modelBins))
+        self.__nrBins = math.floor(max(dataBins, modelBins))
 
     def __countBinAssignments(self, points, offset):
-        borders = np.arange(self.nrBins + 1) * self.binLength + self.interval[0]
+        borders = np.arange(self.__nrBins + 1) * self.__binLength + self.__interval[0]
         return np.histogram(points - offset, borders)[0]
 
     def __costFunction(self, offset):
-        dataBins = self.__countBinAssignments(self.data, offset)
-        return abs(dataBins - self.modelBins).sum() ** 2
+        dataBins = self.__countBinAssignments(self.__data, offset)
+        return abs(dataBins - self.__modelBins).sum() ** 2
 
     def __jacobiFunction(self, offset):
-        modelMean = self.model.mean() - offset
-        dataMean = self.data.mean()
+        modelMean = self.__model.mean() - offset
+        dataMean = self.__data.mean()
         return dataMean - modelMean
 
 

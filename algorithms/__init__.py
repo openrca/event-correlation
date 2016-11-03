@@ -23,16 +23,13 @@ class Matcher(abc.ABC):
     def __init__(self, name):
         if (name is None):
             name = __name__
-        self.name = name
-        self.logger = logging.getLogger(self.name)
-        self.logger.setLevel(logging.TRACE)
+        self._logger = logging.getLogger(name)
+        self._logger.setLevel(logging.TRACE)
         self.trimCost = True
         self.zScore = CONFIDENCE_50
         np.set_printoptions(precision=4, linewidth=150, threshold=10000)
 
-        self.sequence = None
-        self.trigger = None
-        self.response = None
+        self._sequence = None
 
     def _trimVector(self, data):
         """ Remove potential outliers.
@@ -44,7 +41,7 @@ class Matcher(abc.ABC):
 
         data.sort()
         result = data[abs(data - np.median(data)) <= self.zScore * data.std()]
-        self.logger.debug("Kept {} / {} samples".format(result.size, data.size))
+        self._logger.debug("Kept {} / {} samples".format(result.size, data.size))
         return result
 
     def matchAll(self, sequence, **kwargs):
@@ -68,16 +65,16 @@ class Matcher(abc.ABC):
 
                 if (trigger == response):
                     continue
-                self.logger.debug("Matching '{}' with '{}'".format(trigger, response))
+                self._logger.debug("Matching '{}' with '{}'".format(trigger, response))
 
                 seqTrigger = sequence.asVector(trigger)
                 seqResponse = sequence.asVector(response)
 
                 score, pValue = performance.compute(seqTrigger, seqResponse)
                 if (pValue <= alpha):
-                    self.logger.info("Found correlated events '{}' and '{}'".format(trigger, response))
+                    self._logger.info("Found correlated events '{}' and '{}'".format(trigger, response))
                     if (len(seqTrigger) < len(sequence.events) / 200 or len(seqResponse) < len(sequence.events) / 200):
-                        self.logger.warn("Too few samples. Skipping events")
+                        self._logger.warn("Too few samples. Skipping events")
                         continue
 
                     # noinspection PyNoneFunctionAssignment
@@ -95,11 +92,14 @@ class Matcher(abc.ABC):
 
     def match(self, sequence, trigger, response, **kwargs):
         """ Computes a correlation of two event types. Check parseArgs for additional parameters. """
-        self.sequence = sequence
-        self.trigger = trigger
-        self.response = response
+        self._sequence = sequence
         self._parseArgs(kwargs)
-        data = self._compute()
+        triggerVector = self._sequence.asVector(trigger)
+        responseVector = self._sequence.asVector(response)
+        if (len(triggerVector) == 0 or len(responseVector) == 0):
+            raise ValueError('No events with id {} and/or {} found.'.format(trigger, response))
+
+        data = self._compute(triggerVector, responseVector)
         rule = Rule(trigger, response, data[RESULT_KDE], data=data)
         self.__fillRuleData(rule, rule.distributionResponse)
         self.__connectEventPairs(trigger, response, data[RESULT_IDX])
@@ -109,7 +109,7 @@ class Matcher(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _compute(self):
+    def _compute(self, trigger, response):
         pass
 
     # noinspection PyMethodMayBeStatic
@@ -128,8 +128,8 @@ class Matcher(abc.ABC):
         # TODO what happens if one event is connected several times?
         if (idx is None):
             return
-        t = self.sequence.getEvents(trigger)
-        r = self.sequence.getEvents(response)
+        t = self._sequence.getEvents(trigger)
+        r = self._sequence.getEvents(response)
         for idxTrigger, idxResponse in idx:
             t[idxTrigger].setTriggered(r[idxResponse])
 
