@@ -4,128 +4,27 @@ import math
 import os
 import sys
 
-from PySide.QtCore import Signal, QPoint, QRectF
-from PySide.QtGui import QMainWindow, QWidget, QVBoxLayout, QPainter, QPainterPath, QGraphicsScene, QGraphicsView, \
-    QGraphicsItem, QFont, QFontMetrics, QBrush, QColor, QPen, QAction, QFileDialog, QMessageBox, QApplication
+from PySide.QtCore import Signal, QPoint
+from PySide.QtGui import QMainWindow, QWidget, QVBoxLayout, QGraphicsScene, QGraphicsView, QAction, QFileDialog, \
+    QMessageBox, QApplication
 
 import core
 from core.rule import Rule
 from core.sequence import Sequence
-from provider import generator
+from visualization import EventWidget, ArrowWidget
 from visualization.details import DetailsContainer
 from visualization.settings import Settings
 
 
-class EventWidget(QGraphicsItem):
+class ResponsiveEventWidget(EventWidget):
     def __init__(self, event, highLight, pos, size, parent=None):
-        super().__init__()
-        self._eventType = event
+        super().__init__(event, highLight, pos, size)
         self._callbackParam = None
-        self.__highLight = highLight
-        self.__pos = pos
-        self.__size = min(max(size, 10), 50)
         self.__parent = parent
-        self.__rect = QRectF(self.__pos.x(), self.__pos.y(), self.__size, self.__size)
-
-        self.setToolTip(event.eventType)
-
-    def boundingRect(self):
-        return self.__rect
-
-    def paint(self, painter: QPainter, option, widget):
-        size = self.__getTextSize()
-        painter.setPen(QPen(QColor(0, 0, 0)))
-        painter.setBrush(QBrush(QColor(255, 255, 255)))
-        if (self.__highLight):
-            painter.setBrush(QBrush(QColor(150, 150, 150)))
-
-        painter.drawEllipse(self.boundingRect())
-        if (len(self._eventType.getExternalRepresentation()) <= 3):
-            painter.drawText(self.__pos.x() + (self.__size - size[0]) // 2,
-                             self.__pos.y() + (self.__size + size[1]) // 2,
-                             self._eventType.getExternalRepresentation())
-
-    def __getTextSize(self):
-        font = QFont()
-        metric = QFontMetrics(font)
-        width = metric.width(self._eventType.getExternalRepresentation())
-        height = metric.width(self._eventType.getExternalRepresentation())
-        return (width, height)
 
     def mouseDoubleClickEvent(self, event):
         if (self.__parent is not None):
             self.__parent.detailsSignal.emit(self._callbackParam)
-
-    def __eq__(self, other):
-        if (not isinstance(other, EventWidget)):
-            return False
-        return other._eventType == self._eventType
-
-    def __hash__(self):
-        return hash(self._eventType)
-
-
-class ArrowWidget(QGraphicsItem):
-    def __init__(self, start, end, rule):
-        super().__init__()
-        self.__start = start
-        self.__end = end
-        self.__rule = rule
-        self.arcOffset = 50
-        self.triangleSize = 5
-
-        startX = start.boundingRect().x()
-        endX = end.boundingRect().x()
-
-        if (startX > endX):
-            tmp = startX
-            startX = endX
-            endX = tmp
-
-        self.rect = QRectF(startX, start.boundingRect().y() - self.arcOffset,
-                           endX - startX + end.boundingRect().width(),
-                           self.arcOffset)
-
-    def boundingRect(self):
-        return self.rect
-
-    def paint(self, painter: QPainter, option, widget):
-        color = 0
-        if (self.__rule is not None):
-            # noinspection PyProtectedMember
-            distance = self.__end._eventType.timestamp - self.__start._eventType.timestamp
-            prob = self.__rule.distributionResponse.getRelativePdf(distance)
-            color = min(200, (1 - prob) * 255)
-        color = QColor(color, color, color)
-
-        painter.setPen(QPen(color))
-
-        startRect = self.__start.boundingRect()
-        endRect = self.__end.boundingRect()
-
-        startPos = QPoint(startRect.x() + startRect.width() // 2, startRect.y())
-        endPos = QPoint(endRect.x() + startRect.width() // 2, endRect.y())
-        vertex = QPoint(startPos.x() + (endPos.x() - startPos.x()) / 2, startPos.y() - self.arcOffset)
-
-        # draw arc
-        path = QPainterPath()
-        path.moveTo(startPos)
-        path.cubicTo(vertex, vertex, endPos)
-        painter.drawPath(path)
-        angle = path.angleAtPercent(1)
-
-        # draw arrow head
-        path = QPainterPath()
-        path.moveTo(0, 0)
-        path.lineTo(-self.triangleSize, -self.triangleSize)
-        path.lineTo(self.triangleSize, -self.triangleSize)
-        path.lineTo(0, 0)
-
-        painter.save()
-        painter.translate(endPos)
-        painter.rotate(270 - angle)
-        painter.fillPath(path, QBrush(color))
-        painter.restore()
 
 
 class SequenceWidget(QGraphicsScene):
@@ -137,9 +36,9 @@ class SequenceWidget(QGraphicsScene):
         self.__eventWidgets = {}
         self.__detailsView = None
 
-        self.offset = 10
-        self.eventWidth = 20
-        self.eventY = 0
+        self.__offset = 10
+        self.__eventWidth = 20
+        self.__eventY = 0
 
         self.detailsSignal.connect(self.__showDetails)
 
@@ -160,9 +59,8 @@ class SequenceWidget(QGraphicsScene):
             padding = sequence.getPaddedEvent(event, prevTime)
             prevTime = event.timestamp
             for event2 in padding:
-                widget = EventWidget(event2, event2.eventType in highLight,
-                                     QPoint(eventCount * (self.eventWidth + self.offset), self.eventY),
-                                     self.eventWidth, self)
+                point = QPoint(eventCount * (self.__eventWidth + self.__offset), self.__eventY)
+                widget = ResponsiveEventWidget(event2, event2.eventType in highLight, point, self.__eventWidth, self)
                 self.addItem(widget)
                 self.__eventWidgets[event2] = widget
                 eventCount += 1
@@ -179,11 +77,30 @@ class SequenceWidget(QGraphicsScene):
 
             if (event.triggered in self.__eventWidgets):
                 triggeredWidget = self.__eventWidgets[event.triggered]
-                self.addItem(ArrowWidget(widget, triggeredWidget, rule))
+                self.addItem(self.__createArrow(event, rule, widget, triggeredWidget))
 
                 # set up callbacks
                 widget._callbackParam = rule
                 triggeredWidget._callbackParam = rule
+
+    @staticmethod
+    def __createArrow(event, rule, widget, triggeredWidget):
+        distance = event.triggered.timestamp - event.timestamp
+        prob = rule.distributionResponse.getRelativePdf(distance)
+        color = min(200, (1 - prob) * 255)
+
+        startRect = widget.boundingRect()
+        endRect = triggeredWidget.boundingRect()
+
+        if (startRect.x() > endRect.x()):
+            tmp = startRect
+            startRect = endRect
+            endRect = tmp
+
+        start = QPoint(startRect.x() + startRect.width() // 2, startRect.y())
+        end = QPoint(endRect.x() + startRect.width() // 2, endRect.y())
+
+        return ArrowWidget(start, end, color, 50)
 
     def __showDetails(self, rule):
         if (rule is None):
