@@ -1,18 +1,5 @@
-import sys
-
 from PySide.QtCore import QPoint, QRectF
-from PySide.QtGui import QApplication, QBrush, QColor, QFont, QFontMetrics, QGraphicsItem, QPainter, QPainterPath, QPen
-
-
-def showVisualizer(sequence=None):
-    from visualization.visualizer import Visualizer
-    app = QApplication(sys.argv)
-    v = Visualizer()
-    v.show()
-    if (sequence is not None):
-        v.setSequence(sequence)
-
-    sys.exit(app.exec_())
+from PySide.QtGui import QBrush, QColor, QFont, QFontMetrics, QGraphicsItem, QPainter, QPainterPath, QPen
 
 
 class EventWidget(QGraphicsItem):

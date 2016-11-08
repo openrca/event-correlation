@@ -12,6 +12,7 @@ import core
 from core.rule import Rule
 from core.sequence import Sequence
 from visualization import EventWidget, ArrowWidget
+from visualization.dependencies import DependenciesView
 from visualization.details import DetailsContainer
 from visualization.settings import Settings
 
@@ -123,6 +124,7 @@ class Visualizer(QMainWindow):
         self.__sequenceWidget = None
         self.__view = None
         self.__sequence = None
+        self.__dependenciesView = DependenciesView()
         self.__settingsView = Settings(self)
         self.__initGui()
         self.__initActions()
@@ -164,6 +166,12 @@ class Visualizer(QMainWindow):
         saveAction.setStatusTip('Save current sequence')
         saveAction.triggered.connect(self.__saveSequence)
         sequenceMenu.addAction(saveAction)
+
+        dependenciesAction = QAction('Dependencies', self)
+        dependenciesAction.setShortcut('Ctrl+D')
+        dependenciesAction.setStatusTip('Show dependencies')
+        dependenciesAction.triggered.connect(self.__dependenciesView.show)
+        fileMenu.addAction(dependenciesAction)
 
         settingsAction = QAction('Settings', self)
         settingsAction.setShortcut('Ctrl+Shift+S')
@@ -221,6 +229,11 @@ class Visualizer(QMainWindow):
         self.__settingsView.setSequence(sequence)
         self.repaintSequence()
         self.statusBar().showMessage("Loaded sequence")
+
+    def setDependencyRoot(self, root):
+        if (self.__sequence is None):
+            return
+        self.__dependenciesView.setData(self.__sequence.calculatedRules, root)
 
     def repaintSequence(self):
         self.__view.items().clear()

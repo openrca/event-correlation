@@ -4,13 +4,16 @@
 import argparse
 import logging
 import os
+import sys
+
+from PySide.QtGui import QApplication
 
 import provider
-import visualization
 from algorithms import lpMatcher, lagEM, munkresMatcher, icpMatcher
 from core import sequence, distribution
 from core.timer import Timer
 from provider import symantec, generator, printer
+from visualization.visualizer import Visualizer
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-m", "--method", action="store", type=str, required=True, choices=provider.CHOICES,
@@ -103,4 +106,11 @@ for rule in calculatedRules:
     if (empiricalDist is not None):
         rule.data["Empirical Dist"] = empiricalDist
 
-visualization.showVisualizer(seq)
+app = QApplication(sys.argv)
+v = Visualizer()
+v.setSequence(seq)
+if (trigger is not None and response is None):
+    v.setDependencyRoot(trigger)
+
+v.show()
+sys.exit(app.exec_())
