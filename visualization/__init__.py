@@ -55,8 +55,11 @@ class ArrowWidget(QGraphicsItem):
         self.__arcOffset = arcOffset
         self.__triangleSize = 5
 
-        self.__rect = QRectF(start.x(), start.y() - max(self.__triangleSize, self.__arcOffset),
-                             end.x() - start.x() + self.__triangleSize, max(self.__triangleSize, self.__arcOffset))
+        vertex = QPoint(self.__start.x() + (self.__end.x() - self.__start.x()) / 2, self.__start.y() - self.__arcOffset)
+        self.__rect = QRectF(QPoint(min(start.x(), end.x()) - self.__triangleSize,
+                                    min(start.y(), end.y(), vertex.y()) - self.__triangleSize),
+                             QPoint(max(start.x(), end.x()) + self.__triangleSize,
+                                    max(start.y(), end.y(), vertex.y()) + self.__triangleSize))
 
     def boundingRect(self):
         return self.__rect
