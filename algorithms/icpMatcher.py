@@ -96,7 +96,7 @@ class IcpMatcher(Matcher):
             cost = tmp - trigger
         cost = self._trimVector(cost)
         return {RESULT_MU: cost.mean(), RESULT_SIGMA: cost.std(), RESULT_KDE: KdeDistribution(cost), RESULT_IDX: idx,
-                "Offset": opt, "TIMES_A": trigger[idx[:, 0]], "TIMES_B": model[idx[:, 1]]}
+                "Offset": opt}
 
     @staticmethod
     def __visualizeCurrentStep(src, data, dataIdx, model, modelIdx):
