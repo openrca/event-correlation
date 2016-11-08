@@ -18,7 +18,7 @@ from visualization.settings import Settings
 
 class ResponsiveEventWidget(EventWidget):
     def __init__(self, event, highLight, pos, size, parent=None):
-        super().__init__(event, highLight, pos, size)
+        super().__init__(event, pos, highLight, size)
         self._callbackParam = None
         self.__parent = parent
 

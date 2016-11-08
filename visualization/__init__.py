@@ -16,7 +16,7 @@ def showVisualizer(sequence=None):
 
 
 class EventWidget(QGraphicsItem):
-    def __init__(self, event, highLight, pos, size):
+    def __init__(self, event, pos, highLight=False, size=20):
         super().__init__()
         self._eventType = event
         self.__highLight = highLight
@@ -31,6 +31,7 @@ class EventWidget(QGraphicsItem):
 
     def paint(self, painter: QPainter, option, widget):
         size = self.__getTextSize()
+        painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(QPen(QColor(0, 0, 0)))
         painter.setBrush(QBrush(QColor(255, 255, 255)))
         if (self.__highLight):
@@ -74,13 +75,17 @@ class ArrowWidget(QGraphicsItem):
         return self.__rect
 
     def paint(self, painter: QPainter, option, widget):
+        painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(QPen(self.__color))
         vertex = QPoint(self.__start.x() + (self.__end.x() - self.__start.x()) / 2, self.__start.y() - self.__arcOffset)
 
         # draw arc
         path = QPainterPath()
         path.moveTo(self.__start)
-        path.cubicTo(vertex, vertex, self.__end)
+        if (self.__arcOffset == 0):
+            path.lineTo(self.__end)
+        else:
+            path.cubicTo(vertex, vertex, self.__end)
         painter.drawPath(path)
         angle = path.angleAtPercent(1)
 
