@@ -75,6 +75,8 @@ class SequenceWidget(QGraphicsScene):
             rule = sequence.getCalculatedRule(event, response)
             if (rule is None):
                 rule = sequence.getRule(event, response)
+            if (rule is None):
+                continue
 
             if (event.triggered in self.__eventWidgets):
                 triggeredWidget = self.__eventWidgets[event.triggered]

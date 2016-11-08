@@ -76,6 +76,8 @@ class DependencyTree(QGraphicsScene):
         tree = {}
         for rule in rules:
             tree.setdefault(rule.trigger, []).append(rule.response)
+        for rule in rules:
+            tree.setdefault(rule.response, []).append(rule.trigger)
         return tree
 
     @staticmethod

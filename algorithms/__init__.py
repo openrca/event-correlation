@@ -107,7 +107,18 @@ class Matcher(abc.ABC):
             raise ValueError('No events with id {} and/or {} found.'.format(trigger, response))
 
         data = self._compute(triggerVector, responseVector)
+
+        samples = data[RESULT_KDE].samples
+        if (len(samples[samples < 0]) > len(samples) / 2):
+            data[RESULT_KDE] = -data[RESULT_KDE]
+            data[RESULT_MU] = -data[RESULT_MU]
+            data[RESULT_IDX][:, 0], data[RESULT_IDX][:, 1] = data[RESULT_IDX][:, 1], data[RESULT_IDX][:, 0].copy()
+            tmp = trigger
+            trigger = response
+            response = tmp
+
         rule = Rule(trigger, response, data[RESULT_KDE], data=data)
+
         self.__fillRuleData(rule, rule.distributionResponse)
         self.__connectEventPairs(trigger, response, data[RESULT_IDX])
 
