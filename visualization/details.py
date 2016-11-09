@@ -144,7 +144,7 @@ class DetailsContainer(QWidget):
         self.__sequence = sequence
         self.__rule = rule
         self.__canvas.setData(sequence, rule)
-        self.__label.setText('({}) -> ({})'.format(rule.trigger, rule.response))
+        self.__label.setText('{} -> {}'.format(rule.trigger, rule.response))
         self.__details.setData(rule.data)
 
     def __externalFigures(self):
