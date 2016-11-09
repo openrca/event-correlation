@@ -3,12 +3,13 @@ from PySide.QtGui import QBrush, QColor, QFont, QFontMetrics, QGraphicsItem, QPa
 
 
 class EventWidget(QGraphicsItem):
-    def __init__(self, event, pos, highLight=False, size=20):
+    def __init__(self, event, pos, highLight=False, size=20, labelBelow=False):
         super().__init__()
         self._eventType = event
         self.__highLight = highLight
         self.__pos = pos
         self.__size = size
+        self.__labelBelow = labelBelow
         self.__rect = QRectF(self.__pos.x(), self.__pos.y(), self.__size, self.__size)
 
         self.setToolTip(event.eventType)
@@ -20,12 +21,16 @@ class EventWidget(QGraphicsItem):
         size = self.__getTextSize()
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(QPen(QColor(0, 0, 0)))
-        painter.setBrush(QBrush(QColor(255, 255, 255)))
+        painter.setBrush(QBrush(QColor(225, 225, 232)))
         if (self.__highLight):
-            painter.setBrush(QBrush(QColor(150, 150, 150)))
+            painter.setBrush(QBrush(QColor(92, 184, 92)))
 
         painter.drawEllipse(self.boundingRect())
-        if (len(self._eventType.getExternalRepresentation()) <= 3):
+        if (self.__labelBelow):
+            painter.drawText((self.__pos.x() + self.__size // 2) - size[0] // 2,
+                             self.__pos.y() + self.__size + size[1],
+                             self._eventType.getExternalRepresentation())
+        elif (len(self._eventType.getExternalRepresentation()) <= 3):
             painter.drawText(self.__pos.x() + (self.__size - size[0]) // 2,
                              self.__pos.y() + (self.__size + size[1]) // 2,
                              self._eventType.getExternalRepresentation())
@@ -34,7 +39,7 @@ class EventWidget(QGraphicsItem):
         font = QFont()
         metric = QFontMetrics(font)
         width = metric.width(self._eventType.getExternalRepresentation())
-        height = metric.width(self._eventType.getExternalRepresentation())
+        height = metric.height()
         return (width, height)
 
     def __eq__(self, other):
