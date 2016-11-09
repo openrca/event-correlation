@@ -10,35 +10,31 @@ from algorithms import RESULT_IDX
 
 
 # noinspection PyAbstractClass
-class MplCanvas(FigureCanvas):
+class DetailsCanvas(FigureCanvas):
     def __init__(self, parent=None):
         self._figure = Figure()
-        self._fillFigure()
-
         super().__init__(self._figure)
         self.setParent(parent)
+
+        self.__axLeft = self._figure.add_subplot(121)
+        self.__axRight = self._figure.add_subplot(122)
 
         FigureCanvas.setSizePolicy(self, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-    def _fillFigure(self):
-        pass
+    def setData(self, sequence, rule):
+        if (self.__axLeft is not None and self.__axRight is not None):
+            self.__axLeft.clear()
+            self.__axRight.clear()
 
+        self._showDistributions(self.__axLeft, rule, sequence)
+        self._showFinalAssignment(self.__axRight, rule, sequence)
+        self._figure.canvas.draw()
 
-# noinspection PyAbstractClass
-class DetailsCanvas(MplCanvas):
-    def __init__(self, sequence, rule):
-        self.__sequence = sequence
-        self.__rule = rule
-        super().__init__()
-
-    def _fillFigure(self):
-        self._showDistributions(self._figure.add_subplot(121))
-        self._showFinalAssignment(self._figure.add_subplot(122))
-
-    def _showDistributions(self, ax):
-        estimatedDist = self.__rule.distributionResponse
-        trueDist = self.__sequence.getBaseDistribution(self.__rule)
+    @staticmethod
+    def _showDistributions(ax, rule, sequence):
+        estimatedDist = rule.distributionResponse
+        trueDist = sequence.getBaseDistribution(rule)
 
         borders1 = estimatedDist.getCompleteInterval()
         borders2 = trueDist.getCompleteInterval() if (trueDist is not None) else estimatedDist.getCompleteInterval()
@@ -62,16 +58,17 @@ class DetailsCanvas(MplCanvas):
         ax.set_xlabel("Time Lag")
         ax.set_ylabel("Probability")
 
-    def _showFinalAssignment(self, ax):
-        if (RESULT_IDX not in self.__rule.data):
+    @staticmethod
+    def _showFinalAssignment(ax, rule, sequence):
+        if (RESULT_IDX not in rule.data):
             return
 
-        trigger = self.__rule.trigger
-        response = self.__rule.response
-        idx = np.array(self.__rule.data[RESULT_IDX])
+        trigger = rule.trigger
+        response = rule.response
+        idx = np.array(rule.data[RESULT_IDX])
 
-        missingTrigger = self.__sequence.getMissingIdx(trigger)
-        missingResponse = self.__sequence.getMissingIdx(response)
+        missingTrigger = sequence.getMissingIdx(trigger)
+        missingResponse = sequence.getMissingIdx(response)
 
         i = np.array(idx, copy=True)
         for j in range(idx.shape[0]):
@@ -90,20 +87,20 @@ class DetailsCanvas(MplCanvas):
 
 
 class DetailsTable(QTableWidget):
-    def __init__(self, data):
+    def __init__(self):
         super().__init__()
-        self.__data = data
-        self.__fillTable()
         self.resizeColumnsToContents()
+        self.setColumnCount(2)
         self.horizontalHeader().setStretchLastSection(True)
         self.setHorizontalHeaderLabels(["Key", "Value"])
         self.sortByColumn(0, QtCore.Qt.AscendingOrder)
 
-    def __fillTable(self):
-        self.setColumnCount(2)
-        self.setRowCount(len(self.__data))
+    def setData(self, data):
+        for i in reversed(range(self.rowCount())):
+            self.removeRow(i)
+        self.setRowCount(len(data))
 
-        for index, (key, value) in enumerate(self.__data.items()):
+        for index, (key, value) in enumerate(data.items()):
             leftItem = QTableWidgetItem(str(key))
             rightItem = QTableWidgetItem(str(value))
             self.setItem(index, 0, leftItem)
@@ -111,11 +108,14 @@ class DetailsTable(QTableWidget):
 
 
 class DetailsContainer(QWidget):
-    def __init__(self, sequence, rule):
+    def __init__(self):
         super().__init__()
 
-        self.__canvas = DetailsCanvas(sequence, rule)
-        self.__details = DetailsTable(rule.data)
+        self.__canvas = DetailsCanvas()
+        self.__details = DetailsTable()
+
+        self.__sequence = None
+        self.__rule = None
 
         self.__externalFiguresButton = QPushButton('External Figures')
         # noinspection PyUnresolvedReferences
@@ -128,11 +128,19 @@ class DetailsContainer(QWidget):
 
         self.setLayout(layout)
 
+    def setData(self, sequence, rule):
+        if (sequence is None or rule is None):
+            return
+        self.__sequence = sequence
+        self.__rule = rule
+        self.__canvas.setData(sequence, rule)
+        self.__details.setData(rule.data)
+
     def __externalFigures(self):
         fig, ax = plt.subplots(1, 1)
         # noinspection PyProtectedMember
-        self.__canvas._showDistributions(ax)
+        self.__canvas._showDistributions(ax, self.__rule, self.__sequence)
         fig, ax = plt.subplots(1, 1)
         # noinspection PyProtectedMember
-        self.__canvas._showFinalAssignment(ax)
+        self.__canvas._showFinalAssignment(ax, self.__rule, self.__sequence)
         plt.show()

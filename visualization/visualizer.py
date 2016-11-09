@@ -35,7 +35,7 @@ class SequenceWidget(QGraphicsScene):
         super().__init__(parent)
         self.__sequence = None
         self.__eventWidgets = {}
-        self.__detailsView = None
+        self.__detailsView = DetailsContainer()
 
         self.__offset = 10
         self.__eventWidth = 20
@@ -110,7 +110,7 @@ class SequenceWidget(QGraphicsScene):
             self.parent().statusBar().showMessage("No details available")
             return
         # Store instance to prevent premature deletion
-        self.__detailsView = DetailsContainer(self.__sequence, rule)
+        self.__detailsView.setData(self.__sequence, rule)
         self.__detailsView.show()
 
     def cleanUp(self):
@@ -235,7 +235,7 @@ class Visualizer(QMainWindow):
     def setDependencyRoot(self, root):
         if (self.__sequence is None):
             return
-        self.__dependenciesView.setData(self.__sequence.calculatedRules, root)
+        self.__dependenciesView.setData(root, self.__sequence)
 
     def repaintSequence(self):
         self.__view.items().clear()
