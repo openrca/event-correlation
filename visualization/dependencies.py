@@ -1,73 +1,107 @@
 import math
+
 import networkx as nx
-from PySide.QtCore import QPoint
-from PySide.QtGui import QGraphicsScene, QGraphicsView, QVBoxLayout, QWidget
+import numpy as np
+from PySide.QtCore import QPoint, Signal
+from PySide.QtGui import QGraphicsScene, QGraphicsView, QHBoxLayout, QWidget, QSizePolicy
 
 from core.event import Event
+from core.rule import Rule
 from visualization import EventWidget, ArrowWidget
+from visualization.details import DetailsContainer
+
+
+class ResponsiveArrowWidget(ArrowWidget):
+    def __init__(self, start, end, parent=None):
+        super().__init__(start, end)
+        self._callbackParam = None
+        self.__parent = parent
+
+    def mouseDoubleClickEvent(self, event):
+        if (self.__parent is not None):
+            self.__parent.detailsSignal.emit(self._callbackParam)
 
 
 class DependenciesView(QWidget):
     def __init__(self):
         super().__init__()
-        self.__root = None
-        self.__rules = None
         self.setWindowTitle('Dependency Graph')
 
-        layout = QVBoxLayout()
+        layout = QHBoxLayout()
         self.setLayout(layout)
 
-        self.__widget = DependencyTree(self)
+        self.__tree = DependencyTree(self)
         self.__view = QGraphicsView()
-        self.__view.setScene(self.__widget)
+        self.__view.setScene(self.__tree)
+        policyLeft = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        policyLeft.setHorizontalStretch(2)
+        self.__view.setSizePolicy(policyLeft)
         layout.addWidget(self.__view)
 
-    def setData(self, rules, root):
-        self.__rules = rules
-        self.__root = root
+        self.__details = DetailsContainer(showPlot=True, showAssignments=False)
+        policyRight = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        policyRight.setHorizontalStretch(1)
+        self.__details.setSizePolicy(policyRight)
+        layout.addWidget(self.__details, 0, 2)
+
+    def setData(self, root, sequence):
+        self.__tree.setData(root, sequence)
+
+    def setDetails(self, sequence, rule):
+        self.__details.setData(sequence, rule)
 
     def resizeEvent(self, *args, **kwargs):
         super().resizeEvent(*args, **kwargs)
         self.__view.items().clear()
-        self.__widget.paint(self.__root, self.__rules)
+        self.__tree.paint()
 
     def show(self, *args, **kwargs):
         super().show(*args, **kwargs)
         self.__view.items().clear()
-        self.__widget.paint(self.__root, self.__rules)
+        self.__tree.paint()
 
 
 class DependencyTree(QGraphicsScene):
+    detailsSignal = Signal(Rule)
+
     def __init__(self, parent=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.__offset = [50, 50]
         self.__eventSize = 20
         self.__parent = parent
+        self.__sequence = None
+        self.__root = None
+        self.detailsSignal.connect(self.__showDetails)
 
-    def paint(self, root, rules):
-        if (root is None or rules is None):
+    def setData(self, root, sequence):
+        if (root is None or sequence.calculatedRules is None):
             return
+        self.__root = root
+        self.__sequence = sequence
+
+    def paint(self):
         self.clear()
 
-        size = [self.__parent.width() - self.__parent.width() // 5,
-                self.__parent.height() - self.__parent.height() // 5]
-        margin = [self.__parent.width() // 20, self.__parent.height() // 20]
+        size = [self.__parent.width() * 0.5, self.__parent.height() * 0.8]
 
-        tree = self.__createTreeFromRules(rules)
-        graph = self.__createGraph(root, tree)
+        tree = self.__createTreeFromRules(self.__sequence.calculatedRules)
+        graph = self.__createGraph(self.__root, tree)
         positions = nx.fruchterman_reingold_layout(graph)
+        self.__normalizePositions(positions)
 
         for start, end in graph.edges():
-            startPoint = self.__pointToPlane(positions[start], size, margin, center=True)
-            endPoint = self.__clipPointToCircle(startPoint,
-                                                self.__pointToPlane(positions[end], size, margin, center=True))
+            startPoint = self.__pointToPlane(positions[start], size, center=True)
+            endPoint = self.__clipPointToCircle(startPoint, self.__pointToPlane(positions[end], size, center=True))
 
-            widget = ArrowWidget(startPoint, endPoint, arcOffset=0)
-            self.addItem(widget)
+            rule = self.__sequence.getCalculatedRule(start, end)
+            if (rule is not None):
+                widget = ResponsiveArrowWidget(startPoint, endPoint, parent=self)
+                widget._callbackParam = self.__sequence.getCalculatedRule(start, end)
+                self.addItem(widget)
 
         for key, value in positions.items():
-            point = self.__pointToPlane(value, size, margin)
-            widget = EventWidget(Event(key), point, key == root)
+            point = self.__pointToPlane(value, size)
+            widget = EventWidget(Event(key), point, key == self.__root, labelBelow=True)
             widget.eventType = key
             self.addItem(widget)
 
@@ -103,8 +137,20 @@ class DependencyTree(QGraphicsScene):
         graph.add_edges_from(edges)
         return graph
 
-    def __pointToPlane(self, point, size, margin, center=False):
-        point = QPoint(point[0] * size[0] + margin[0], point[1] * size[1] + margin[1])
+    @staticmethod
+    def __normalizePositions(positions):
+        pos = np.array(list(positions.values()))
+        x = pos[:, 0].max()
+        y = pos[:, 1].max()
+
+        print(positions)
+        for key, value in positions.items():
+            value[0] /= x
+            value[1] /= y
+        print(positions)
+
+    def __pointToPlane(self, point, size, center=False):
+        point = QPoint(point[0] * size[0], point[1] * size[1])
         if (center):
             point = QPoint(point.x() + self.__eventSize // 2, point.y() + self.__eventSize // 2)
         return point
@@ -117,3 +163,8 @@ class DependencyTree(QGraphicsScene):
         distanceY = (end.y() - start.y()) * percentage
 
         return QPoint(start.x() + distanceX, start.y() + distanceY)
+
+    def __showDetails(self, rule):
+        if (rule is None):
+            return
+        self.__parent.setDetails(self.__sequence, rule)
