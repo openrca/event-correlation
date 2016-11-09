@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from PySide import QtGui, QtCore
-from PySide.QtGui import QTableWidget, QTableWidgetItem, QWidget, QPushButton
+from PySide.QtGui import QTableWidget, QTableWidgetItem, QWidget, QPushButton, QLabel
 from PySide.QtGui import QVBoxLayout
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -112,6 +112,7 @@ class DetailsContainer(QWidget):
         super().__init__()
 
         self.__canvas = DetailsCanvas()
+        self.__label = QLabel('Rule')
         self.__details = DetailsTable()
 
         self.__sequence = None
@@ -123,6 +124,7 @@ class DetailsContainer(QWidget):
 
         layout = QVBoxLayout()
         layout.addWidget(self.__canvas)
+        layout.addWidget(self.__label)
         layout.addWidget(self.__details)
         layout.addWidget(self.__externalFiguresButton)
 
@@ -134,6 +136,7 @@ class DetailsContainer(QWidget):
         self.__sequence = sequence
         self.__rule = rule
         self.__canvas.setData(sequence, rule)
+        self.__label.setText('({}) -> ({})'.format(rule.trigger, rule.response))
         self.__details.setData(rule.data)
 
     def __externalFigures(self):
