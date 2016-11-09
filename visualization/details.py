@@ -11,24 +11,32 @@ from algorithms import RESULT_IDX
 
 # noinspection PyAbstractClass
 class DetailsCanvas(FigureCanvas):
-    def __init__(self, parent=None):
+    def __init__(self, showPlot=True, showAssignments=True, parent=None):
         self._figure = Figure()
         super().__init__(self._figure)
         self.setParent(parent)
 
-        self.__axLeft = self._figure.add_subplot(121)
-        self.__axRight = self._figure.add_subplot(122)
+        if (showPlot and showAssignments):
+            self.__axLeft = self._figure.add_subplot(121)
+            self.__axRight = self._figure.add_subplot(122)
+        elif (showPlot):
+            self.__axLeft = self._figure.add_subplot(111)
+            self.__axLeft = self._figure.add_subplot(111)
+            self.__axRight = None
+        elif (showAssignments):
+            self.__axRight = self._figure.add_subplot(111)
+            self.__axLeft = None
 
         FigureCanvas.setSizePolicy(self, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
     def setData(self, sequence, rule):
-        if (self.__axLeft is not None and self.__axRight is not None):
+        if (self.__axLeft is not None):
             self.__axLeft.clear()
+            self._showDistributions(self.__axLeft, rule, sequence)
+        if (self.__axRight is not None):
             self.__axRight.clear()
-
-        self._showDistributions(self.__axLeft, rule, sequence)
-        self._showFinalAssignment(self.__axRight, rule, sequence)
+            self._showFinalAssignment(self.__axRight, rule, sequence)
         self._figure.canvas.draw()
 
     @staticmethod
@@ -108,10 +116,10 @@ class DetailsTable(QTableWidget):
 
 
 class DetailsContainer(QWidget):
-    def __init__(self):
+    def __init__(self, showPlot=True, showAssignments=True):
         super().__init__()
 
-        self.__canvas = DetailsCanvas()
+        self.__canvas = DetailsCanvas(showPlot=showPlot, showAssignments=showAssignments)
         self.__label = QLabel('Rule')
         self.__details = DetailsTable()
 

@@ -109,7 +109,6 @@ class SequenceWidget(QGraphicsScene):
         if (rule is None):
             self.parent().statusBar().showMessage("No details available")
             return
-        # Store instance to prevent premature deletion
         self.__detailsView.setData(self.__sequence, rule)
         self.__detailsView.show()
 
