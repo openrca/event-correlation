@@ -101,7 +101,6 @@ class DetailsTable(QTableWidget):
         self.setColumnCount(2)
         self.horizontalHeader().setStretchLastSection(True)
         self.setHorizontalHeaderLabels(["Key", "Value"])
-        self.sortByColumn(0, QtCore.Qt.AscendingOrder)
 
     def setData(self, data):
         for i in reversed(range(self.rowCount())):
@@ -113,6 +112,7 @@ class DetailsTable(QTableWidget):
             rightItem = QTableWidgetItem(str(value))
             self.setItem(index, 0, leftItem)
             self.setItem(index, 1, rightItem)
+        self.sortByColumn(0, QtCore.Qt.AscendingOrder)
 
 
 class DetailsContainer(QWidget):
