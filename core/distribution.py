@@ -283,7 +283,7 @@ class KdeDistribution(Distribution):
     samples.
     """
 
-    def __init__(self, samples):
+    def __init__(self, samples, bandwidth=0.2):
         """
         :param samples: 1D-Samples to create distribution from
         """
@@ -295,7 +295,7 @@ class KdeDistribution(Distribution):
         self.__minValue = np.min(self.samples) - max(np.min(self.samples) / 20, 0.5)
         self.__maxValue = np.max(self.samples) + max(np.max(self.samples) / 20, 0.5)
         if (np.min(self.samples) != np.max(self.samples)):
-            self.__kernel = stats.gaussian_kde(self.samples, 0.1)
+            self.__kernel = stats.gaussian_kde(self.samples, bandwidth)
         else:
             self.__kernel = SingularKernel(np.min(self.samples))
         self.__cachedMaxPdf = None
