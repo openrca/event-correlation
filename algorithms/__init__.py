@@ -119,12 +119,12 @@ class Matcher(abc.ABC):
 
         rule = Rule(trigger, response, data[RESULT_KDE], data=data)
 
-        self.__fillRuleData(rule, rule.distributionResponse)
-        self.__connectEventPairs(trigger, response, data[RESULT_IDX])
-
         performance = EnergyStatistic()
         score, pValue = performance.compute(triggerVector, responseVector)
         rule.likelihood = score
+
+        self.__fillRuleData(rule, rule.distributionResponse)
+        self.__connectEventPairs(trigger, response, data[RESULT_IDX])
 
         return (rule, data)
 
@@ -157,6 +157,7 @@ class Matcher(abc.ABC):
         rule.data["Performance CondProd"] = CondProbPerformance(samples=distribution.samples).getValueByDistribution(
             distribution)
         rule.data["Performance Entropy"] = EntropyPerformance().getValueByDistribution(distribution)
+        rule.data["Likelihood"] = rule.likelihood
 
     def __connectEventPairs(self, trigger, response, idx):
         # TODO what happens if one event is connected several times?
