@@ -150,15 +150,13 @@ class Matcher(abc.ABC):
 
     # noinspection PyMethodMayBeStatic
     def __fillRuleData(self, rule, distribution):
+        rule.data["Size"] = rule.data[RESULT_IDX].shape[0]
         rule.data["Performance Range"] = RangePerformance().getValueByDistribution(distribution)
         rule.data["Performance Variance"] = VariancePerformance().getValueByDistribution(distribution)
         rule.data["Performance Std"] = StdPerformance().getValueByDistribution(distribution)
         rule.data["Performance CondProd"] = CondProbPerformance(samples=distribution.samples).getValueByDistribution(
             distribution)
         rule.data["Performance Entropy"] = EntropyPerformance().getValueByDistribution(distribution)
-        rule.data["Metric Pearson"] = 0
-        rule.data["Metric Distance"] = 0
-        rule.data["Metric Energy"] = 0
 
     def __connectEventPairs(self, trigger, response, idx):
         # TODO what happens if one event is connected several times?

@@ -100,7 +100,6 @@ for rule in calculatedRules:
     empiricalDist = distribution.getEmpiricalDist(seq, rule.trigger, rule.response)
     baseDist = seq.getBaseDistribution(rule)
 
-    rule.data["Shared Area"] = distribution.getAreaBetweenDistributions(resultDist, baseDist)
     if (baseDist is not None):
         rule.data["True Dist"] = baseDist
     if (empiricalDist is not None):
