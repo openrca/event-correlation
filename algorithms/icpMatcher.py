@@ -64,6 +64,7 @@ class IcpMatcher(Matcher):
             self._logger.trace("SAC initial guess: {}".format(sac))
             self._logger.trace("Bin alignment initial guess: {}".format(binAlignment))
             self.__initPose = (mean + sac + binAlignment) / 3
+            self.__initPose = sac
             self._logger.info("Estimated initial guess as {}".format(self.__initPose))
 
         opt = np.array(self.__initPose).astype(np.float32)
