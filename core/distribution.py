@@ -292,8 +292,8 @@ class KdeDistribution(Distribution):
             raise ValueError("Unable to perform Kernel density estimation without samples.")
 
         self.samples = np.array(sorted(samples))
-        self.__minValue = np.min(self.samples) - 2
-        self.__maxValue = np.max(self.samples) + 2
+        self.__minValue = np.min(self.samples) - max(np.min(self.samples) / 20, 0.5)
+        self.__maxValue = np.max(self.samples) + max(np.max(self.samples) / 20, 0.5)
         if (np.min(self.samples) != np.max(self.samples)):
             self.__kernel = stats.gaussian_kde(self.samples, 0.1)
         else:
