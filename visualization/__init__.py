@@ -1,3 +1,4 @@
+import numpy as np
 from PySide.QtCore import QPoint, QRectF
 from PySide.QtGui import QBrush, QColor, QFont, QFontMetrics, QGraphicsItem, QPainter, QPainterPath, QPen
 
@@ -68,6 +69,22 @@ class ArrowWidget(QGraphicsItem):
 
     def boundingRect(self):
         return self.__rect
+
+    def shape(self, *args, **kwargs):
+        if (self.__arcOffset != 0):
+            return super().shape()
+
+        direction = self.__end - self.__start
+        perpendicular = QPoint(-direction.y(), direction.x())
+        perpendicular = (perpendicular / np.linalg.norm(np.array([perpendicular.x(), perpendicular.y()]))) * 2
+
+        path = QPainterPath()
+        path.moveTo(self.__start + perpendicular)
+        path.lineTo(self.__end + perpendicular)
+        path.lineTo(self.__end - perpendicular)
+        path.lineTo(self.__start - perpendicular)
+
+        return path
 
     def paint(self, painter: QPainter, option, widget):
         painter.setRenderHint(QPainter.Antialiasing)
