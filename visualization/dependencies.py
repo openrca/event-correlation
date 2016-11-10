@@ -69,8 +69,10 @@ class DependencyTree(QGraphicsScene):
         self.__offset = [50, 50]
         self.__eventSize = 20
         self.__parent = parent
-        self.__sequence = None
         self.__root = None
+        self.__sequence = None
+        self.__graph = None
+        self.__positions = None
         self.detailsSignal.connect(self.__showDetails)
 
     def setData(self, root, sequence):
@@ -79,31 +81,10 @@ class DependencyTree(QGraphicsScene):
         self.__root = root
         self.__sequence = sequence
 
-    def paint(self):
-        self.clear()
-
-        size = [self.__parent.width() * 0.5, self.__parent.height() * 0.8]
-
         tree = self.__createTreeFromRules(self.__sequence.calculatedRules)
-        graph = self.__createGraph(self.__root, tree)
-        positions = nx.fruchterman_reingold_layout(graph)
-        self.__normalizePositions(positions)
-
-        for start, end in graph.edges():
-            startPoint = self.__pointToPlane(positions[start], size, center=True)
-            endPoint = self.__clipPointToCircle(startPoint, self.__pointToPlane(positions[end], size, center=True))
-
-            rule = self.__sequence.getCalculatedRule(start, end)
-            if (rule is not None):
-                widget = ResponsiveArrowWidget(startPoint, endPoint, parent=self)
-                widget._callbackParam = self.__sequence.getCalculatedRule(start, end)
-                self.addItem(widget)
-
-        for key, value in positions.items():
-            point = self.__pointToPlane(value, size)
-            widget = EventWidget(Event(key), point, key == self.__root, labelBelow=True)
-            widget.eventType = key
-            self.addItem(widget)
+        self.__graph = self.__createGraph(root, tree)
+        self.__positions = nx.fruchterman_reingold_layout(self.__graph)
+        self.__normalizePositions()
 
     @staticmethod
     def __createTreeFromRules(rules):
@@ -137,17 +118,35 @@ class DependencyTree(QGraphicsScene):
         graph.add_edges_from(edges)
         return graph
 
-    @staticmethod
-    def __normalizePositions(positions):
-        pos = np.array(list(positions.values()))
+    def __normalizePositions(self):
+        pos = np.array(list(self.__positions.values()))
         x = pos[:, 0].max()
         y = pos[:, 1].max()
 
-        print(positions)
-        for key, value in positions.items():
+        for key, value in self.__positions.items():
             value[0] /= x
             value[1] /= y
-        print(positions)
+
+    def paint(self):
+        self.clear()
+        size = [self.__parent.width() * 0.5, self.__parent.height() * 0.8]
+
+        for start, end in self.__graph.edges():
+            startPoint = self.__pointToPlane(self.__positions[start], size, center=True)
+            endPoint = self.__clipPointToCircle(startPoint,
+                                                self.__pointToPlane(self.__positions[end], size, center=True))
+
+            rule = self.__sequence.getCalculatedRule(start, end)
+            if (rule is not None):
+                widget = ResponsiveArrowWidget(startPoint, endPoint, parent=self)
+                widget._callbackParam = self.__sequence.getCalculatedRule(start, end)
+                self.addItem(widget)
+
+        for key, value in self.__positions.items():
+            point = self.__pointToPlane(value, size)
+            widget = EventWidget(Event(key), point, key == self.__root, labelBelow=True)
+            widget.eventType = key
+            self.addItem(widget)
 
     def __pointToPlane(self, point, size, center=False):
         point = QPoint(point[0] * size[0], point[1] * size[1])
