@@ -43,7 +43,10 @@ class Event:
              "occurred": str(self.occurred),
              "timestamp": str(self.timestamp)}
         if (self.triggered is not None):
-            d["triggered"] = self.triggered
+            d["triggered"] = {
+                "eventType": str(self.triggered.eventType),
+                "timestamp": str(self.triggered.timestamp)
+            }
         return d
 
 
