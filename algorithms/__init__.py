@@ -45,7 +45,7 @@ class Matcher(abc.ABC):
                 rule = self.__matchIfReasonable(sequence, trigger, response, alpha, **kwargs)
                 if (rule is not None):
                     result.append(rule)
-        return result
+        return self.__cleanUpResult(result)
 
     def matchTransitive(self, sequence, start, alpha=0.05, **kwargs):
         nodes = [start]
@@ -66,7 +66,19 @@ class Matcher(abc.ABC):
                 if (rule is not None):
                     result.append(rule)
                     nodes.append(response)
-        return result
+        return self.__cleanUpResult(result)
+
+    @staticmethod
+    def __cleanUpResult(result):
+        l = []
+        processed = set()
+        for rule in result:
+            pair = (rule.trigger, rule.response)
+            if (pair in processed):
+                continue
+            processed.add(pair)
+            l.append(rule)
+        return l
 
     # noinspection PyMethodMayBeStatic
     def __cleanUpEventTypes(self, sequence, limit=5):
