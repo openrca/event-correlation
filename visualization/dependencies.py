@@ -142,6 +142,7 @@ class DependencyTree(QGraphicsScene):
         size = [self.__parent.width() * 0.5, self.__parent.height() * 0.8]
 
         for start, end in self.__graph.edges():
+            # TODO problem if start -> end and end -> start
             startPoint = self.__pointToPlane(self.__positions[start], size, center=True)
             endPoint = self.__clipPointToCircle(startPoint,
                                                 self.__pointToPlane(self.__positions[end], size, center=True))
