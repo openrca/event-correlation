@@ -31,15 +31,17 @@ class EventWidget(QGraphicsItem):
             painter.drawText((self.__pos.x() + self.__size // 2) - size[0] // 2,
                              self.__pos.y() + self.__size + size[1],
                              self._eventType.getExternalRepresentation())
-        elif (len(self._eventType.getExternalRepresentation()) <= 3):
+        else:
             painter.drawText(self.__pos.x() + (self.__size - size[0]) // 2,
                              self.__pos.y() + (self.__size + size[1]) // 2,
-                             self._eventType.getExternalRepresentation())
+                             self._eventType.getExternalRepresentation() if
+                             len(self._eventType.getExternalRepresentation()) <= 3 else '!')
 
     def __getTextSize(self):
         font = QFont()
         metric = QFontMetrics(font)
-        width = metric.width(self._eventType.getExternalRepresentation())
+        width = metric.width(self._eventType.getExternalRepresentation() if
+                             len(self._eventType.getExternalRepresentation()) <= 3 else '!')
         height = metric.height()
         return (width, height)
 
