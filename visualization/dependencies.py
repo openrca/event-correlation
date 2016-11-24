@@ -82,20 +82,18 @@ class DependencyTree(QGraphicsScene):
         self.__sequence = sequence
 
         if (self.__root is None):
-            self.__graph = self.__createCompleteGraph(self.__sequence.calculatedRules)
+            self.__graph = self.__createCompleteGraph(self.__sequence.eventTypes, self.__sequence.calculatedRules)
         else:
             self.__graph = self.__createGraph(root)
         self.__positions = nx.fruchterman_reingold_layout(self.__graph)
         self.__normalizePositions()
 
     @staticmethod
-    def __createCompleteGraph(rules):
+    def __createCompleteGraph(nodes, rules):
         graph = nx.Graph()
+        graph.add_nodes_from(nodes)
         for rule in rules:
-            graph.add_node(rule.trigger)
-            graph.add_node(rule.response)
-        for rule in rules:
-            graph.add_edge(rule.trigger, rule.response)
+            graph.add_edge(rule.response, rule.trigger)
         return graph
 
     def __createGraph(self, root):
