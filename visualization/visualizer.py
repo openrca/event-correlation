@@ -230,6 +230,7 @@ class Visualizer(QMainWindow):
         self.__settingsView.setSequence(sequence)
         self.repaintSequence()
         self.statusBar().showMessage("Loaded sequence")
+        self.__dependenciesView.setData(None, self.__sequence)
 
     def setDependencyRoot(self, root):
         if (self.__sequence is None):
