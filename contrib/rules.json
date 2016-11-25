@@ -1,0 +1,21 @@
+[
+    {
+        "trigger": {
+            "event": "A",
+            "dist": {
+                "name": "Uniform",
+                "param": [18, 20]
+            },
+            "success": "0.95"
+        },
+        "response": {
+            "event": "B",
+            "dist": {
+                "name": "Norm",
+                "param": [8, 2]
+            },
+            "success": "0.95"
+        },
+        "likelihood": "1"
+    }
+]

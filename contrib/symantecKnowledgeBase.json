@@ -68,7 +68,7 @@
         },
         "200": {
             "id": 200,
-            "desc": "File download started",
+            "desc": "File download finished",
             "code": ""
         },
         "201": {

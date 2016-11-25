@@ -76,27 +76,28 @@ class DependencyTree(QGraphicsScene):
         self.detailsSignal.connect(self.__showDetails)
 
     def setData(self, root, sequence):
-        if (root is None or sequence.calculatedRules is None):
+        if (sequence.calculatedRules is None):
             return
         self.__root = root
         self.__sequence = sequence
 
-        tree = self.__createTreeFromRules(self.__sequence.calculatedRules)
-        self.__graph = self.__createGraph(root, tree)
+        if (self.__root is None):
+            self.__graph = self.__createCompleteGraph(self.__sequence.eventTypes, self.__sequence.calculatedRules)
+        else:
+            self.__graph = self.__createGraph(root)
         self.__positions = nx.fruchterman_reingold_layout(self.__graph)
         self.__normalizePositions()
 
     @staticmethod
-    def __createTreeFromRules(rules):
-        tree = {}
+    def __createCompleteGraph(nodes, rules):
+        graph = nx.Graph()
+        graph.add_nodes_from(nodes)
         for rule in rules:
-            tree.setdefault(rule.trigger, []).append(rule.response)
-        for rule in rules:
-            tree.setdefault(rule.response, []).append(rule.trigger)
-        return tree
+            graph.add_edge(rule.response, rule.trigger)
+        return graph
 
-    @staticmethod
-    def __createGraph(root, tree):
+    def __createGraph(self, root):
+        tree = self.__createTreeFromRules(self.__sequence.calculatedRules)
         edges = set()
         processed = set()
 
@@ -118,6 +119,15 @@ class DependencyTree(QGraphicsScene):
         graph.add_edges_from(edges)
         return graph
 
+    @staticmethod
+    def __createTreeFromRules(rules):
+        tree = {}
+        for rule in rules:
+            tree.setdefault(rule.trigger, []).append(rule.response)
+        for rule in rules:
+            tree.setdefault(rule.response, []).append(rule.trigger)
+        return tree
+
     def __normalizePositions(self):
         pos = np.array(list(self.__positions.values()))
         x = pos[:, 0].max()
@@ -132,6 +142,7 @@ class DependencyTree(QGraphicsScene):
         size = [self.__parent.width() * 0.5, self.__parent.height() * 0.8]
 
         for start, end in self.__graph.edges():
+            # TODO problem if start -> end and end -> start
             startPoint = self.__pointToPlane(self.__positions[start], size, center=True)
             endPoint = self.__clipPointToCircle(startPoint,
                                                 self.__pointToPlane(self.__positions[end], size, center=True))

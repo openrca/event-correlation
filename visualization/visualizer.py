@@ -207,7 +207,7 @@ class Visualizer(QMainWindow):
 
     def __saveSequence(self):
         # noinspection PyCallByClass
-        fileName = QFileDialog.getSaveFileName(self, "Load Sequence", os.path.expanduser("~"))[0]
+        fileName = QFileDialog.getSaveFileName(self, "Store Sequence", os.path.expanduser("~"))[0]
         if (len(fileName) == 0):
             return
         if (fileName[-4:] != ".seq"):
@@ -215,7 +215,7 @@ class Visualizer(QMainWindow):
 
         logging.info("Saving sequence to file " + fileName)
         try:
-            self.__sequenceWidget.sequence.store(fileName)
+            self.__sequence.store(fileName)
             self.statusBar().showMessage("Stored sequence in " + fileName)
         except (OSError, IOError) as ex:
             msg = "Unable to store sequence: " + str(ex)
@@ -230,6 +230,7 @@ class Visualizer(QMainWindow):
         self.__settingsView.setSequence(sequence)
         self.repaintSequence()
         self.statusBar().showMessage("Loaded sequence")
+        self.__dependenciesView.setData(None, self.__sequence)
 
     def setDependencyRoot(self, root):
         if (self.__sequence is None):

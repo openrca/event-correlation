@@ -84,7 +84,10 @@ if (algorithm is None):
 
 timer = Timer()
 timer.start()
-if (trigger is None):
+if (len(seq.calculatedRules) > 0):
+    calculatedRules = seq.calculatedRules
+    seq.calculatedRules = []
+elif (trigger is None):
     calculatedRules = algorithm.matchAll(seq, **kwargs)
 elif (response is None):
     calculatedRules = algorithm.matchTransitive(seq, trigger, **kwargs)

@@ -70,16 +70,16 @@ class IcpMatcher(Matcher):
         opt = np.array(self.__initPose).astype(np.float32)
         data += opt
 
-        p = None
+        t = None
         for i in range(self.__maxiter):
-            if (p is not None and abs(p) < self.__threshold):
+            if (t is not None and abs(t) < self.__threshold):
                 break
 
             subData, selectedIdx = self.__getSubset(data, model)
             idx = IcpMatcher._findMinimalDistance(subData, model)
-            p = IcpMatcher._findOptimalTransformation(subData, model[idx])
-            data += p
-            opt += p
+            t = IcpMatcher._findOptimalTransformation(subData, model[idx])
+            data += t
+            opt += t
 
             self._logger.debug("Offset {}\t Distance {}".format(opt, IcpMatcher.__costFunction(0, subData, model[idx])))
             if (self.__showVisualization):
@@ -127,15 +127,16 @@ class IcpMatcher(Matcher):
     @staticmethod
     def _findOptimalTransformation(data, model):
         # Compute minimum of cost function
-        #   sum( (data + p - model)^2 )
-        # with p the variable.
+        #   sum( (data + t - model)^2 )
+        # with t the variable.
         result = optimize.minimize(IcpMatcher.__costFunction, np.zeros(1), args=(data, model), method='Newton-CG',
                                    jac=IcpMatcher.__jacobiMatrix, hess=IcpMatcher.__hesseMatrix)
         return result.x[0]
 
     @staticmethod
-    def __costFunction(p, data, model):
-        return math.sqrt(np.sum(np.square((data + p) - model)))
+    def __costFunction(t, data, model):
+        # TODO maybe remove sqrt to speed up calculation. Only required for final distance...
+        return math.sqrt(np.sum(np.square((data + t) - model)))
 
     def __getSubset(self, data, model):
         if (self.__f == 1 or self.__f is None):
@@ -201,11 +202,11 @@ class SampleConsensusInitialGuess(InitialGuess):
             modelSamples = self.__findSimilarFeatures(dataSamples, model)
 
             # noinspection PyProtectedMember
-            p = IcpMatcher._findOptimalTransformation(dataSamples, modelSamples)
-            d = dataSamples + p
+            t = IcpMatcher._findOptimalTransformation(dataSamples, modelSamples)
+            d = dataSamples + t
             error = self.__computeErrorMetric(d, model)
             if (error < minError):
-                guess = p
+                guess = t
                 minError = error
         return guess
 
