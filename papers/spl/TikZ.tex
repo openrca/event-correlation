@@ -1,0 +1,42 @@
+\usetikzlibrary{topaths}
+\usetikzlibrary{decorations.pathmorphing}
+\usetikzlibrary{fit}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{backgrounds}	% drawing the background after the foreground
+\usetikzlibrary{arrows}
+\usetikzlibrary{matrix,calc} % for bordermatrix example
+\usetikzlibrary{patterns}
+
+\newcommand{\RA}{\tikz[baseline=0mm]  \draw[ultra thick, -stealth] (0,1.3mm)--(3.5mm,1.3mm); }
+\newcommand{\VA}{\tikz[baseline=0mm]  \draw[ultra thick, -stealth] (0,0mm)--(0mm,-3.5mm); }
+\newcommand{\VUA}{\tikz[baseline=0mm]  \draw[ultra thick, -stealth] (0,0mm)--(0mm,3.5mm); }
+\newcommand{\DA}{\tikz[baseline=0mm]  \draw[ultra thick, stealth-stealth] (0,1.3mm)--(5.5mm,1.3mm); }
+
+\newcommand{\coordcross}[6]{%
+	\draw[->, >=latex] (#1,0) -- (#2,0) node[right,below] {#5};
+  \draw[->, >=latex] (0,#3) -- (0,#4) node[left] {#6};
+}
+
+%\newcommand{\xtick}[3]{%
+%}
+
+\tikzstyle{blockdef}=[rectangle, rounded corners, draw=black, thick, text centered]
+\tikzstyle{rblock}=[blockdef, inner sep=4pt, text width=1.3cm]
+\tikzstyle{dblock}=[shape=diamond, draw=black, thick, text centered, aspect=1.5]
+\tikzstyle{cblock}=[blockdef, circle, inner sep=2pt, text width=2mm]
+\tikzstyle{ablock}=[thick, -latex, black]
+\tikzstyle{aablock}=[ultra thick, latex-latex, black]
+\tikzstyle{fblock}=[draw=black, fill]
+\tikzstyle{fitblock}=[blockdef, fill=none, dashed, inner sep = 1mm]
+
+
+%% Color Boxes
+\tikzstyle{hlNone}=[anchor=base, rounded corners=3pt]
+\tikzstyle{hlFrameNone}=[anchor=base, rounded corners=3pt, thick]
+\tikzstyle{hlFrameBlue}=[hlFrameNone, fill=BlockBlue, draw=HilightBlue]
+\tikzstyle{hlFrameRed}=[hlFrameNone, fill=BlockRed, draw=HilightRed]
+\tikzstyle{hlBlue}=[hlNone, fill=BlockBlue]
+\tikzstyle{hlGreen}=[hlNone, fill=BlockGreen]
+\tikzstyle{hlRed}=[hlNone, fill=BlockRed]
+
+\everymath{\displaystyle}

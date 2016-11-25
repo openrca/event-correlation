@@ -1,0 +1,260 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%   Identification
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\NeedsTeXFormat{LaTeX2e}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%   Preliminary declarations
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\RequirePackage{bm} % correct bold symbols, like \bm
+\RequirePackage{amsmath}
+\RequirePackage{amsfonts}
+\RequirePackage{amssymb}
+%\RequirePackage{mathrsfs}
+%\RequirePackage{dsfont} % double stroke symbols like IR
+%\RequirePackage[single]{accents} % own accents 
+%\RequirePackage{exscale} % Scaling of Math Symbols?
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%   Options
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%   More declarations
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%------------------------------------------------------------
+% Mathematical Formulae
+%------------------------------------------------------------
+\newcommand{\rv}[1]{\ensuremath{{\boldsymbol{#1}}}}
+\renewcommand{\vec}[1]{\ensuremath{{\underline{#1}}}}
+\newcommand{\rvec}[1]{\ensuremath{{\boldsymbol{\underline{#1}}}}}
+\newcommand{\mat}[1]{{\ensuremath{{\mathbf{#1}}}}}
+
+\newcommand{\SquareRoot}[1]{{\mbox{\bfseries\sffamily #1}}}
+\newcommand{\intndim}{\ds\int_{-\infty}^\infty \dots \int_{-\infty}^\infty}
+\newcommand{\Eye}{\mat{I}}
+
+% operators (in alphabetical order):
+\renewcommand{\arg}{\operatorname*{arg}}
+%\DeclareMathOperator*{\argmin}{arg\,min}
+%\DeclareMathOperator*{\argmax}{arg\,max}
+\newcommand{\argmin}[1]{\mathop{\mathrm{arg}\; \min_{#1}}}
+\newcommand{\argmax}[1]{\mathop{\mathrm{arg}\; \max_{#1}}}
+\def\DEF{\triangleq} % definition symbol
+\DeclareMathOperator{\col}{col}
+\newcommand{\dd}{\operatorname{d}\!}
+%\def\d{\ensuremath{\operatorname{d}}} % for \int f(x)\d x or \d y / \d y
+%\renewcommand{\d}{\ensuremath{\text{d}}}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\cov}{cov}
+\DeclareMathOperator{\var}{var}
+\DeclareMathOperator{\erf}{erf}
+\DeclareMathOperator{\E}{E}
+\DeclareMathOperator{\MI}{I}
+\DeclareMathOperator{\ENT}{H}
+\DeclareMathOperator{\Proj}{proj}
+\renewcommand{\Pr}{\operatorname{P}} 
+\DeclareMathOperator{\rang}{rang}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\jj}{j}% complex unit
+\DeclareMathOperator{\rect}{rect}
+\def\T{^\mathrm{T}} % transpose
+\def\inv{^{-1}} % inverse
+\DeclareMathOperator{\trace}{Tr}
+\DeclareMathOperator*{\Var}{Var} 
+\renewcommand{\arctan}{\operatorname{arctan}}
+\newcommand{\atann}{\operatorname{arctan2}}
+%\DeclareMathOperator{\atan}{atan}
+\def\atan2{\operatorname{atan2}}
+\DeclareMathOperator{\pot}{pot}
+\DeclareMathOperator{\sign}{sign}
+
+\newcommand{\FromTo}[2]{$#1 = 1,\, \ldots,\, #2$}
+\newcommand{\LMInd}{{\operatorname{LM}}}
+
+%---------------------------------------------------------------------
+% Abbreviations
+%---------------------------------------------------------------------
+
+\def\({\left(}
+\def\){\right)}
+\def\[{\left[}
+\def\]{\right]}
+
+\newcommand{\ds}{\displaystyle}
+\newcommand{\ns}{\textstyle}
+
+\newcommand{\NewB}{\ensuremath{\mathds{R}}}
+\newcommand{\NewC}{\ensuremath{\mathds{C}}}
+\newcommand{\NewN}{\ensuremath{\mathds{N}}}
+\newcommand{\NewQ}{\ensuremath{\mathds{Q}}}
+\newcommand{\NewR}{\ensuremath{\mathds{R}}}
+\newcommand{\NewZ}{\ensuremath{\mathds{Z}}}
+\newcommand{\IR}{\NewR}
+\newcommand{\IN}{\NewN}
+\newcommand{\IZ}{\NewZ}
+\newcommand{\IC}{\NewC}
+
+\newcommand{\Gauss}{{\mathcal{N}}}
+
+\setcounter{MaxMatrixCols}{20} %Fuer ams umgebung
+
+
+%--------------------------------------------------------------------------
+%Einheiten mit korrekten Leerzeichen
+%Usage: \Meter{\micro}{10} results $10\mu m$ 
+\newcommand{\Meter}[2][]{\unit{#2}#1\meter} 
+\newcommand{\Volt}[2][]{\unit{#2}#1\volt} 
+\newcommand{\Hertz}[2][]{\unit{#2}#1\hertz} 
+\newcommand{\Second}[2][]{\unit{#2}#1\second} 
+\newcommand{\Pascal}[2][]{\unit{#2}#1\pascal} 
+\newcommand{\Euro}[2][]{\unit{#2}#1\euro}
+
+\newcommand{\nm}[1] {\Meter[\nano]{#1}}
+\newcommand{\mum}[1]{\Meter[\micro]{#1}}
+\newcommand{\mm}[1] {\Meter[\milli]{#1}}
+\newcommand{\cm}[1] {\Meter[\centi]{#1}}
+\newcommand{\mV}[1] {\Volt[\milli]{#1}}
+\newcommand{\ms}[1] {\Second[\milli]{#1}}
+\newcommand{\KHz}[1] {\Hertz[\kilo]{#1}}
+
+
+%------------------------ Random variables ---------------------------
+\def\v{\rv v}
+\def\w{\rv w}
+\def\x{\rv x}
+\def\y{\rv y}
+\def\z{\rv z}
+
+%---------------------------- Vectors --------------------------------
+\def\vdel{\vec \delta}
+\def\veta{\vec \eta}
+\def\vOmega{\vec \Omega}
+\def\vsig{\vec \sigma}
+\def\va{\vec a}
+\def\vb{\vec b}
+\def\vc{\vec c}
+\def\vd{\vec d}
+\def\ve{\vec e}
+\def\vf{\vec f}
+\def\vg{\vec g}
+\def\vh{\vec h}
+\def\vmu{\vec \mu}
+\def\vp{\vec p}
+\def\vs{\vec s}
+\def\vpi{\vec \pi}
+\def\vthe{\vec \theta}
+\def\vu{\vec u}
+\def\vv{\vec v}
+\def\vw{\vec w}
+\def\vx{\vec x}
+\def\vy{\vec y}
+\def\vz{\vec z}
+\def\vxi{\vec \xi}
+\def\vB{\vec B}
+\def\vF{\vec F}
+\def\vJ{\vec J}
+\def\vM{\vec M}
+\def\vP{\vec P}
+\def\vX{\vec X}
+
+%------------------------- Random vectors ----------------------------
+\def\rvn{\rvec n}
+\def\rvthe{\rvec \theta}
+\def\rvv{\rvec v}
+\def\rvw{\rvec w}
+\def\rvx{\rvec x}
+\def\rvy{\rvec y}
+\def\rvz{\rvec z}
+\def\rvhz{\rvec{\hat z}}
+\def\rvxi{\rvec \xi}
+\def\rvX{\rvec X}
+
+%---------------------------- Matrices -------------------------------
+\def\A{\mat A}
+\def\B{\mat B}
+\def\C{\mat C}
+\def\D{\mat D}
+\def\mE{\mat E}
+\def\F{\mat F}
+\def\G{\mat G}
+\def\H{\mat H}
+\def\I{\mat I}
+\def\J{\mat J}
+\def\K{\mat K}
+\def\L{\mat L}
+\def\M{\mat M}
+\def\P{\mat P}
+\def\Q{\mat Q}
+\def\R{\mat R}
+\def\S{\mat S}
+\def\U{\mat U}
+\def\V{\mat V}
+\def\W{\mat W}
+\def\X{\mat X}
+% Inverse
+\def\iA{\A\inv}
+\def\iB{\B\inv}
+\def\iC{\C\inv}
+\def\iD{\D\inv}
+\def\iF{\F\inv}
+\def\iM{\M\inv}
+\def\iQ{\Q\inv}
+
+%------------------------------ Mean ---------------------------------
+\def\ha{\hat a}
+\def\hg{\hat g}
+\def\hv{\hat v}
+\def\hw{\hat w}
+\def\hx{\hat x}
+\def\hy{\hat y}
+\def\hz{\hat z}
+\def\hva{\hat{\vec a}}
+\def\hvg{\hat{\vec g}}
+\def\hvh{\hat{\vec h}}
+\def\hvv{\hat{\vec v}}
+\def\hvw{\hat{\vec w}}
+\def\hvx{\hat{\vec x}}
+\def\hvy{\hat{\vec y}}
+\def\hvz{\hat{\vec z}}
+\def\hvX{\hat{\vec X}}
+
+%------------------------------ Sets ---------------------------------
+\def\SA{\mathcal A}
+\def\SB{\mathcal B}
+\def\SC{\mathcal C}
+\def\SD{\mathcal D}
+\def\SE{\mathcal E}
+\def\SF{\mathcal F}
+\def\SG{\mathcal G}
+\def\SI{\mathcal I}
+\def\SL{\mathcal L}
+\def\SM{\mathcal M}
+\def\SN{\mathcal N}
+\def\SO{\mathcal O}
+\def\SP{\mathcal P}
+\def\SS{\mathcal S}
+\def\ST{\mathcal T}
+\def\SU{\mathcal U}
+\def\SV{\mathcal V}
+\def\SW{\mathcal W}
+\def\SX{\mathcal X}
+\def\SY{\mathcal Y}
+\def\SZ{\mathcal Z}
+
+%------------------------------ Misc ---------------------------------
+\def\ii{^{(i)}}
+\def\ij{^{(j)}}
