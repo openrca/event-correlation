@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import optimize
 
-from algorithms import Matcher, RESULT_MU, RESULT_SIGMA, RESULT_KDE, RESULT_IDX, InitialGuess
+from algorithms import Matcher, RESULT_MU, RESULT_SIGMA, RESULT_KDE, RESULT_IDX, InitialGuess, CONFIDENCE_80
 from core.distribution import KdeDistribution
 
 
@@ -155,7 +155,7 @@ class IcpMatcher(Matcher):
         if (self.__f == "confidence"):
             # based on The Dual-Bootstrap Iterative Closest Point Algorithm With Application to Retinal Image
             # Registration, Stewart, Tsai and Roysam
-            selectedIdx = np.arange(values.size)[abs(values - values.mean()) < 1.282 * values.std()]
+            selectedIdx = np.arange(values.size)[abs(values - values.mean()) < CONFIDENCE_80 * values.std()]
 
         # select at most one data point per model point
         if (selectedIdx.size > model.size):
@@ -166,13 +166,13 @@ class IcpMatcher(Matcher):
 
     # noinspection PyTypeChecker
     @staticmethod
-    def __jacobiMatrix(p, data, model):
-        d = (data + p) - model
+    def __jacobiMatrix(t, data, model):
+        d = (data + t) - model
         return np.array([np.sum(2 * d)])
 
     # noinspection PyUnusedLocal
     @staticmethod
-    def __hesseMatrix(p, data, model):
+    def __hesseMatrix(t, data, model):
         # This function has to have the same arguments as IcpMatcher.jacobiMatrix and IcpMatcher.totalDistance.
         # See http://docs.scipy.org/doc/scipy-0.17.1/reference/generated/scipy.optimize.minimize.html
         return 2 * np.size(data, 0)
