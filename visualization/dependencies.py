@@ -148,6 +148,8 @@ class DependencyTree(QGraphicsScene):
                                                 self.__pointToPlane(self.__positions[end], size, center=True))
 
             rule = self.__sequence.getCalculatedRule(start, end)
+            if (rule is None):
+                rule = self.__sequence.getCalculatedRule(end, start)
             if (rule is not None):
                 widget = ResponsiveArrowWidget(startPoint, endPoint, parent=self)
                 widget._callbackParam = self.__sequence.getCalculatedRule(start, end)
