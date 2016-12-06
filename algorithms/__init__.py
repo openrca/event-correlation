@@ -3,6 +3,7 @@ import logging
 
 import numpy as np
 
+import core.distribution
 from core.performance import EnergyStatistic, RangePerformance, VariancePerformance, StdPerformance, \
     CondProbPerformance, EntropyPerformance
 from core.rule import Rule
@@ -135,7 +136,7 @@ class Matcher(abc.ABC):
         score, pValue = performance.compute(triggerVector, responseVector)
         rule.likelihood = score
 
-        self.__fillRuleData(rule, rule.distributionResponse)
+        self.__fillRuleData(self._sequence.asVector(trigger), self._sequence.asVector(response), rule)
         self.__connectEventPairs(trigger, response, data[RESULT_IDX])
 
         return (rule, data)
@@ -161,7 +162,9 @@ class Matcher(abc.ABC):
         return result
 
     # noinspection PyMethodMayBeStatic
-    def __fillRuleData(self, rule, distribution):
+    def __fillRuleData(self, trigger, response, rule):
+        distribution = rule.distributionResponse
+
         rule.data["Size"] = rule.data[RESULT_IDX].shape[0]
         rule.data["Performance Range"] = RangePerformance().getValueByDistribution(distribution)
         rule.data["Performance Variance"] = VariancePerformance().getValueByDistribution(distribution)
@@ -170,6 +173,8 @@ class Matcher(abc.ABC):
             distribution)
         rule.data["Performance Entropy"] = EntropyPerformance().getValueByDistribution(distribution)
         rule.data["Likelihood"] = rule.likelihood
+        rule.data["Mutual Information"] = core.distribution.getMutualInformation(trigger, response, distribution,
+                                                                                 len(self._sequence))
 
     def __connectEventPairs(self, trigger, response, idx):
         # TODO what happens if one event is connected several times?
