@@ -5,7 +5,7 @@ import numpy as np
 
 import core.distribution
 from core.performance import EnergyStatistic, RangePerformance, VariancePerformance, StdPerformance, \
-    CondProbPerformance, EntropyPerformance
+    CondProbPerformance, EntropyPerformance, MutualInformationPerformance
 from core.rule import Rule
 
 RESULT_MU = "Mu"
@@ -172,9 +172,9 @@ class Matcher(abc.ABC):
         rule.data["Performance CondProd"] = CondProbPerformance(samples=distribution.samples).getValueByDistribution(
             distribution)
         rule.data["Performance Entropy"] = EntropyPerformance().getValueByDistribution(distribution)
+        rule.data["Mutual Information"] = MutualInformationPerformance(trigger, response, len(self._sequence)) \
+            .getValueByDistribution(distribution)
         rule.data["Likelihood"] = rule.likelihood
-        rule.data["Mutual Information"] = core.distribution.getMutualInformation(trigger, response, distribution,
-                                                                                 len(self._sequence))
 
     def __connectEventPairs(self, trigger, response, idx):
         # TODO what happens if one event is connected several times?

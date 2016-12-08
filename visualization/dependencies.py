@@ -87,7 +87,7 @@ class DependenciesView(QWidget):
         percentile25 = np.percentile(self.__mutualInformation, 25)
         percentile75 = np.percentile(self.__mutualInformation, 75)
 
-        threshold = percentile25 - (0.5 + epsilon) * (percentile75 - percentile25) + 5
+        threshold = percentile25 - (0.5 + epsilon) * (percentile75 - percentile25)
         self.__tree._threshold = threshold
         if (redraw):
             self.__view.items().clear()

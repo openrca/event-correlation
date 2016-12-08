@@ -4,6 +4,7 @@ import math
 import numbers
 
 import numpy as np
+import scipy.integrate
 import scipy.stats
 
 from core import distribution
@@ -113,6 +114,32 @@ class EntropyPerformance(Performance):
         if (isinstance(self.__dist, numbers.Number)):
             dist = distribution.samplesToDistribution(samples, self.__dist)
         return self.getValueByDistribution(dist)
+
+
+class MutualInformationPerformance(Performance):
+    """
+    Compute performance based on mutual information.
+    """
+
+    def __init__(self, trigger, response, size):
+        self.__probTrigger = len(trigger) / size
+        self.__probResponse = len(response) / size
+
+    def getValueBySamples(self, samples):
+        dist = distribution.samplesToDistribution(samples, KDE)
+        return self.getValueByDistribution(dist)
+
+    def getValueByDistribution(self, dist):
+        borders = dist.getCompleteInterval()
+        res, _ = scipy.integrate.quad(self.__calculateMutualInformation, borders[0], borders[1], args=(dist))
+        return res
+
+    def __calculateMutualInformation(self, x, dist):
+        joint = dist.getPDFValue(x)
+        log = dist.getPDFValue(x) / (self.__probTrigger * self.__probResponse)
+        if (log != 0 and not math.isnan(log)):
+            return joint[0] * math.log2(log)
+        return 0
 
 
 class Metric(abc.ABC):

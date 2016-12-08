@@ -480,19 +480,3 @@ def getRelativeEntropy(dist1, dist2):
     borders2 = dist2.getCompleteInterval()
     x = np.linspace(min(borders1[0], borders2[0]), max(borders1[1], borders2[1]), 10000)
     return stats.entropy(dist1.getPDFValue(x), dist2.getPDFValue(x))
-
-
-def getMutualInformation(trigger, response, dist, size):
-    probTrigger = len(trigger) / size
-    probResponse = len(response) / size
-    borders = dist.getCompleteInterval()
-    res, _ = integrate.quad(_calculateMutualInformation, borders[0], borders[1], args=(dist, probTrigger, probResponse))
-    return res
-
-
-def _calculateMutualInformation(x, dist, probTrigger, probResponse):
-    joint = dist.getPDFValue(x)
-    log = dist.getPDFValue(x) / (probTrigger * probResponse)
-    if (log != 0 and not math.isnan(log)):
-        return joint[0] * math.log2(log)
-    return 0
