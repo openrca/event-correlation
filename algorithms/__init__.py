@@ -166,12 +166,12 @@ class Matcher(abc.ABC):
         distribution = rule.distributionResponse
 
         rule.data["Size"] = rule.data[RESULT_IDX].shape[0]
-        rule.data["Performance Range"] = RangePerformance().getValueByDistribution(distribution)
-        rule.data["Performance Variance"] = VariancePerformance().getValueByDistribution(distribution)
-        rule.data["Performance Std"] = StdPerformance().getValueByDistribution(distribution)
-        rule.data["Performance CondProd"] = CondProbPerformance(samples=distribution.samples).getValueByDistribution(
-            distribution)
-        rule.data["Performance Entropy"] = EntropyPerformance().getValueByDistribution(distribution)
+        # rule.data["Performance Range"] = RangePerformance().getValueByDistribution(distribution)
+        # rule.data["Performance Variance"] = VariancePerformance().getValueByDistribution(distribution)
+        # rule.data["Performance Std"] = StdPerformance().getValueByDistribution(distribution)
+        # rule.data["Performance CondProd"] = CondProbPerformance(samples=distribution.samples).getValueByDistribution(
+        #     distribution)
+        # rule.data["Performance Entropy"] = EntropyPerformance().getValueByDistribution(distribution)
         rule.data["Mutual Information"] = MutualInformationPerformance(trigger, response, len(self._sequence)) \
             .getValueByDistribution(distribution)
         rule.data["Likelihood"] = rule.likelihood
