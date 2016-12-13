@@ -135,8 +135,8 @@ class MutualInformationPerformance(Performance):
         return res
 
     def __calculateMutualInformation(self, x, dist):
-        joint = dist.getPDFValue(x)
-        log = dist.getPDFValue(x) / (self.__probTrigger * self.__probResponse)
+        joint = dist.getPDFValue(x) * self.__probTrigger
+        log = dist.getPDFValue(x) / self.__probResponse
         if (log != 0 and not math.isnan(log)):
             return joint[0] * math.log2(log)
         return 0
