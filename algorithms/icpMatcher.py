@@ -135,8 +135,7 @@ class IcpMatcher(Matcher):
 
     @staticmethod
     def __costFunction(t, data, model):
-        # TODO maybe remove sqrt to speed up calculation. Only required for final distance...
-        return math.sqrt(np.sum(np.square((data + t) - model)))
+        return np.sum(abs((data + t) - model))
 
     def __getSubset(self, data, model):
         if (self.__f == 1 or self.__f is None):
@@ -168,14 +167,14 @@ class IcpMatcher(Matcher):
     @staticmethod
     def __jacobiMatrix(t, data, model):
         d = (data + t) - model
-        return np.array([np.sum(2 * d)])
+        return np.sum(np.where(d > 0)) - np.sum(np.where(d < 0))
 
     # noinspection PyUnusedLocal
     @staticmethod
     def __hesseMatrix(t, data, model):
         # This function has to have the same arguments as IcpMatcher.jacobiMatrix and IcpMatcher.totalDistance.
         # See http://docs.scipy.org/doc/scipy-0.17.1/reference/generated/scipy.optimize.minimize.html
-        return 2 * np.size(data, 0)
+        return 0
 
 
 class SampleConsensusInitialGuess(InitialGuess):
