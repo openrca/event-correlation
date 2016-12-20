@@ -213,21 +213,17 @@ class SampleConsensusInitialGuess(InitialGuess):
         result = []
         iterationsWithoutSample = 0
         while (len(result) < self.__nrSamples):
-            d = np.random.choice(data, 1)
-            valid = True
-
-            for i in result:
-                if (abs(d - i) < self.__minSampleDistance):
-                    valid = False
-
-            if (valid):
-                iterationsWithoutSample = 0
-                result.append(d)
-            else:
-                iterationsWithoutSample += 1
             if (iterationsWithoutSample > 3 * data.size):
                 self.__minSampleDistance /= 2
                 iterationsWithoutSample = 0
+
+            d = np.random.choice(data, 1)
+            for i in result:
+                if (abs(d - i) < self.__minSampleDistance):
+                    iterationsWithoutSample += 1
+                    continue
+            iterationsWithoutSample = 0
+            result.append(d)
 
         return np.array(result).flatten()
 
