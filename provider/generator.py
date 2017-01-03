@@ -104,6 +104,7 @@ class Generator(SequenceParser):
                     timeResponse = self.__getTimeStamp(rule.distributionResponse, self.__lastTime[rule], timeline)
                     response = Event(rule.response)
                     trigger.setTriggered(response)
+                    trigger.trueTriggered = response
                     self.__addEvent(timeline, timeResponse, response, rule.successResponse)
         for rule in self.__rules:
             self.__lastTime[rule] = 0
@@ -131,6 +132,7 @@ class Generator(SequenceParser):
 
                     response = Event(rule.response)
                     trigger.setTriggered(response)
+                    trigger.trueTriggered = response
                     self.__addEvent(timeline, timeResponse, response, rule.successResponse)
         for rule in self.__rules:
             self.__lastTime[rule] = 0

@@ -11,6 +11,7 @@ from PySide.QtGui import QApplication
 import provider
 from algorithms import lpMatcher, lagEM, munkresMatcher, icpMatcher
 from core import sequence, distribution
+from core.performance import EnergyStatistic
 from core.timer import Timer
 from provider import symantec, generator, printer
 from visualization.visualizer import Visualizer
@@ -99,14 +100,21 @@ logging.info("Calculation time: {} minutes".format(timer))
 
 for rule in calculatedRules:
     seq.calculatedRules.append(rule)
-    resultDist = rule.distributionResponse
-    empiricalDist = distribution.getEmpiricalDist(seq, rule.trigger, rule.response)
-    baseDist = seq.getBaseDistribution(rule)
 
+    baseDist = seq.getBaseDistribution(rule)
     if (baseDist is not None):
         rule.data["True Dist"] = baseDist
+
+    empiricalDist = distribution.getEmpiricalDist(seq, rule.trigger, rule.response, trueTriggered=False)
     if (empiricalDist is not None):
         rule.data["Empirical Dist"] = empiricalDist
+
+    trueEmpiricalDist = distribution.getEmpiricalDist(seq, rule.trigger, rule.response, trueTriggered=True)
+    if (trueEmpiricalDist is not None):
+        rule.data["True Empirical Dist"] = trueEmpiricalDist
+
+    if (empiricalDist is not None and trueEmpiricalDist is not None):
+        rule.data["Distance to True"] = EnergyStatistic().compute(trueEmpiricalDist.samples, empiricalDist.samples)
 
 app = QApplication(sys.argv)
 v = Visualizer()

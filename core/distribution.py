@@ -450,18 +450,22 @@ def approximateIntervalBorders(dist, alpha, lower=-10):
         i += 0.01
 
 
-def getEmpiricalDist(seq, trigger, response):
+def getEmpiricalDist(seq, trigger, response, trueTriggered=False):
     events = seq.getEvents(trigger)
 
     values = []
     for event in events:
-        if (event.triggered is not None and event.triggered.eventType == response):
-            values.append(event.triggered.timestamp - event.timestamp)
+        if (not event.occurred):
+            continue
+
+        responseEvent = event.trueTriggered if trueTriggered and event.trueTriggered is not None else event.triggered
+
+        if (responseEvent is not None and responseEvent.occurred and responseEvent.eventType == response):
+            values.append(responseEvent.timestamp - event.timestamp)
     if (len(values) == 0):
         return None
 
-    values = np.array(values)
-    return NormalDistribution(values.mean(), values.std())
+    return KdeDistribution(values)
 
 
 def getAreaBetweenDistributions(dist1, dist2):

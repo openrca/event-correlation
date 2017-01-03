@@ -8,6 +8,7 @@ class Event:
         self.occurred = True
         self.triggeredBy = None
         self.triggered = None
+        self.trueTriggered = None
 
     # TODO use property decorator
     def setTriggered(self, event):
