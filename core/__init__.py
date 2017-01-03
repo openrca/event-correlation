@@ -34,9 +34,9 @@ if (len(logger.handlers) == 0):
 
 def toAbsolutePath(path):
     """ Add function to 'os.path' to transform a relative path to an absolute one """
-    if (path.startswith("..")):
-        return os.path.join(os.path.dirname(__file__), path)
-    return path
+    if (path is None):
+        return None
+    return os.path.join(os.path.dirname(__file__), path)
 
 
 os.path.toAbsolutePath = toAbsolutePath

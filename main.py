@@ -2,6 +2,7 @@
 """ Automatically generated documentation for run """
 
 import argparse
+import json
 import logging
 import os
 import sys
@@ -25,18 +26,21 @@ parser.add_argument("-t", "--trigger", action="store", type=str, required=False,
                     help="Match only given trigger and response")
 parser.add_argument("-r", "--response", action="store", type=str, required=False,
                     help="Match only given trigger and response")
+parser.add_argument("-d", "--distributions", action="store", type=str, required=False,
+                    help="Path to file containing true empirical distributions")
 
 args = parser.parse_args()
 logging.info("Arguments: {}".format(args))
 # noinspection PyUnresolvedReferences
 args.input = os.path.toAbsolutePath(args.input)
+# noinspection PyUnresolvedReferences
+args.distributions = os.path.toAbsolutePath(args.distributions)
 
 trigger = args.trigger
 response = args.response
 if (trigger is None and response is not None):
     logging.fatal('No trigger defined. Please add a trigger or remove response. {}'.format(parser.format_help()))
     exit()
-
 
 seq = None
 if (args.method == provider.GENERATE):
@@ -58,7 +62,6 @@ if (args.method == provider.PRINTER):
     else:
         seq = printer.PrinterParser().create(args.input, normalization=100)
 logging.info("Processing sequence:\n{}".format(seq))
-
 
 algorithm = None
 kwargs = {}
@@ -82,7 +85,6 @@ if (algorithm is None):
     logging.fatal("Unknown algorithm: '{}'".format(args.algorithm))
     exit(1)
 
-
 timer = Timer()
 timer.start()
 if (len(seq.calculatedRules) > 0):
@@ -97,6 +99,10 @@ else:
 timer.stop()
 logging.info("Calculation time: {} minutes".format(timer))
 
+knownEmpiricalDists = None
+if (args.distributions is not None):
+    with open(args.distributions, "r") as file:
+        knownEmpiricalDists = json.loads("".join(file.readlines()))
 
 for rule in calculatedRules:
     seq.calculatedRules.append(rule)
@@ -105,16 +111,11 @@ for rule in calculatedRules:
     if (baseDist is not None):
         rule.data["True Dist"] = baseDist
 
-    empiricalDist = distribution.getEmpiricalDist(seq, rule.trigger, rule.response, trueTriggered=False)
+    empiricalDist = distribution.getEmpiricalDist(seq, rule.trigger, rule.response, knownEmpiricalDists)
     if (empiricalDist is not None):
         rule.data["Empirical Dist"] = empiricalDist
-
-    trueEmpiricalDist = distribution.getEmpiricalDist(seq, rule.trigger, rule.response, trueTriggered=True)
-    if (trueEmpiricalDist is not None):
-        rule.data["True Empirical Dist"] = trueEmpiricalDist
-
-    if (empiricalDist is not None and trueEmpiricalDist is not None):
-        rule.data["Distance to True"] = EnergyStatistic().compute(trueEmpiricalDist.samples, empiricalDist.samples)
+        rule.data["Distance to Empirical"] = EnergyStatistic().compute(rule.distributionResponse.samples,
+                                                                       empiricalDist.samples)
 
 app = QApplication(sys.argv)
 v = Visualizer()
