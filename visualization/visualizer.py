@@ -35,7 +35,7 @@ class SequenceWidget(QGraphicsScene):
         super().__init__(parent)
         self.__sequence = None
         self.__eventWidgets = {}
-        self.__detailsView = DetailsContainer()
+        self._detailsView = DetailsContainer()
 
         self.__offset = 10
         self.__eventWidth = 20
@@ -109,8 +109,8 @@ class SequenceWidget(QGraphicsScene):
         if (rule is None):
             self.parent().statusBar().showMessage("No details available")
             return
-        self.__detailsView.setData(self.__sequence, rule)
-        self.__detailsView.show()
+        self._detailsView.setData(self.__sequence, rule)
+        self._detailsView.show()
 
     def cleanUp(self):
         self.__eventWidgets = {}
@@ -246,6 +246,11 @@ class Visualizer(QMainWindow):
 
     def __openSettings(self):
         self.__settingsView.show()
+
+    def closeEvent(self, *args, **kwargs):
+        self.__dependenciesView.close()
+        # noinspection PyProtectedMember
+        self.__sequenceWidget._detailsView.close()
 
 
 if __name__ == '__main__':
