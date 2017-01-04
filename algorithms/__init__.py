@@ -4,6 +4,7 @@ import logging
 import numpy as np
 
 import core.distribution
+from core.distribution import NormalDistribution
 from core.performance import EnergyStatistic, RangePerformance, VariancePerformance, StdPerformance, \
     CondProbPerformance, EntropyPerformance, MutualInformationPerformance
 from core.rule import Rule
@@ -110,7 +111,7 @@ class Matcher(abc.ABC):
             return rule
         return None
 
-    def match(self, sequence, trigger, response, **kwargs):
+    def match(self, sequence, trigger, response, enforceNormal=False, **kwargs):
         """ Computes a correlation of two event types. Check parseArgs for additional parameters. """
         self._sequence = sequence
         self._parseArgs(kwargs)
@@ -130,7 +131,8 @@ class Matcher(abc.ABC):
             trigger = response
             response = tmp
 
-        rule = Rule(trigger, response, data[RESULT_KDE], data=data)
+        dist = NormalDistribution(data[RESULT_MU], data[RESULT_SIGMA]) if enforceNormal else data[RESULT_KDE]
+        rule = Rule(trigger, response, dist, data=data)
 
         performance = EnergyStatistic()
         score, pValue = performance.compute(triggerVector, responseVector)

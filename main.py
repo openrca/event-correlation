@@ -75,6 +75,7 @@ elif (args.algorithm == munkresMatcher.MunkresMatcher.__name__):
 elif (args.algorithm == lagEM.lagEM.__name__):
     algorithm = lagEM.lagEM()
     kwargs["threshold"] = 0.01
+    kwargs["enforceNormal"] = True
 
 elif (args.algorithm == icpMatcher.IcpMatcher.__name__):
     algorithm = icpMatcher.IcpMatcher()
