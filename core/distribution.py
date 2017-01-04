@@ -304,7 +304,7 @@ class KdeDistribution(Distribution):
         pdf = self.__kernel.evaluate(x)
         if (self.__cachedMaxPdf is not None and len(pdf) == 1 and pdf > self.__cachedMaxPdf):
             self.__cachedMaxPdf = pdf
-        return pdf
+        return pdf if (len(pdf) > 1) else pdf[0]
 
     def getRandom(self, n=None):
         if (n is None):
@@ -378,7 +378,7 @@ class SingularKernel():
                     result[i] = self.maxValue
             return result
         else:
-            return np.array([self.maxValue if (abs(x - self.value) < self.threshold) else 0])
+            return self.maxValue if (abs(x - self.value) < self.threshold) else 0
 
     def resample(self, n):
         return [np.array([self.value] * n)]

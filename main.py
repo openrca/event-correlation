@@ -115,8 +115,9 @@ for rule in calculatedRules:
     empiricalDist = distribution.getEmpiricalDist(seq, rule.trigger, rule.response, knownEmpiricalDists)
     if (empiricalDist is not None):
         rule.data["Empirical Dist"] = empiricalDist
-        rule.data["Distance to Empirical"] = EnergyStatistic().compute(rule.distributionResponse.samples,
-                                                                       empiricalDist.samples)
+        samples = rule.distributionResponse.samples if (hasattr(rule.distributionResponse, 'samples')) else\
+            rule.distributionResponse.getRandom(len(empiricalDist.samples))
+        rule.data["Distance to Empirical"] = EnergyStatistic().compute(samples, empiricalDist.samples)
 
 app = QApplication(sys.argv)
 v = Visualizer()
