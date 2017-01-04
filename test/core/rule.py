@@ -15,13 +15,13 @@ class TestScript(unittest.TestCase):
         self.assertEqual(2, len(rules))
         self.assertEqual('A', rules[0].trigger)
         self.assertEqual('B', rules[0].response)
-        self.assertEqual(0, rules[0].distributionResponse.lower)
-        self.assertEqual(1, rules[0].distributionResponse.upper)
+        self.assertEqual(0, rules[0].distributionResponse._UniformDistribution__lower)
+        self.assertEqual(1, rules[0].distributionResponse._UniformDistribution__upper)
         self.assertEqual(1, rules[0].successResponse)
 
         self.assertEqual('A', rules[1].trigger)
         self.assertEqual('0', rules[1].response)
-        self.assertEqual(0.5, rules[1].distributionResponse.beta)
+        self.assertEqual(0.5, rules[1].distributionResponse._ExponentialDistribution__beta)
         self.assertEqual(0.9, rules[1].successResponse)
 
     def test_load(self):
@@ -43,8 +43,8 @@ class TestScript(unittest.TestCase):
 
         self.assertEqual('A', rule.trigger)
         self.assertEqual('B', rule.response)
-        self.assertEqual(0, rule.distributionResponse.lower)
-        self.assertEqual(1, rule.distributionResponse.upper)
+        self.assertEqual(0, rule.distributionResponse._UniformDistribution__lower)
+        self.assertEqual(1, rule.distributionResponse._UniformDistribution__upper)
         self.assertEqual(1, rule.successResponse)
 
     def test_load2(self):

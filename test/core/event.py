@@ -62,8 +62,7 @@ class TestScript(unittest.TestCase):
             "occurred": "True",
             "triggered": {
                 "eventType": "b",
-                "timestamp": "0",
-                "occurred": "False"
+                "timestamp": "0"
             }
         }
 
