@@ -1,5 +1,5 @@
 import fastLagEM
-import threading
+import multiprocessing
 
 import numpy as np
 
@@ -20,17 +20,22 @@ class lagEM(Matcher):
         self.__threshold = kwargs["threshold"]
 
     def _compute(self, trigger, response):
-        assignments = [[]] * 10
-        result = np.zeros([10, 3])
-        threads = []
-        for i in range(10):
-            thread = threading.Thread(target=self.__computeParallel, args=(trigger, response, result, assignments, i,))
-            thread.start()
-            threads.append(thread)
+        processes = []
+        queue = multiprocessing.Queue()
 
         for i in range(10):
-            threads[i].join()
-        threads.clear()
+            process = multiprocessing.Process(target=self.__computeParallel, args=(trigger, response, queue, i,))
+            process.start()
+            processes.append(process)
+
+        result = np.zeros([10, 3])
+        assignments = [[]] * 10
+        for i in range(10):
+            processes[i].join()
+            res = queue.get()
+            result[i] = res[0]
+            assignments[i] = res[1]
+        processes.clear()
         self._logger.info("Results:\n {}".format(result))
 
         mu, std, likelihood = result.sum(axis=0) / np.count_nonzero(result[:, 0])
@@ -43,7 +48,7 @@ class lagEM(Matcher):
         return {RESULT_MU: mu, RESULT_SIGMA: std, "Likelihood": result[:, 2].max(), RESULT_IDX: idx,
                 RESULT_KDE: KdeDistribution(samples)}
 
-    def __computeParallel(self, a, b, result, assignments, index):
+    def __computeParallel(self, a, b, queue, index):
         self._logger.info("Processing batch {}".format(index))
         tmp = np.zeros([20, 3])
         tmp2 = []
@@ -56,5 +61,4 @@ class lagEM(Matcher):
             tmp2.append(r)
 
         idx = np.argmax(tmp[:, 2])
-        result[index] = tmp[idx]
-        assignments[index] = tmp2[idx]
+        queue.put([tmp[idx], tmp2[idx]])
