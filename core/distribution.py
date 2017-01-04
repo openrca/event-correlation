@@ -298,12 +298,14 @@ class KdeDistribution(Distribution):
             self.__kernel = stats.gaussian_kde(self.samples, bandwidth)
         else:
             self.__kernel = SingularKernel(np.min(self.samples))
-        self.__cachedMaxPdf = None
+        self.__cachedMaxPdf = 0
 
     def getPDFValue(self, x):
         pdf = self.__kernel.evaluate(x)
-        if (self.__cachedMaxPdf is not None and len(pdf) == 1 and pdf > self.__cachedMaxPdf):
+        if ((isinstance(pdf, int) or len(pdf) == 1) and pdf > self.__cachedMaxPdf):
             self.__cachedMaxPdf = pdf
+        if (isinstance(pdf, int)):
+            return pdf
         return pdf if (len(pdf) > 1) else pdf[0]
 
     def getRandom(self, n=None):
