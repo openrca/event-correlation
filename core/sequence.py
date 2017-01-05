@@ -62,15 +62,15 @@ class Sequence:
         """
         return self.__getRule(trigger, response, self.rules)
 
-    def getBaseDistribution(self, calculatedRule):
+    def getBaseDistribution(self, trigger, response):
         """ For a given calculatedRule the corresponding real distribution is searched.
         Works only for synthetic sequences. """
-        rule = self.getRule(calculatedRule.trigger, calculatedRule.response)
+        rule = self.getRule(trigger, response)
         if (rule is not None):
             return rule.distributionResponse
 
         # search for opposite rule
-        rule = self.getRule(calculatedRule.response, calculatedRule.trigger)
+        rule = self.getRule(response, trigger)
         if (rule is not None):
             return -rule.distributionResponse
         return None

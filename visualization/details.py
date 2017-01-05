@@ -42,7 +42,7 @@ class DetailsCanvas(FigureCanvas):
     @staticmethod
     def _showDistributions(ax, rule, sequence):
         estimatedDist = rule.distributionResponse
-        trueDist = sequence.getBaseDistribution(rule)
+        trueDist = sequence.getBaseDistribution(rule.trigger, rule.response)
 
         borders1 = estimatedDist.getCompleteInterval()
         borders2 = trueDist.getCompleteInterval() if (trueDist is not None) else estimatedDist.getCompleteInterval()

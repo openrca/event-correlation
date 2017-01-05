@@ -108,7 +108,7 @@ if (args.distributions is not None):
 for rule in calculatedRules:
     seq.calculatedRules.append(rule)
 
-    baseDist = seq.getBaseDistribution(rule)
+    baseDist = seq.getBaseDistribution(rule.trigger, rule.response)
     if (baseDist is not None):
         rule.data["True Dist"] = baseDist
 
