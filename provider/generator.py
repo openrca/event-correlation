@@ -57,14 +57,14 @@ class Generator(SequenceParser):
         return self
 
     def _create(self, file, normalization):
-        rulesFile = None
+        rules = None
         if (file is not None and isinstance(file, str)):
             # noinspection PyUnresolvedReferences
             config = os.path.toAbsolutePath(file)
             with open(config) as f:
                 config = json.load(f)
 
-            rulesFile = config["rules"] if "rules" in config else None
+            rules = config["rules"] if "rules" in config else None
             self.__numberEvents = int(config["count"]) if "count" in config else -1
             self.__length = int(config["length"]) if "length" in config else -1
 
@@ -72,9 +72,11 @@ class Generator(SequenceParser):
             raise ValueError("Neither sequence length nor event count specified. Please provide at exactly one")
         if (self.__length != -1 and self.__numberEvents != -1):
             raise ValueError("Sequence length and event count specified. Please provide exactly one")
-        if (len(self.__rules) == 0 and rulesFile is not None):
-            rules = rule.loadFromFile(rulesFile)
-            self.setRules(rules)
+        if (len(self.__rules) == 0 and rules is not None):
+            ruleList = []
+            for entry in rules:
+                ruleList.append(rule.load(entry))
+            self.setRules(ruleList)
         if (self.__rules is None or len(self.__rules) == 0):
             raise RuntimeError("Configuration not valid. Please provide rules")
 

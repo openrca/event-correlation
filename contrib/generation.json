@@ -1,5 +1,25 @@
 {
-    "rules": "../contrib/rules.json",
+    "rules": [
+        {
+            "trigger": {
+                "event": "A",
+                "dist": {
+                    "name": "Uniform",
+                    "param": [10, 20]
+                },
+                "success": "1"
+            },
+            "response": {
+                "event": "B",
+                "dist": {
+                    "name": "Uniform",
+                    "param": [1, 5]
+                },
+                "success": "1"
+            },
+            "likelihood": "1"
+        }
+    ],
     "count": "100",
     "number": "1"
 }
