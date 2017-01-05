@@ -3,10 +3,8 @@ import logging
 
 import numpy as np
 
-import core.distribution
 from core.distribution import NormalDistribution
-from core.performance import EnergyStatistic, RangePerformance, VariancePerformance, StdPerformance, \
-    CondProbPerformance, EntropyPerformance, MutualInformationPerformance
+from core.performance import EnergyStatistic, MutualInformationPerformance
 from core.rule import Rule
 
 RESULT_MU = "Mu"

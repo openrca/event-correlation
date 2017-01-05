@@ -1,7 +1,7 @@
 import math
 import numbers
-from time import sleep
 import sys
+from time import sleep
 
 import matplotlib.pyplot as plt
 import numpy as np
