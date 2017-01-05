@@ -1,12 +1,6 @@
 import matplotlib.pyplot as plt
-import numpy as np
 
-from core.distribution import KdeDistribution, NormalDistribution, SingularKernel
-
-CORRECT = 'correct'
-LP = 'lp'
-ICP = 'icp'
-LAGEM = 'lagEm'
+from visualization import CORRECT, ICP, LP, LAGEM, plotDistributions
 
 correlation66_65 = {
     CORRECT: [1.23, 1.82, 2.02, 2.87, 6.56, 13.87, 18.19, 19.31, 20.33, 25.2, 35.96, 35.97, 35.97, 35.98, 35.98, 35.98,
@@ -214,58 +208,12 @@ correlation101_100 = {
 }
 
 
-# noinspection PyProtectedMember
-def plotDistributions(data, title):
-    correct = None
-    if (len(data[CORRECT]) > 0):
-        correct = KdeDistribution(data[CORRECT])
-    lp = KdeDistribution(data[LP])
-    icp = KdeDistribution(data[ICP])
-    lagEM = NormalDistribution(data[LAGEM][0], data[LAGEM][1])
-
-    if (hasattr(correct, 'kernel') and isinstance(correct._KdeDistribution__kernel, SingularKernel)):
-        correct.__kernel.maxValue = 500
-    if (isinstance(lp._KdeDistribution__kernel, SingularKernel)):
-        lp._KdeDistribution__kernel.maxValue = 500
-    if (isinstance(icp._KdeDistribution__kernel, SingularKernel)):
-        icp._KdeDistribution__kernel.maxValue = 500
-
-    borders1 = correct.getCompleteInterval() if (correct is not None) else lp.getCompleteInterval()
-    borders2 = lp.getCompleteInterval()
-    borders3 = icp.getCompleteInterval()
-    borders4 = lagEM.getCompleteInterval()
-
-    lower = min(borders1[0], borders2[0], borders3[0], borders4[0])
-    upper = max(borders1[1], borders2[1], borders3[1], borders4[0])
-    x = np.linspace(lower - min(300, abs(lower / 5)), upper + min(300, abs(upper / 5)), 5000)
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.set_xlabel("Time Lag")
-    ax.set_ylabel("Probability")
-    fig.canvas.set_window_title(title)
-
-    if (correct is not None):
-        y1 = correct.getPDFValue(x)
-        ax.plot(x, y1, "r", label="True distribution", linewidth=1)
-
-    y2 = lp.getPDFValue(x)
-    ax.plot(x, y2, "g", label="LpMatcher", linewidth=1)
-
-    y3 = icp.getPDFValue(x)
-    ax.plot(x, y3, "c", label="IcpMatcher", linewidth=1)
-
-    y4 = lagEM.getPDFValue(x)
-    ax.plot(x, y4, 'b', label='lagEM', linewidth=1)
-
-    plt.legend(loc='best')
-
-
-plotDistributions(correlation66_65, '66-65')
-plotDistributions(correlation34054_34057, '34054-34057')
-plotDistributions(correlation7_66, '7-66')
-plotDistributions(correlation202_200, '202-200')
-plotDistributions(correlation2_3, '2-3')
-plotDistributions(correlation201_6, '201-6')
-plotDistributions(correlation101_100, '101-100')
-plt.show()
+if (__name__ == "__main__"):
+    plotDistributions(correlation66_65, '66-65')
+    plotDistributions(correlation34054_34057, '34054-34057')
+    plotDistributions(correlation7_66, '7-66')
+    plotDistributions(correlation202_200, '202-200')
+    plotDistributions(correlation2_3, '2-3')
+    plotDistributions(correlation201_6, '201-6')
+    plotDistributions(correlation101_100, '101-100')
+    plt.show()
