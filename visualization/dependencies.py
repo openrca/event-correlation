@@ -136,6 +136,8 @@ class DependencyTree(QGraphicsScene):
         processed = set()
 
         graph = nx.Graph()
+        if (root is None):
+            return graph
         elements = [root]
         while len(elements) > 0:
             newElements = []
@@ -191,7 +193,7 @@ class DependencyTree(QGraphicsScene):
 
         for key, value in self.__positions.items():
             point = self.__pointToPlane(value, size)
-            widget = EventWidget(Event(key), point, key == self.__root, labelBelow=True)
+            widget = EventWidget(Event(key), point, self.__root is not None and key in self.__root, labelBelow=True)
             widget.eventType = key
             self.addItem(widget)
 
