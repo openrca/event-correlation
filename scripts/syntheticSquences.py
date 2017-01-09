@@ -85,10 +85,13 @@ for file in inputFiles:
 
         with open(os.path.splitext(file)[0] + '.out', 'w') as out:
             data = []
+            gen = Generator()
+            gen.create(file)
             for key in keys:
                 entry = {
                     'trigger': key[0],
-                    'response': key[1]
+                    'response': key[1],
+                    'count': gen.getNumberOfEvents()
                 }
                 data.append(entry)
 

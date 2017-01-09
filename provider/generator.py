@@ -42,6 +42,9 @@ class Generator(SequenceParser):
         self.__numberEvents = count
         return self
 
+    def getNumberOfEvents(self):
+        return self.__numberEvents
+
     def setRules(self, rules):
         """ Add rules to this generator """
         self.__rules = []
