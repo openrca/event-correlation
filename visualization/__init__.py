@@ -5,7 +5,7 @@ import numpy as np
 from PySide.QtCore import QPoint, QRectF
 from PySide.QtGui import QBrush, QColor, QFont, QFontMetrics, QGraphicsItem, QPainter, QPainterPath, QPen
 
-from core.distribution import KdeDistribution, NormalDistribution, SingularKernel, Distribution
+from core.distribution import KdeDistribution, NormalDistribution, SingularKernel
 
 
 class EventWidget(QGraphicsItem):
@@ -131,7 +131,7 @@ LAGEM = 'lagEm'
 # noinspection PyProtectedMember,PyUnresolvedReferences
 def plotDistributions(data, title=None):
     correct = None
-    if (CORRECT in data):
+    if (CORRECT in data and data[CORRECT] is not None):
         if (not isinstance(data[CORRECT], list)):
             correct = data[CORRECT]
         elif (len(data[CORRECT]) > 0):
@@ -140,19 +140,19 @@ def plotDistributions(data, title=None):
                 correct.__kernel.maxValue = 500
 
     lp = None
-    if (LP in data and len(data[LP]) > 0):
+    if (LP in data and data[LP] is not None and len(data[LP]) > 0):
         lp = KdeDistribution(data[LP])
         if (isinstance(lp._KdeDistribution__kernel, SingularKernel)):
             lp._KdeDistribution__kernel.maxValue = 500
 
     icp = None
-    if (ICP in data and len(data[ICP]) > 0):
+    if (ICP in data and data[ICP] is not None and len(data[ICP]) > 0):
         icp = KdeDistribution(data[ICP])
         if (isinstance(icp._KdeDistribution__kernel, SingularKernel)):
             icp._KdeDistribution__kernel.maxValue = 500
 
     lagEM = None
-    if (LAGEM in data and len(data[LAGEM]) > 0):
+    if (LAGEM in data and data[LAGEM] is not None and len(data[LAGEM]) > 0):
         lagEM = NormalDistribution(data[LAGEM][0], data[LAGEM][1])
 
     borders1 = correct.getCompleteInterval() if (correct is not None) else [sys.maxsize, -sys.maxsize]

@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 
@@ -5,14 +6,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import algorithms
+import core
 from algorithms.icpMatcher import IcpMatcher
 from algorithms.lagEM import lagEM
 from algorithms.lpMatcher import LpMatcher, Method
+from core import distribution
 from provider.generator import Generator
 from visualization import CORRECT, ICP, LP, LAGEM, plotDistributions
 
-inputFiles = ['../contrib/generation.json']
+inputFiles = ['../contrib/scenarios/1.json']
 sequenceCount = 1
+create = False
+plot = True
 
 
 class Result:
@@ -48,66 +53,83 @@ class Result:
 
 logger = logging.getLogger()
 for file in inputFiles:
-    logger.info('Processing ' + file)
-    resultIcp = {}
-    resultLp = {}
-    resultLagEm = {}
-    keys = set()
+    if (create):
+        logger.info('Processing ' + file)
+        resultIcp = {}
+        resultLp = {}
+        resultLagEm = {}
+        keys = set()
 
-    sequence = None
-    for i in range(sequenceCount):
-        logger.debug('\tRound ' + str(i))
-        sequence = Generator().create(file)
+        sequence = None
+        for i in range(sequenceCount):
+            logger.debug('\tRound ' + str(i))
+            sequence = Generator().create(file)
 
-        listIcp = IcpMatcher().matchAll(sequence, f="confidence")
-        for rule in listIcp:
-            key = (rule.trigger, rule.response)
-            keys.add(key)
-            resultIcp.setdefault(key, Result(key[0], key[1])).addData(rule.data)
+            listIcp = IcpMatcher().matchAll(sequence, f="confidence")
+            for rule in listIcp:
+                key = (rule.trigger, rule.response)
+                keys.add(key)
+                resultIcp.setdefault(key, Result(key[0], key[1])).addData(rule.data)
 
-        listLp = LpMatcher().matchAll(sequence, algorithm=Method.PULP)
-        for rule in listLp:
-            key = (rule.trigger, rule.response)
-            keys.add(key)
-            resultLp.setdefault(key, Result(key[0], key[1])).addData(rule.data)
+            listLp = LpMatcher().matchAll(sequence, algorithm=Method.PULP)
+            for rule in listLp:
+                key = (rule.trigger, rule.response)
+                keys.add(key)
+                resultLp.setdefault(key, Result(key[0], key[1])).addData(rule.data)
 
-        listLagEM = lagEM().matchAll(sequence, threshold=0.01, enforceNormal=True)
-        for rule in listLp:
-            key = (rule.trigger, rule.response)
-            keys.add(key)
-            resultLagEm.setdefault(key, Result(key[0], key[1])).addData(rule.data)
+            listLagEM = lagEM().matchAll(sequence, threshold=0.01, enforceNormal=True)
+            for rule in listLp:
+                key = (rule.trigger, rule.response)
+                keys.add(key)
+                resultLagEm.setdefault(key, Result(key[0], key[1])).addData(rule.data)
 
-    with open(os.path.splitext(file)[0] + '.out', 'w') as out:
-        for key in keys:
-            out.write('{} -> {}\n'.format(key[0], key[1]))
-            data = {}
-            correct = sequence.getBaseDistribution(key[0], key[1])
-            if (correct is not None):
-                data[CORRECT] = correct
+        with open(os.path.splitext(file)[0] + '.out', 'w') as out:
+            data = []
+            for key in keys:
+                entry = {
+                    'trigger': key[0],
+                    'response': key[1]
+                }
+                data.append(entry)
 
-            icp = resultIcp.get(key)
-            out.write('\tIcp\n')
-            if (icp is not None):
-                out.write('\t\tMean: {}\n'.format(icp.getMean()))
-                out.write('\t\tSigma: {}\n'.format(icp.getSigma()))
-                out.write('\t\tSamples: {}\n'.format(icp.getSamples()))
-                data[ICP] = icp.getSamples()
+                correct = sequence.getBaseDistribution(key[0], key[1])
+                if (correct is not None):
+                    entry[CORRECT] = correct
 
-            lp = resultLp.get(key)
-            out.write('\tLp\n')
-            if (lp is not None):
-                out.write('\t\tMean: {}\n'.format(lp.getMean()))
-                out.write('\t\tSigma: {}\n'.format(lp.getSigma()))
-                out.write('\t\tSamples: {}\n'.format(lp.getSamples()))
-                data[LP] = lp.getSamples()
+                icp = resultIcp.get(key)
+                if (icp is not None):
+                    entry[ICP] = {
+                        'mean': icp.getMean(),
+                        'sigma': icp.getSigma(),
+                        'samples': icp.getSamples()
+                    }
 
-            lagEM = resultLagEm.get(key)
-            out.write('\tlagEM\n')
-            if (lagEM is not None):
-                out.write('\t\tMean: {}\n'.format(lagEM.getMean()))
-                out.write('\t\tSigma: {}\n'.format(lagEM.getSigma()))
-                out.write('\t\tSamples: {}\n'.format(lagEM.getSamples()))
-                data[LAGEM] = lagEM.getSamples()
+                lp = resultLp.get(key)
+                if (lp is not None):
+                    entry[LP] = {
+                        'mean': lp.getMean(),
+                        'sigma': lp.getSigma(),
+                        'samples': lp.getSamples()
+                    }
 
-            plotDistributions(data, '{}-{}'.format(key[0], key[1]))
-    plt.show()
+                lagEM = resultLagEm.get(key)
+                if (lagEM is not None):
+                    entry[LAGEM] = {
+                        'mean': lagEM.getMean(),
+                        'sigma': lagEM.getSigma(),
+                        'samples': lagEM.getSamples()
+                    }
+            json.dump(data, out, default=core.defaultJsonEncoding)
+
+    if (plot):
+        with open(os.path.toAbsolutePath(os.path.splitext(file)[0] + '.out'), 'r') as input:
+            content = input.readlines()
+            data = json.loads("".join(content))
+            for entry in data:
+                plotDistributions({
+                    CORRECT: distribution.load(entry[CORRECT]) if CORRECT in entry else None,
+                    ICP: entry[ICP]['samples'] if ICP in entry else None,
+                    LP: entry[LP]['samples'] if LP in entry else None,
+                    LAGEM: [entry[LAGEM]['mean'], entry[LAGEM]['sigma']] if LAGEM in entry else None
+                }, '{}-{}'.format(entry['trigger'], entry['response']))
+            plt.show()
