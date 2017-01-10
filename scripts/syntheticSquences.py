@@ -14,9 +14,9 @@ from core import distribution
 from provider.generator import Generator
 from visualization import CORRECT, ICP, LP, LAGEM, plotDistributions
 
-inputFiles = ['../contrib/scenarios/1.json']
-sequenceCount = 1
-create = False
+inputFiles = ['../contrib/scenarios/2.json']
+sequenceCount = 3
+create = True
 plot = True
 
 
@@ -83,7 +83,7 @@ for file in inputFiles:
                 keys.add(key)
                 resultLagEm.setdefault(key, Result(key[0], key[1])).addData(rule.data)
 
-        with open(os.path.splitext(file)[0] + '.out', 'w') as out:
+        with open(os.path.splitext(file)[0] + '-out.json', 'w') as out:
             data = []
             gen = Generator()
             gen.create(file)
@@ -125,7 +125,7 @@ for file in inputFiles:
             json.dump(data, out, default=core.defaultJsonEncoding)
 
     if (plot):
-        with open(os.path.toAbsolutePath(os.path.splitext(file)[0] + '.out'), 'r') as input:
+        with open(os.path.toAbsolutePath(os.path.splitext(file)[0] + '-out.json'), 'r') as input:
             content = input.readlines()
             data = json.loads("".join(content))
             for entry in data:
