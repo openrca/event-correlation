@@ -78,7 +78,7 @@ for file in inputFiles:
                 resultLp.setdefault(key, Result(key[0], key[1])).addData(rule.data)
 
             listLagEM = lagEM().matchAll(sequence, threshold=0.01, enforceNormal=True)
-            for rule in listLp:
+            for rule in listLagEM:
                 key = (rule.trigger, rule.response)
                 keys.add(key)
                 resultLagEm.setdefault(key, Result(key[0], key[1])).addData(rule.data)
