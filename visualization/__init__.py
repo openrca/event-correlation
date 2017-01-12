@@ -167,7 +167,7 @@ def plotDistributions(data, title=None):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.set_xlabel("Time Lag")
-    ax.set_ylabel("Probability")
+    ax.set_ylabel("Probability Density")
     if (title is not None):
         fig.canvas.set_window_title(title)
 
