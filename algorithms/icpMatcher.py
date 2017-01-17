@@ -125,12 +125,18 @@ class IcpMatcher(Matcher):
         return np.argsort(delta, axis=0)[0:k, :].flatten()
 
     @staticmethod
-    def _findOptimalTransformation(data, model):
+    def _findOptimalTransformation(data, model, init=False):
         # Compute minimum of cost function
         #   sum( (data + t - model)^2 )
         # with t the variable.
-        result = optimize.minimize(IcpMatcher.__costFunction, np.zeros(1), args=(data, model), method='Newton-CG',
-                                   jac=IcpMatcher.__jacobiMatrix, hess=IcpMatcher.__hesseMatrix)
+        if (init):
+            result = optimize.minimize(IcpMatcher.__costFunction, np.zeros(1), args=(data, model), method='Newton-CG',
+                                       jac=IcpMatcher.__jacobiMatrix,
+                                       options={'disp': True})
+        else:
+            result = optimize.basinhopping(IcpMatcher.__costFunction, np.zeros(1), T=0.9, niter=100,
+                                           minimizer_kwargs={'args': (data, model), 'method': 'Newton-CG',
+                                                             'jac': IcpMatcher.__jacobiMatrix}, disp=False, stepsize=10)
         return result.x[0]
 
     @staticmethod
@@ -201,7 +207,7 @@ class SampleConsensusInitialGuess(InitialGuess):
             modelSamples = self.__findSimilarFeatures(dataSamples, model)
 
             # noinspection PyProtectedMember
-            t = IcpMatcher._findOptimalTransformation(dataSamples, modelSamples)
+            t = IcpMatcher._findOptimalTransformation(dataSamples, modelSamples, True)
             d = dataSamples + t
             error = self.__computeErrorMetric(d, model)
             if (error < minError):
