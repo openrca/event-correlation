@@ -1,0 +1,23 @@
+{
+    "rules": [
+        {
+            "trigger": {
+                "event": "A",
+                "dist": {
+                    "name": "Expon",
+                    "param": [0, 27.5]
+                },
+                "success": "0.9"
+            },
+            "response": {
+                "event": "B",
+                "dist": {
+                    "name": "Norm",
+                    "param": [77.01, 6.664]
+                },
+                "success": "0.9"
+            }
+        }
+    ],
+    "count": "200"
+}

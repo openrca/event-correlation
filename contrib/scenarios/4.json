@@ -1,0 +1,41 @@
+{
+    "rules": [
+        {
+            "trigger": {
+                "event": "A",
+                "dist": {
+                    "name": "Uniform",
+                    "param": [30, 50]
+                },
+                "success": "0.9"
+            },
+            "response": {
+                "event": "B",
+                "dist": {
+                    "name": "Expon",
+                    "param": [10, 25]
+                },
+                "success": "0.9"
+            }
+        },
+        {
+            "trigger": {
+                "event": "C",
+                "dist": {
+                    "name": "Expon",
+                    "param": [25, 10]
+                },
+                "success": "0.9"
+            },
+            "response": {
+                "event": "D",
+                "dist": {
+                    "name": "Uniform",
+                    "param": [15, 25]
+                },
+                "success": "0.9"
+            }
+        }
+    ],
+    "count": "1000"
+}
