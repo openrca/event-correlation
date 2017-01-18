@@ -65,7 +65,8 @@ class DependenciesView(QWidget):
     def setData(self, root, sequence):
         self.__mutualInformation = np.zeros(len(sequence.calculatedRules))
         for index, rule in enumerate(sequence.calculatedRules):
-            self.__mutualInformation[index] = rule.data["Mutual Information"]
+            self.__mutualInformation[index] = rule.data["Mutual Information"] if "Mutual Information" in rule.data \
+                else None
         self.__sensitivityChanged(redraw=False)
         self.__tree.setData(root, sequence)
 
@@ -83,6 +84,9 @@ class DependenciesView(QWidget):
         self.__tree.paint()
 
     def __sensitivityChanged(self, redraw=True):
+        if (self.__mutualInformation is None):
+            return
+
         epsilon = self.__slider.value() / 100
         percentile25 = np.percentile(self.__mutualInformation, 25)
         percentile75 = np.percentile(self.__mutualInformation, 75)
