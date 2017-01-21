@@ -17,35 +17,32 @@ from scipy.stats.distributions import norm
 from core import distribution
 from core.distribution import KdeDistribution, UniformDistribution, NormalDistribution, ExponentialDistribution
 
+
+def plotKde(ax, dist):
+    pdfTrue = (0.8 * norm(-1, 1).pdf(xGrid) + 0.2 * norm(1, 0.3).pdf(xGrid))
+    ax.plot(xGrid, dist.getPDFValue(xGrid), color='blue', alpha=0.5)
+    ax.fill(xGrid, pdfTrue, ec='gray', fc='gray', alpha=0.4)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.set_xlabel('x')
+    ax.set_ylabel('Probability Density')
+
 # 1 Visualization of Kde
 np.random.seed(0)
 xGrid = np.linspace(-4.5, 3.5, 1000)
 x = np.concatenate([norm(-1, 1.).rvs(400), norm(1, 0.3).rvs(100)])
-dist = KdeDistribution(x)
-pdf = dist.getPDFValue(xGrid)
 
-fig, ax = plt.subplots(1, 3, sharex=True, figsize=(13, 3))
+fig, ax = plt.subplots(1, 1)
+plotKde(ax, KdeDistribution(x, bandwidth=0.01))
+fig, ax = plt.subplots(1, 1)
+plotKde(ax, KdeDistribution(x, bandwidth=0.2))
+fig, ax = plt.subplots(1, 1)
+plotKde(ax, KdeDistribution(x, bandwidth=1))
 
-pdfTrue = (0.8 * norm(-1, 1).pdf(xGrid) + 0.2 * norm(1, 0.3).pdf(xGrid))
-ax[0].plot(xGrid, pdf, color='blue', alpha=0.5, lw=3)
-ax[0].fill(xGrid, pdfTrue, ec='gray', fc='gray', alpha=0.4)
-ax[0].set_title('Compare pdf values')
-
-samples = dist.getRandom(1000)
-ax[1].plot(xGrid, pdf, color='blue', alpha=0.5, lw=3)
-ax[1].hist(samples, 50, ec='gray', fc='gray', alpha=0.4, normed=True)
-ax[1].set_title('Draw random samples')
-
-cdfTrue = (0.8 * norm(-1, 1).cdf([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]) +
-           0.2 * norm(1, 0.3).cdf([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]))
-print(cdfTrue)
-
-cdf = dist.getCDFValue([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4])
-print(cdf)
-
-# noinspection PyTypeChecker
-ax[2].plot([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4], cdf - cdfTrue, color='blue', lw=3)
-ax[2].set_title('Distance between true cdf and computed cdf')
 plt.show()
 
 # 2. Benefits of Kde

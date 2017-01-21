@@ -41,5 +41,12 @@ ax.text(6.75, 3.5, 'Constraint 2',
 plt.plot([-1, 9], [0, 0], "k")
 plt.plot([0, 0], [-1, 9], "k")
 
-plt.axis('off')
+plt.xlabel('x$_1$')
+plt.ylabel('x$_2$')
+plt.gca().set_xticks([])
+plt.gca().set_yticks([])
+plt.gca().spines['top'].set_visible(False)
+plt.gca().spines['right'].set_visible(False)
+plt.gca().spines['bottom'].set_visible(False)
+plt.gca().spines['left'].set_visible(False)
 plt.show()
