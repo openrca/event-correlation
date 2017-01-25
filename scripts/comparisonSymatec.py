@@ -210,10 +210,10 @@ correlation101_100 = {
 
 if (__name__ == "__main__"):
     plotDistributions(correlation66_65, '66-65')
-    plotDistributions(correlation34054_34057, '34054-34057')
+    plotDistributions(correlation34054_34057, '34054-34057', 500)
     plotDistributions(correlation7_66, '7-66')
-    plotDistributions(correlation202_200, '202-200')
-    plotDistributions(correlation2_3, '2-3')
+    plotDistributions(correlation202_200, '202-200', 200)
+    plotDistributions(correlation2_3, '2-3', 0.1)
     plotDistributions(correlation201_6, '201-6')
-    plotDistributions(correlation101_100, '101-100')
+    plotDistributions(correlation101_100, '101-100', 0.0015)
     plt.show()

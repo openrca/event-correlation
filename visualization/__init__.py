@@ -129,7 +129,7 @@ LAGEM = 'lagEm'
 
 
 # noinspection PyProtectedMember,PyUnresolvedReferences
-def plotDistributions(data, title=None):
+def plotDistributions(data, title=None, limit=None):
     correct = None
     if (CORRECT in data and data[CORRECT] is not None):
         if (not isinstance(data[CORRECT], list)):
@@ -170,6 +170,8 @@ def plotDistributions(data, title=None):
     ax.set_ylabel("Probability Density")
     if (title is not None):
         fig.canvas.set_window_title(title)
+    if (limit is not None):
+        ax.set_ylim([0, limit])
 
     if (correct is not None):
         y1 = correct.getPDFValue(x)
