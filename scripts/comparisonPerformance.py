@@ -23,7 +23,7 @@ xTickMarks = ['Scenario' + str(i) for i in range(1, 5)]
 ax.set_xticks(ind + width)
 xTickNames = ax.set_xticklabels(xTickMarks)
 plt.setp(xTickNames, rotation=45, fontsize=10)
-ax.legend((rects1[0], rects2[0], rects3[0]), ('ICP', 'LpMatcher', 'lagEM'), loc='best')
+ax.legend((rects1[0], rects2[0], rects3[0]), ('ICE', 'LpMatcher', 'lagEM'), loc='best')
 plt.yscale('log')
 
 # memory
@@ -43,5 +43,5 @@ xTickMarks = ['Scenario' + str(i) for i in range(1, 5)]
 ax.set_xticks(ind + width)
 xTickNames = ax.set_xticklabels(xTickMarks)
 plt.setp(xTickNames, rotation=45, fontsize=10)
-ax.legend((rects1[0], rects2[0], rects3[0]), ('ICP', 'LpMatcher', 'lagEM'), loc='best')
+ax.legend((rects1[0], rects2[0], rects3[0]), ('ICE', 'LpMatcher', 'lagEM'), loc='best')
 plt.show()

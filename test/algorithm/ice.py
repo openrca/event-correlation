@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from algorithms import RESULT_MU
-from algorithms.icpMatcher import IcpMatcher
+from algorithms.ice import ICE
 
 
 class TestScript(unittest.TestCase):
@@ -11,7 +11,7 @@ class TestScript(unittest.TestCase):
         a = np.array([5, 20, 27])
         b = np.array([12, 25, 32])
 
-        matcher = IcpMatcher()
+        matcher = ICE()
         matcher.trimCost = False
         res = matcher._compute(a, b)
         self.assertAlmostEqual(res[RESULT_MU], 17 / 3)

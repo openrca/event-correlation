@@ -10,7 +10,7 @@ import sys
 from PySide.QtGui import QApplication
 
 import provider
-from algorithms import lpMatcher, lagEM, munkresMatcher, icpMatcher
+from algorithms import lpMatcher, lagEM, munkresMatcher, ice
 from core import sequence, distribution
 from core.performance import EnergyStatistic
 from core.timer import Timer
@@ -77,8 +77,8 @@ elif (args.algorithm == lagEM.lagEM.__name__):
     kwargs["threshold"] = 0.01
     kwargs["enforceNormal"] = True
 
-elif (args.algorithm == icpMatcher.IcpMatcher.__name__):
-    algorithm = icpMatcher.IcpMatcher()
+elif (args.algorithm == ice.ICE.__name__):
+    algorithm = ice.ICE()
     kwargs["showVisualization"] = False
     kwargs["f"] = "confidence"
 

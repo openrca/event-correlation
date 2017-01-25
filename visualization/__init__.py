@@ -124,7 +124,7 @@ class ArrowWidget(QGraphicsItem):
 
 CORRECT = 'correct'
 LP = 'lp'
-ICP = 'icp'
+ICE = 'ice'
 LAGEM = 'lagEm'
 
 
@@ -145,11 +145,11 @@ def plotDistributions(data, title=None, limit=None):
         if (isinstance(lp._KdeDistribution__kernel, SingularKernel)):
             lp._KdeDistribution__kernel.maxValue = 500
 
-    icp = None
-    if (ICP in data and data[ICP] is not None and len(data[ICP]) > 0):
-        icp = KdeDistribution(data[ICP])
-        if (isinstance(icp._KdeDistribution__kernel, SingularKernel)):
-            icp._KdeDistribution__kernel.maxValue = 500
+    ice = None
+    if (ICE in data and data[ICE] is not None and len(data[ICE]) > 0):
+        ice = KdeDistribution(data[ICE])
+        if (isinstance(ice._KdeDistribution__kernel, SingularKernel)):
+            ice._KdeDistribution__kernel.maxValue = 500
 
     lagEM = None
     if (LAGEM in data and data[LAGEM] is not None and len(data[LAGEM]) > 0):
@@ -157,7 +157,7 @@ def plotDistributions(data, title=None, limit=None):
 
     borders1 = correct.getCompleteInterval() if (correct is not None) else [sys.maxsize, -sys.maxsize]
     borders2 = lp.getCompleteInterval() if (lp is not None) else [sys.maxsize, -sys.maxsize]
-    borders3 = icp.getCompleteInterval() if (icp is not None) else [sys.maxsize, -sys.maxsize]
+    borders3 = ice.getCompleteInterval() if (ice is not None) else [sys.maxsize, -sys.maxsize]
     borders4 = lagEM.getCompleteInterval() if (lagEM is not None) else [sys.maxsize, -sys.maxsize]
 
     lower = min(borders1[0], borders2[0], borders3[0], borders4[0])
@@ -181,9 +181,9 @@ def plotDistributions(data, title=None, limit=None):
         y2 = lp.getPDFValue(x)
         ax.plot(x, y2, "g", label="LpMatcher", linewidth=1)
 
-    if (icp is not None):
-        y3 = icp.getPDFValue(x)
-        ax.plot(x, y3, "c", label="IcpMatcher", linewidth=1)
+    if (ice is not None):
+        y3 = ice.getPDFValue(x)
+        ax.plot(x, y3, "c", label="ICE", linewidth=1)
 
     if (lagEM is not None):
         y4 = lagEM.getPDFValue(x)

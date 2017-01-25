@@ -7,13 +7,13 @@ import numpy as np
 
 import algorithms
 import core
-from algorithms.icpMatcher import IcpMatcher
+from algorithms import ice
 from algorithms.lagEM import lagEM
 from algorithms.lpMatcher import LpMatcher, Method
 from core import distribution
 from core.timer import Timer
 from provider.generator import Generator
-from visualization import CORRECT, ICP, LP, LAGEM, plotDistributions
+from visualization import CORRECT, ICE, LP, LAGEM, plotDistributions
 
 inputFile = '../contrib/scenarios/3.json'
 sequenceCount = 1
@@ -59,7 +59,7 @@ timer.start()
 logger = logging.getLogger()
 if (create):
     logger.info('Processing ' + inputFile)
-    resultIcp = {}
+    resultIce = {}
     resultLp = {}
     resultLagEm = {}
     keys = set()
@@ -69,11 +69,11 @@ if (create):
         logger.debug('\tRound ' + str(i))
         sequence = Generator().create(inputFile)
 
-        listIcp = IcpMatcher().matchAll(sequence, f="confidence")
-        for rule in listIcp:
+        listIce = ice.ICE().matchAll(sequence, f="confidence")
+        for rule in listIce:
             key = (rule.trigger, rule.response)
             keys.add(key)
-            resultIcp.setdefault(key, Result(key[0], key[1])).addData(rule.data)
+            resultIce.setdefault(key, Result(key[0], key[1])).addData(rule.data)
 
         listLp = LpMatcher().matchAll(sequence, algorithm=Method.PULP)
         for rule in listLp:
@@ -102,12 +102,12 @@ if (create):
         if (correct is not None):
             entry[CORRECT] = correct
 
-        icp = resultIcp.get(key)
-        if (icp is not None):
-            entry[ICP] = {
-                'mean': icp.getMean(),
-                'sigma': icp.getSigma(),
-                'samples': icp.getSamples()
+        ice = resultIce.get(key)
+        if (ice is not None):
+            entry[ICE] = {
+                'mean': ice.getMean(),
+                'sigma': ice.getSigma(),
+                'samples': ice.getSamples()
             }
 
         lp = resultLp.get(key)
@@ -137,7 +137,7 @@ if (plot):
         for entry in data:
             plotDistributions({
                 CORRECT: distribution.load(entry[CORRECT]) if CORRECT in entry else None,
-                ICP: entry[ICP]['samples'] if ICP in entry else None,
+                ICE: entry[ICE]['samples'] if ICE in entry else None,
                 LP: entry[LP]['samples'] if LP in entry else None,
                 LAGEM: [entry[LAGEM]['mean'], entry[LAGEM]['sigma']] if LAGEM in entry else None
             }, '{}-{}'.format(entry['trigger'], entry['response']))

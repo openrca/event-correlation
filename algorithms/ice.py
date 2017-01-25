@@ -11,7 +11,7 @@ from algorithms import Matcher, RESULT_MU, RESULT_SIGMA, RESULT_KDE, RESULT_IDX,
 from core.distribution import KdeDistribution
 
 
-class IcpMatcher(Matcher):
+class ICE(Matcher):
     def __init__(self):
         super().__init__(__name__)
         self.__initPose = None
@@ -76,19 +76,19 @@ class IcpMatcher(Matcher):
                 break
 
             subData, selectedIdx = self.__getSubset(data, model)
-            idx = IcpMatcher._findMinimalDistance(subData, model)
-            t = IcpMatcher._findOptimalTransformation(subData, model[idx])
+            idx = ICE._findMinimalDistance(subData, model)
+            t = ICE._findOptimalTransformation(subData, model[idx])
             data += t
             opt += t
 
-            self._logger.debug("Offset {}\t Distance {}".format(opt, IcpMatcher.__costFunction(0, subData, model[idx])))
+            self._logger.debug("Offset {}\t Distance {}".format(opt, ICE.__costFunction(0, subData, model[idx])))
             if (self.__showVisualization):
-                IcpMatcher.__visualizeCurrentStep(trigger, subData, selectedIdx, model, idx)
+                ICE.__visualizeCurrentStep(trigger, subData, selectedIdx, model, idx)
 
-        idx = IcpMatcher._findMinimalDistance(data, model)
+        idx = ICE._findMinimalDistance(data, model)
         idx = np.column_stack((np.arange(idx.size), idx))
         tmp = model[idx[:, 1]]
-        self._logger.info("Final offset {} ({} distance)".format(opt, IcpMatcher.__costFunction(0, data, tmp)))
+        self._logger.info("Final offset {} ({} distance)".format(opt, ICE.__costFunction(0, data, tmp)))
 
         if (len(trigger) > len(response)):
             cost = (tmp - response) * -1
@@ -130,13 +130,13 @@ class IcpMatcher(Matcher):
         #   sum( (data + t - model)^2 )
         # with t the variable.
         if (init):
-            result = optimize.minimize(IcpMatcher.__costFunction, np.zeros(1), args=(data, model), method='Newton-CG',
-                                       jac=IcpMatcher.__jacobiMatrix,
+            result = optimize.minimize(ICE.__costFunction, np.zeros(1), args=(data, model), method='Newton-CG',
+                                       jac=ICE.__jacobiMatrix,
                                        options={'disp': True})
         else:
-            result = optimize.basinhopping(IcpMatcher.__costFunction, np.zeros(1), T=0.9, niter=100,
+            result = optimize.basinhopping(ICE.__costFunction, np.zeros(1), T=0.9, niter=100,
                                            minimizer_kwargs={'args': (data, model), 'method': 'Newton-CG',
-                                                             'jac': IcpMatcher.__jacobiMatrix}, disp=False, stepsize=10)
+                                                             'jac': ICE.__jacobiMatrix}, disp=False, stepsize=10)
         return result.x[0]
 
     @staticmethod
@@ -178,14 +178,14 @@ class IcpMatcher(Matcher):
     # noinspection PyUnusedLocal
     @staticmethod
     def __hesseMatrix(t, data, model):
-        # This function has to have the same arguments as IcpMatcher.jacobiMatrix and IcpMatcher.totalDistance.
+        # This function has to have the same arguments as ICE.jacobiMatrix and ICE.totalDistance.
         # See http://docs.scipy.org/doc/scipy-0.17.1/reference/generated/scipy.optimize.minimize.html
         return 0
 
 
 class SampleConsensusInitialGuess(InitialGuess):
     """
-    Compute (mostly) robust initial transformation for IcpMatcher.
+    Compute (mostly) robust initial transformation for Ice.
 
     Calculation is based on [1] Fast Point Feature Histograms (FPFH) for 3D registration, Rusu, Blodow and Beetz,
     Section IV Sample Consensus Initial Alignment: SAC-IA and [2] PointCloudLibrary(PCL) implementation on
@@ -207,7 +207,7 @@ class SampleConsensusInitialGuess(InitialGuess):
             modelSamples = self.__findSimilarFeatures(dataSamples, model)
 
             # noinspection PyProtectedMember
-            t = IcpMatcher._findOptimalTransformation(dataSamples, modelSamples, True)
+            t = ICE._findOptimalTransformation(dataSamples, modelSamples, True)
             d = dataSamples + t
             error = self.__computeErrorMetric(d, model)
             if (error < minError):
@@ -237,7 +237,7 @@ class SampleConsensusInitialGuess(InitialGuess):
         result = []
         for d in data:
             # noinspection PyProtectedMember
-            idx = IcpMatcher._findMinimalDistance(d, model, self.__kCorrespondence)
+            idx = ICE._findMinimalDistance(d, model, self.__kCorrespondence)
             result.append(np.random.choice(idx, 1)[0])
 
         return model[result]
@@ -245,7 +245,7 @@ class SampleConsensusInitialGuess(InitialGuess):
     def __computeErrorMetric(self, data, model):
         error = 0
         # noinspection PyProtectedMember
-        idx = IcpMatcher._findMinimalDistance(data, model)
+        idx = ICE._findMinimalDistance(data, model)
         dist = data - model[idx]
         for d in dist:
             error += min(abs(d) / self.__distanceThreshold, 1)
