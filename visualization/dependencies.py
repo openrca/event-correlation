@@ -128,10 +128,10 @@ class DependencyTree(QGraphicsScene):
 
     @staticmethod
     def __createCompleteGraph(nodes, rules):
-        graph = nx.Graph()
+        graph = nx.DiGraph()
         graph.add_nodes_from(nodes)
         for rule in rules:
-            graph.add_edge(rule.response, rule.trigger)
+            graph.add_edge(rule.trigger, rule.response)
         return graph
 
     def __createGraph(self, root):
@@ -152,7 +152,8 @@ class DependencyTree(QGraphicsScene):
 
                 for event in tree[element]:
                     graph.add_node(event)
-                    edges.add((element, event))
+                    if (self.__sequence.getCalculatedRule(element, event) is not None):
+                        edges.add((element, event))
                     newElements.append(event)
             elements = set(newElements)
 
