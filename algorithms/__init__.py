@@ -165,6 +165,9 @@ class Matcher(abc.ABC):
     def __fillRuleData(self, trigger, response, rule):
         distribution = rule.distributionResponse
 
+        rule.successResponse = Matcher.__calculateRuleSuccess(trigger, response, distribution)
+        rule.successTrigger = Matcher.__calculateRuleSuccess(response, trigger, -distribution)
+
         rule.data["Size"] = rule.data[RESULT_IDX].shape[0]
         # rule.data["Performance Range"] = RangePerformance().getValueByDistribution(distribution)
         # rule.data["Performance Variance"] = VariancePerformance().getValueByDistribution(distribution)
@@ -175,6 +178,18 @@ class Matcher(abc.ABC):
         rule.data["Mutual Information"] = MutualInformationPerformance(trigger, response, len(self._sequence)) \
             .getValueByDistribution(distribution)
         rule.data["Likelihood"] = rule.likelihood
+        rule.data["Success Response"] = rule.successResponse
+        rule.data["Success Trigger"] = rule.successTrigger
+
+    @staticmethod
+    def __calculateRuleSuccess(trigger, response, dist, threshold=0.05):
+        count = 0
+        for t in trigger:
+            for r in response:
+                if (dist.getPDFValue(r - t) > threshold):
+                    count += 1
+                    continue
+        return count / len(trigger)
 
     def __connectEventPairs(self, trigger, response, idx):
         # TODO what happens if one event is connected several times?
