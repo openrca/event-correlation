@@ -5,6 +5,7 @@ import numpy as np
 from PySide.QtCore import QPoint, Signal, Qt
 from PySide.QtGui import QGraphicsScene, QGraphicsView, QHBoxLayout, QWidget, QSizePolicy, QVBoxLayout, QSlider
 
+from core.bayesianNetwork import BayesianNetwork
 from core.event import Event
 from core.rule import Rule
 from visualization import EventWidget, ArrowWidget
@@ -119,55 +120,14 @@ class DependencyTree(QGraphicsScene):
         self.__root = root
         self.__sequence = sequence
 
+        self.__graph = BayesianNetwork(sequence)
         if (self.__root is None):
-            self.__graph = self.__createCompleteGraph(self.__sequence.eventTypes, self.__sequence.calculatedRules)
+            self.__graph.createCompleteGraph()
         else:
-            self.__graph = self.__createGraph(root)
-        self.__positions = nx.fruchterman_reingold_layout(self.__graph)
+            self.__graph.createGraph(self.__root)
+        self.__graph.learnStructure()
+        self.__positions = nx.fruchterman_reingold_layout(self.__graph.graph)
         self.__normalizePositions()
-
-    @staticmethod
-    def __createCompleteGraph(nodes, rules):
-        graph = nx.DiGraph()
-        graph.add_nodes_from(nodes)
-        for rule in rules:
-            graph.add_edge(rule.trigger, rule.response)
-        return graph
-
-    def __createGraph(self, root):
-        tree = self.__createTreeFromRules(self.__sequence.calculatedRules)
-        edges = set()
-        processed = set()
-
-        graph = nx.Graph()
-        if (root is None):
-            return graph
-        elements = [root]
-        while len(elements) > 0:
-            newElements = []
-            for element in elements:
-                if (element in processed):
-                    continue
-                processed.add(element)
-
-                for event in tree[element]:
-                    graph.add_node(event)
-                    if (self.__sequence.getCalculatedRule(element, event) is not None):
-                        edges.add((element, event))
-                    newElements.append(event)
-            elements = set(newElements)
-
-        graph.add_edges_from(edges)
-        return graph
-
-    @staticmethod
-    def __createTreeFromRules(rules):
-        tree = {}
-        for rule in rules:
-            tree.setdefault(rule.trigger, []).append(rule.response)
-        for rule in rules:
-            tree.setdefault(rule.response, []).append(rule.trigger)
-        return tree
 
     def __normalizePositions(self):
         pos = np.array(list(self.__positions.values()))
@@ -182,7 +142,7 @@ class DependencyTree(QGraphicsScene):
         self.clear()
         size = [self.__parent.width() * 0.5, self.__parent.height() * 0.8]
 
-        for start, end in self.__graph.edges():
+        for start, end in self.__graph.graph.edges():
             startPoint = self.__pointToPlane(self.__positions[start], size, center=True)
             endPoint = self.__clipPointToCircle(startPoint,
                                                 self.__pointToPlane(self.__positions[end], size, center=True))
