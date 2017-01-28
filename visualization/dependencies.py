@@ -109,7 +109,7 @@ class DependencyTree(QGraphicsScene):
         self.__parent = parent
         self.__root = None
         self.__sequence = None
-        self.__graph = None
+        self.__bn = None
         self.__positions = None
         self._threshold = 0
         self.detailsSignal.connect(self.__showDetails)
@@ -120,29 +120,31 @@ class DependencyTree(QGraphicsScene):
         self.__root = root
         self.__sequence = sequence
 
-        self.__graph = BayesianNetwork(sequence)
+        self.__bn = BayesianNetwork(sequence)
         if (self.__root is None):
-            self.__graph.createCompleteGraph()
+            self.__bn.createCompleteGraph()
         else:
-            self.__graph.createGraph(self.__root)
-        self.__graph.learnStructure()
-        self.__positions = nx.fruchterman_reingold_layout(self.__graph.graph)
-        self.__normalizePositions()
+            self.__bn.createGraph(self.__root)
+        self.__bn.learnStructure()
+        self.__normalizePositions(nx.nx_pydot.graphviz_layout(self.__bn.graph, prog='dot'))
 
-    def __normalizePositions(self):
-        pos = np.array(list(self.__positions.values()))
+    def __normalizePositions(self, positions):
+        self.__positions = {}
+        pos = np.array(list(positions.values()))
         x = pos[:, 0].max()
         y = pos[:, 1].max()
 
-        for key, value in self.__positions.items():
+        for key, value in positions.items():
+            value = list(value)
             value[0] /= x
             value[1] /= y
+            self.__positions[key] = value
 
     def paint(self):
         self.clear()
         size = [self.__parent.width() * 0.5, self.__parent.height() * 0.8]
 
-        for start, end in self.__graph.graph.edges():
+        for start, end in self.__bn.graph.edges():
             startPoint = self.__pointToPlane(self.__positions[start], size, center=True)
             endPoint = self.__clipPointToCircle(startPoint,
                                                 self.__pointToPlane(self.__positions[end], size, center=True))
