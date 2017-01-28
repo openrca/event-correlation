@@ -141,7 +141,7 @@ class ICE(Matcher):
 
     @staticmethod
     def __costFunction(t, data, model):
-        return np.sum(abs((data + t) - model))
+        return np.mean(abs((data + t) - model))
 
     def __getSubset(self, data, model):
         if (self.__f == 1 or self.__f is None):
