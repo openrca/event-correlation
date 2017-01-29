@@ -28,12 +28,14 @@ class BayesianNetwork:
         self._dcg = None
         self._dag = None
         self.graph = None
+        self.filter = []
 
     def createCompleteGraph(self):
         graph = nx.DiGraph()
-        graph.add_nodes_from(self.__sequence.eventTypes)
+        graph.add_nodes_from(self.__sequence.eventTypes if len(self.filter) == 0 else self.filter)
         for rule in self.__sequence.calculatedRules:
-            graph.add_edge(rule.trigger, rule.response)
+            if (len(self.filter) == 0 or (rule.trigger in self.filter and rule.response in self.filter)):
+                graph.add_edge(rule.trigger, rule.response)
         self._dcg = graph
         self.graph = self._dcg
 
@@ -64,13 +66,12 @@ class BayesianNetwork:
         self._dcg = graph
         self.graph = self._dcg
 
-    @staticmethod
-    def __createTreeFromRules(rules):
+    def __createTreeFromRules(self, rules):
         tree = {}
         for rule in rules:
-            tree.setdefault(rule.trigger, []).append(rule.response)
-        for rule in rules:
-            tree.setdefault(rule.response, []).append(rule.trigger)
+            if (len(self.filter) == 0 or (rule.trigger in self.filter and rule.response in self.filter)):
+                tree.setdefault(rule.trigger, []).append(rule.response)
+                tree.setdefault(rule.response, []).append(rule.trigger)
         return tree
 
     def learnStructure(self):
