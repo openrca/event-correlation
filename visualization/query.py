@@ -1,0 +1,39 @@
+import json
+
+from PySide.QtGui import QPushButton, QLineEdit, QTextEdit
+from PySide.QtGui import QVBoxLayout, QLabel
+from PySide.QtGui import QWidget
+
+from core.bayesianNetwork import Evidence
+
+
+class Query(QWidget):
+    def __init__(self, bn):
+        super().__init__()
+        self.__bn = bn
+        self.__variable = QLineEdit()
+        self.__evidence = QTextEdit()
+        self.__submit = QPushButton('Query')
+        # noinspection PyUnresolvedReferences
+        self.__submit.clicked.connect(self.__submitQuery)
+
+        layout = QVBoxLayout()
+        layout.addWidget(QLabel('Variable'))
+        layout.addWidget(self.__variable)
+        layout.addWidget(QLabel('Evidence'))
+        layout.addWidget(self.__evidence)
+        layout.addWidget(self.__submit)
+        self.setLayout(layout)
+
+    def __submitQuery(self):
+        variable = str(self.__variable.text())
+        evidenceInput = str(self.__evidence.toPlainText())
+        evidenceInput = json.loads(evidenceInput)
+
+        evidence = []
+        for key, value in evidenceInput.items():
+            evidence.append(Evidence(key, int(value)))
+
+        res = self.__bn.query(variable, evidence)
+        print(res)
+        # QMessageBox.information(self, 'Result', str(res))

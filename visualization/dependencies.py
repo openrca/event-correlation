@@ -4,12 +4,14 @@ import networkx as nx
 import numpy as np
 from PySide.QtCore import QPoint, Signal, Qt
 from PySide.QtGui import QGraphicsScene, QGraphicsView, QHBoxLayout, QWidget, QSizePolicy, QVBoxLayout, QSlider
+from PySide.QtGui import QPushButton
 
 from core.bayesianNetwork import BayesianNetwork
 from core.event import Event
 from core.rule import Rule
 from visualization import EventWidget, ArrowWidget
 from visualization.details import DetailsContainer
+from visualization.query import Query
 
 
 class ResponsiveArrowWidget(ArrowWidget):
@@ -48,7 +50,17 @@ class DependenciesView(QWidget):
         self.__slider.setTickPosition(QSlider.TickPosition.TicksBelow)
         # noinspection PyUnresolvedReferences
         self.__slider.valueChanged.connect(self.__sensitivityChanged)
-        layoutLeft.addWidget(self.__slider)
+
+        self.__queryButton = QPushButton('Query')
+        # noinspection PyUnresolvedReferences
+        self.__queryButton.clicked.connect(self.__query)
+
+        hLayout = QHBoxLayout()
+        hLayout.addWidget(self.__slider)
+        hLayout.addWidget(self.__queryButton)
+        control = QWidget()
+        control.setLayout(hLayout)
+        layoutLeft.addWidget(control)
 
         containerLeft = QWidget()
         policyLeft = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
@@ -98,6 +110,11 @@ class DependenciesView(QWidget):
             self.__view.items().clear()
             self.__paintSeq.emit()
 
+    def __query(self):
+        # noinspection PyProtectedMember
+        self.__query = Query(self.__tree._bn)
+        self.__query.show()
+
 
 class DependencyTree(QGraphicsScene):
     detailsSignal = Signal(Rule)
@@ -109,9 +126,9 @@ class DependencyTree(QGraphicsScene):
         self.__parent = parent
         self.__root = None
         self.__sequence = None
-        self.__bn = None
         self.__positions = None
         self._threshold = 0
+        self._bn = None
         self.detailsSignal.connect(self.__showDetails)
 
     def setData(self, root, sequence):
@@ -120,13 +137,13 @@ class DependencyTree(QGraphicsScene):
         self.__root = root
         self.__sequence = sequence
 
-        self.__bn = BayesianNetwork(sequence)
+        self._bn = BayesianNetwork(sequence)
         if (self.__root is None):
-            self.__bn.createCompleteGraph()
+            self._bn.createCompleteGraph()
         else:
-            self.__bn.createGraph(self.__root)
-        self.__bn.learnStructure()
-        self.__normalizePositions(nx.nx_pydot.graphviz_layout(self.__bn.graph, prog='dot'))
+            self._bn.createGraph(self.__root)
+        self._bn.learnStructure()
+        self.__normalizePositions(nx.nx_pydot.graphviz_layout(self._bn.graph, prog='dot'))
 
     def __normalizePositions(self, positions):
         self.__positions = {}
@@ -144,7 +161,7 @@ class DependencyTree(QGraphicsScene):
         self.clear()
         size = [self.__parent.width() * 0.5, self.__parent.height() * 0.8]
 
-        for start, end in self.__bn.graph.edges():
+        for start, end in self._bn.graph.edges():
             startPoint = self.__pointToPlane(self.__positions[start], size, center=True)
             endPoint = self.__clipPointToCircle(startPoint,
                                                 self.__pointToPlane(self.__positions[end], size, center=True))
