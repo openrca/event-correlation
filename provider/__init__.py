@@ -11,7 +11,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 GENERATE = 'gen'
 LOAD = 'load'
 SYMANTEC = 'symantec'
-PRINTER = 'printer'
+PRINTER = 'hdPrinter'
 
 CHOICES = [GENERATE, LOAD, SYMANTEC, PRINTER]
 

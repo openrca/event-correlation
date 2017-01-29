@@ -14,7 +14,7 @@ from algorithms import lpMatcher, lagEM, munkresMatcher, ice
 from core import sequence, distribution
 from core.performance import EnergyStatistic
 from core.timer import Timer
-from provider import symantec, generator, printer
+from provider import symantec, generator, hdPrinter
 from visualization.visualizer import Visualizer
 
 parser = argparse.ArgumentParser()
@@ -56,11 +56,11 @@ if (args.method == provider.SYMANTEC):
     else:
         seq = symantec.SymantecParser().create(args.input, normalization=100)
 if (args.method == provider.PRINTER):
-    logging.info("Parsing printer file")
+    logging.info("Parsing HD printer file")
     if (trigger is not None and response is not None):
-        seq = printer.PrinterParser().create(args.input, whitelist=[trigger, response], normalization=100)
+        seq = hdPrinter.HDPrinterParser().create(args.input, whitelist=[trigger, response], normalization=100)
     else:
-        seq = printer.PrinterParser().create(args.input, normalization=100)
+        seq = hdPrinter.HDPrinterParser().create(args.input, normalization=100)
 logging.info("Processing sequence:\n{}".format(seq))
 
 algorithm = None

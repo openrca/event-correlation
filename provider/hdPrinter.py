@@ -5,7 +5,7 @@ from core.sequence import Sequence
 from provider import SequenceParser
 
 
-class PrinterParser(SequenceParser):
+class HDPrinterParser(SequenceParser):
     def __init__(self):
         super().__init__()
         self.__COLUMN_TIMESTAMP = 2
