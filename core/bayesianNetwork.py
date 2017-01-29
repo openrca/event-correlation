@@ -98,7 +98,7 @@ class BayesianNetwork:
 
     def query(self, event, evidence):
         result = []
-        nodes = topological_sort(self.graph)
+        nodes = topological_sort(self.graph, reverse=True)
 
         e = copy.copy(evidence)
         e.append(Evidence(event, NOT_OCCURRED))
@@ -168,10 +168,11 @@ class BayesianNetwork:
 
         if (len(variables) == 1 and len(conditions) > 1):
             v = self.__getProb(variables, [])
+            denominator = 1
             res = v
             for i in range(len(conditions)):
                 res *= self.__getProb(variables, [conditions[i]]) * self.__getProb([conditions[i]], [])
-                v *= v
+                denominator *= v
             return res / (v * self.__getProb(conditions, []))
 
     def __normalize(self, result):
