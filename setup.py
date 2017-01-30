@@ -8,4 +8,4 @@ setup(name='EventCorrelation',
       description='Correlation of events based on label and timestamp',
       ext_modules=[lagEMModule, energyDistanceModule],
       requires=['numpy', 'matplotlib', 'scipy', 'PySide', 'pymatbridge', 'cvxopt', 'pulp', 'aniso8601', 'networkx',
-                'igraph'])
+                'igraph', 'ProbPy'])

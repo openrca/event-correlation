@@ -1,11 +1,12 @@
-import copy
-
 import igraph
 import networkx as nx
-from networkx.algorithms.dag import topological_sort
 
 NOT_OCCURRED = 0
 OCCURRED = 1
+from ProbPy import bn
+from ProbPy.event import Event
+from ProbPy.factor import Factor
+from ProbPy.rand_var import RandVar
 
 
 class Evidence:
@@ -29,6 +30,8 @@ class BayesianNetwork:
         self._dag = None
         self.graph = None
         self.filter = []
+        self.__randVars = {}
+        self.__bn = None
 
     def createCompleteGraph(self):
         graph = nx.DiGraph()
@@ -96,52 +99,31 @@ class BayesianNetwork:
         self._dag.add_edges_from(newEdges)
         self.graph = self._dag
 
+        for node in self.graph.nodes():
+            self.__randVars[node] = RandVar(node, ['False', 'True'])
+
+        network = []
+        for node in self.graph.nodes():
+            nodes = [node] + self.graph.predecessors(node)
+            n = len(nodes)
+            count = 0
+
+            values = []
+            while (count < 2 ** n):
+                evidence = []
+                for i in range(n):
+                    evidence.append(Evidence(nodes[i], self.getBit(count, i)))
+                count += 1
+                values.append(self.__getProb([evidence[0]], evidence[1:]))
+            f = Factor([self.__randVars[n] for n in nodes], values)
+            network.append((self.__randVars[node], f))
+        self.__bn = bn.BayesianNetwork(network)
+
     def query(self, event, evidence):
-        result = []
-        nodes = topological_sort(self.graph, reverse=True)
-
-        e = copy.copy(evidence)
-        e.append(Evidence(event, NOT_OCCURRED))
-        result.append(self.__enumerateAll(copy.copy(nodes), e))
-
-        e = copy.copy(evidence)
-        e.append(Evidence(event, OCCURRED))
-        result.append(self.__enumerateAll(copy.copy(nodes), e))
-        return self.__normalize(result)
-
-    def __enumerateAll(self, variables, evidence):
-        if (len(variables) == 0):
-            return 1
-        Y = variables.pop()
-        parents = self.getParents(Y, evidence)
-
-        if (self.__getEvidence(Y, evidence) is not None):
-            return self.__getProb([self.__getEvidence(Y, evidence)], parents) * self.__enumerateAll(variables, evidence)
-        else:
-            e = copy.copy(evidence)
-            x = Evidence(Y, OCCURRED)
-            e.append(x)
-            val1 = self.__getProb([x], parents) * self.__enumerateAll(variables, e)
-
-            e = copy.copy(evidence)
-            x = Evidence(Y, NOT_OCCURRED)
-            e.append(e)
-            val2 = self.__getProb([x], parents) * self.__enumerateAll(variables, e)
-            return val1 + val2
-
-    def getParents(self, node, evidence):
-        l = []
-        for parent in self.graph.predecessors(node):
-            for ev in evidence:
-                if (ev.event == parent):
-                    l.append(ev)
-        return l
-
-    def __getEvidence(self, eventType, evidence):
-        for e in evidence:
-            if (e.event == eventType):
-                return e
-        return None
+        observed = Event()
+        for ev in evidence:
+            observed.setValue(self.__randVars[ev.event], 'True' if ev.occurred else 'False')
+        return self.__bn.eliminationAsk(self.__randVars[event], observed)
 
     def __getProb(self, variables, conditions):
         if (len(variables) == 1 and len(conditions) == 0):
@@ -175,6 +157,6 @@ class BayesianNetwork:
                 denominator *= v
             return res / (v * self.__getProb(conditions, []))
 
-    def __normalize(self, result):
-        sum = result[0] + result[1]
-        return [result[0] / sum, result[1] / sum]
+    @staticmethod
+    def getBit(byteVal, idx):
+        return int((byteVal & (1 << idx)) != 0)
