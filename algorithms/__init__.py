@@ -188,7 +188,7 @@ class Matcher(abc.ABC):
             for r in response:
                 if (dist.getPDFValue(r - t) > threshold):
                     count += 1
-                    continue
+                    break
         return count / len(trigger)
 
     def __connectEventPairs(self, trigger, response, idx):
