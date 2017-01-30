@@ -133,8 +133,7 @@ class BayesianNetwork:
                 return 1
             if (c.occurred):
                 return rule.successResponse if (v.occurred) else 1 - rule.successResponse
-            if (v.occurred):
-                return rule.successTrigger if (c.occurred) else 1 - rule.successTrigger
+            return rule.successTrigger if (v.occurred) else 1 - rule.successTrigger
 
         if (len(variables) > 1 and len(conditions) == 0):
             res = 1
