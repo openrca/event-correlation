@@ -32,7 +32,7 @@ class Query(QWidget):
 
         evidence = []
         for key, value in evidenceInput.items():
-            evidence.append(Evidence(key, int(value)))
+            evidence.append(Evidence(key, bool(value)))
 
         res = self.__bn.query(variable, evidence)
         print(res)

@@ -1,8 +1,5 @@
 import igraph
 import networkx as nx
-
-NOT_OCCURRED = 0
-OCCURRED = 1
 from ProbPy import bn
 from ProbPy.event import Event
 from ProbPy.factor import Factor
@@ -10,15 +7,12 @@ from ProbPy.rand_var import RandVar
 
 
 class Evidence:
-    def __init__(self, eventType, operation):
+    def __init__(self, eventType, occurred):
         self.event = eventType
-        self.operation = operation
-
-    def occurred(self):
-        return self.operation == OCCURRED
+        self.occurred = occurred
 
     def __repr__(self):
-        return '{}({})'.format(self.event, self.operation)
+        return '{}({})'.format(self.event, self.occurred)
 
 
 # noinspection PyMethodMayBeStatic
@@ -129,18 +123,18 @@ class BayesianNetwork:
         if (len(variables) == 1 and len(conditions) == 0):
             v = variables[0]
             p = len(self.__sequence.getEvents(v.event)) / len(self.__sequence.getEvents())
-            return p if v.occurred() else 1 - p
+            return p if v.occurred else 1 - p
 
         if (len(variables) == 1 and len(conditions) == 1):
             v = variables[0]
             c = conditions[0]
             rule = self.__sequence.getCalculatedRule(c.event, v.event)
-            if (rule is None or (not v.occurred() and not c.occurred())):
+            if (rule is None or (not v.occurred and not c.occurred)):
                 return 1
-            if (c.occurred()):
-                return rule.successResponse if (v.occurred()) else 1 - rule.successResponse
+            if (c.occurred):
+                return rule.successResponse if (v.occurred) else 1 - rule.successResponse
             if (v.occurred):
-                return rule.successTrigger if (c.occurred()) else 1 - rule.successTrigger
+                return rule.successTrigger if (c.occurred) else 1 - rule.successTrigger
 
         if (len(variables) > 1 and len(conditions) == 0):
             res = 1
@@ -159,4 +153,4 @@ class BayesianNetwork:
 
     @staticmethod
     def getBit(byteVal, idx):
-        return int((byteVal & (1 << idx)) != 0)
+        return bool((byteVal & (1 << idx)) != 0)

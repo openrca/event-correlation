@@ -20,5 +20,5 @@ class TestScript(unittest.TestCase):
         bn.createCompleteGraph()
         bn.learnStructure()
 
-        res = bn.query('C', [Evidence('A', bayesianNetwork.OCCURRED), Evidence('B', bayesianNetwork.OCCURRED)])
+        res = bn.query('C', [Evidence('A', True), Evidence('B', True)])
         print(res)
