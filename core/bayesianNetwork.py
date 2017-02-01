@@ -119,7 +119,14 @@ class BayesianNetwork:
             observed.setValue(self.__randVars[ev.event], 'True' if ev.occurred else 'False')
         return self.__bn.eliminationAsk(self.__randVars[event], observed)
 
-    def __getProb(self, variables, conditions):
+    def __getProb(self, variables, conditions=None):
+        if (conditions is None):
+            conditions = []
+        if (not isinstance(variables, list)):
+            variables = [variables]
+        if (not isinstance(conditions, list)):
+            conditions = [conditions]
+
         if (len(variables) == 1 and len(conditions) == 0):
             v = variables[0]
             p = len(self.__sequence.getEvents(v.event)) / len(self.__sequence.getEvents())
@@ -138,17 +145,17 @@ class BayesianNetwork:
         if (len(variables) > 1 and len(conditions) == 0):
             res = 1
             for i in range(len(variables)):
-                res *= self.__getProb([variables[i]], variables[i + 1:])
+                res *= self.__getProb(variables[i], variables[i + 1:])
             return res
 
         if (len(variables) == 1 and len(conditions) > 1):
-            v = self.__getProb(variables, [])
+            v = self.__getProb(variables)
             denominator = 1
             res = v
             for i in range(len(conditions)):
-                res *= self.__getProb(variables, [conditions[i]]) * self.__getProb([conditions[i]], [])
+                res *= self.__getProb(variables, conditions[i]) * self.__getProb(conditions[i])
                 denominator *= v
-            return res / (v * self.__getProb(conditions, []))
+            return res / (v * self.__getProb(conditions))
 
     @staticmethod
     def getBit(byteVal, idx):
