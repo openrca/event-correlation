@@ -136,11 +136,11 @@ class BayesianNetwork:
             v = variables[0]
             c = conditions[0]
             rule = self.__sequence.getCalculatedRule(c.event, v.event)
-            if (rule is None or (not v.occurred and not c.occurred)):
-                return 1
-            if (c.occurred):
-                return rule.successResponse if (v.occurred) else 1 - rule.successResponse
-            return rule.successTrigger if (v.occurred) else 1 - rule.successTrigger
+            if (rule is None):
+                return 0.25
+            if (v.occurred):
+                return rule.successTrigger if (c.occurred) else 1 - rule.successTrigger
+            return 1 - rule.successResponse if (c.occurred) else rule.successResponse
 
         if (len(variables) > 1 and len(conditions) == 0):
             res = 1
