@@ -1,4 +1,5 @@
 import igraph
+import logging
 import networkx as nx
 from ProbPy import bn
 from ProbPy.event import Event
@@ -108,7 +109,9 @@ class BayesianNetwork:
                 for i in range(n):
                     evidence.append(Evidence(nodes[i], self.getBit(count, i)))
                 count += 1
-                values.append(self.__getProb([evidence[0]], evidence[1:]))
+                p = self.__getProb(evidence[0], evidence[1:])
+                logging.debug("P({} | {}) = \t{}".format(evidence[0], evidence[1:], p))
+                values.append(p)
             f = Factor([self.__randVars[n] for n in nodes], values)
             network.append((self.__randVars[node], f))
         self.__bn = bn.BayesianNetwork(network)
