@@ -28,14 +28,14 @@ ind = np.arange(4)
 width = 0.75
 fig = plt.figure()
 ax = fig.add_subplot(111)
-ax.bar(ind, np.array([0.016918777286092715, 0.33761152187649657, 0.7114520864359158, 0.8917679732785454]),
+ax.bar(ind, np.array([0.016918777286092715, 0.06978722448837131, 0.8539272714426238, 0.8917679732785454]),
        width, alpha=opacity)
 ax.set_ylim(0, 1)
 ax.set_ylabel('P($R$ | $\mathcal{E}$ )')
 ax.set_xlabel('Evidence $\mathcal{E}$')
 ax.set_xlim(-width / 2, len(ind) + width / 2)
 ax.set_xticks(ind + width / 2)
-ax.set_xticklabels(['  0X456\n+0X12D', '  0X456\n+0X04A', '  0X5A2\n+0X12E', '  0X12C\n+0X5A2'])
+ax.set_xticklabels(['0X456,\n0X12D', '0X456,\n0X12E', '0X5A2,\n0X04A', '0X12C,\n0X5A2'])
 
 plt.tight_layout()
 plt.show()
