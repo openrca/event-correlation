@@ -170,7 +170,7 @@ class DependencyTree(QGraphicsScene):
             if (rule is None):
                 rule = self.__sequence.getCalculatedRule(end, start)
             if (rule is not None):
-                color = 200 if (rule.data["Mutual Information"] < self._threshold) else 0
+                color = 150 if (rule.data["Mutual Information"] < self._threshold) else 0
                 widget = ResponsiveArrowWidget(startPoint, endPoint, color=color, parent=self)
                 widget._callbackParam = self.__sequence.getCalculatedRule(start, end)
                 self.addItem(widget)
