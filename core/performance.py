@@ -229,11 +229,11 @@ class DistanceCorrelation(Metric):
         return p / n
 
 
-class EnergyStatistic(Metric):
+class EnergyDistance(Metric):
     """
-    This class computes the energy statistic described in [1]. The energy statistic is a measure for the distance
+    This class computes the energy distance described in [1]. The energy distance is a measure for the distance
     between two distributions represented by two vectors with random samples.
-    As the energy statistic is not normalized, the normalized version should be used.
+    As the energy distance is not normalized, the normalized version should be used.
 
     [1] Energy distance; Rizzo, M. and Szekely, G.; Wiley Interdisciplinary Reviews: Computational Statistics, 8:1; 2016
     """

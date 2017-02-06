@@ -12,7 +12,7 @@ from PySide.QtGui import QApplication
 import provider
 from algorithms import lpMatcher, lagEM, munkresMatcher, ice
 from core import sequence, distribution
-from core.performance import EnergyStatistic
+from core.performance import EnergyDistance
 from core.timer import Timer
 from provider import symantec, generator, hdPrinter
 from visualization.visualizer import Visualizer
@@ -117,7 +117,7 @@ for rule in calculatedRules:
         rule.data["Empirical Dist"] = empiricalDist
         samples = rule.distributionResponse.samples if (hasattr(rule.distributionResponse, 'samples')) else\
             rule.distributionResponse.getRandom(len(empiricalDist.samples))
-        rule.data["Distance to Empirical"] = EnergyStatistic().compute(samples, empiricalDist.samples)
+        rule.data["Distance to Empirical"] = EnergyDistance().compute(samples, empiricalDist.samples)
 
 app = QApplication(sys.argv)
 v = Visualizer()

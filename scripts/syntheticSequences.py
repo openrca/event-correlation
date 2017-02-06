@@ -12,7 +12,7 @@ from algorithms.lagEM import lagEM
 from algorithms.lpMatcher import LpMatcher, Method
 from core import distribution
 from core.distribution import NormalDistribution, KdeDistribution
-from core.performance import EnergyStatistic
+from core.performance import EnergyDistance
 from core.timer import Timer
 from provider.generator import Generator
 from visualization import CORRECT, ICE, LP, LAGEM, plotDistributions
@@ -144,7 +144,7 @@ if (plot):
 
             if (correct is not None):
                 print('{}-{}'.format(entry['trigger'], entry['response']))
-                en = EnergyStatistic()
+                en = EnergyDistance()
                 if (ice is not None):
                     d = KdeDistribution(ice)
                     print("Distance ICE: {}".format(en.compute(correct.getRandom(len(ice)), d.samples)))

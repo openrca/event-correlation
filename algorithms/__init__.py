@@ -4,7 +4,7 @@ import logging
 import numpy as np
 
 from core.distribution import NormalDistribution
-from core.performance import EnergyStatistic, MutualInformationPerformance
+from core.performance import EnergyDistance, MutualInformationPerformance
 from core.rule import Rule
 
 RESULT_MU = "Mu"
@@ -96,7 +96,7 @@ class Matcher(abc.ABC):
         seqTrigger = sequence.asVector(trigger)
         seqResponse = sequence.asVector(response)
 
-        performance = EnergyStatistic()
+        performance = EnergyDistance()
         score, pValue = performance.compute(seqTrigger, seqResponse)
         if (pValue <= alpha):
             self._logger.info("Found correlated events '{}' and '{}'".format(trigger, response))
@@ -132,7 +132,7 @@ class Matcher(abc.ABC):
         dist = NormalDistribution(data[RESULT_MU], data[RESULT_SIGMA]) if enforceNormal else data[RESULT_KDE]
         rule = Rule(trigger, response, dist, data=data)
 
-        performance = EnergyStatistic()
+        performance = EnergyDistance()
         score, pValue = performance.compute(triggerVector, responseVector)
         rule.likelihood = score
 
