@@ -11,6 +11,8 @@ from algorithms import ice
 from algorithms.lagEM import lagEM
 from algorithms.lpMatcher import LpMatcher, Method
 from core import distribution
+from core.distribution import NormalDistribution, KdeDistribution
+from core.performance import EnergyStatistic
 from core.timer import Timer
 from provider.generator import Generator
 from visualization import CORRECT, ICE, LP, LAGEM, plotDistributions
@@ -135,10 +137,27 @@ if (plot):
         content = input.readlines()
         data = json.loads("".join(content))
         for entry in data:
+            correct = distribution.load(entry[CORRECT]) if CORRECT in entry else None
+            ice = entry[ICE]['samples'] if ICE in entry else None
+            lp = entry[LP]['samples'] if LP in entry else None
+            lagEM = [entry[LAGEM]['mean'], entry[LAGEM]['sigma']] if LAGEM in entry else None
+
+            if (correct is not None):
+                print('{}-{}'.format(entry['trigger'], entry['response']))
+                en = EnergyStatistic()
+                if (ice is not None):
+                    d = KdeDistribution(ice)
+                    print("Distance ICE: {}".format(en.compute(correct.getRandom(len(ice)), d.samples)))
+                if (lp is not None):
+                    d = KdeDistribution(lp)
+                    print("Distance LP: {}".format(en.compute(correct.getRandom(len(lp)), d.samples)))
+                if (lagEM is not None):
+                    d = NormalDistribution(entry[LAGEM]['mean'], entry[LAGEM]['sigma'])
+                    print("Distance lagEM: {}".format(en.compute(correct.getRandom(len(lp)), d.getRandom(len(lp)))))
             plotDistributions({
-                CORRECT: distribution.load(entry[CORRECT]) if CORRECT in entry else None,
-                ICE: entry[ICE]['samples'] if ICE in entry else None,
-                LP: entry[LP]['samples'] if LP in entry else None,
-                LAGEM: [entry[LAGEM]['mean'], entry[LAGEM]['sigma']] if LAGEM in entry else None
+                CORRECT: correct,
+                ICE: ice,
+                LP: lp,
+                LAGEM: lagEM
             }, '{}-{}'.format(entry['trigger'], entry['response']))
         plt.show()
