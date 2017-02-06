@@ -20,8 +20,8 @@ from core.distribution import KdeDistribution, UniformDistribution, NormalDistri
 
 def plotKde(ax, dist):
     pdfTrue = (0.8 * norm(-1, 1).pdf(xGrid) + 0.2 * norm(1, 0.3).pdf(xGrid))
-    ax.plot(xGrid, dist.getPDFValue(xGrid), color='blue', alpha=0.5)
     ax.fill(xGrid, pdfTrue, ec='gray', fc='gray', alpha=0.4)
+    ax.plot(xGrid, dist.getPDFValue(xGrid), color='blue', alpha=0.7, linewidth=1.15)
     ax.set_xticks([])
     ax.set_yticks([])
     ax.spines['top'].set_visible(False)
