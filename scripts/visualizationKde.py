@@ -36,6 +36,7 @@ np.random.seed(0)
 xGrid = np.linspace(-4.5, 3.5, 1000)
 x = np.concatenate([norm(-1, 1.).rvs(400), norm(1, 0.3).rvs(100)])
 
+plt.rc('axes', labelsize=14)
 fig, ax = plt.subplots(1, 1)
 plotKde(ax, KdeDistribution(x, bandwidth=0.01))
 fig, ax = plt.subplots(1, 1)
