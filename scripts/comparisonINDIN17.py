@@ -56,14 +56,14 @@ ice = KdeDistribution([63.02350524634187, 66.11369833040112, 68.53918470098506, 
                        81.61384442586791, 81.83030695400839], None)
 correct = NormalDistribution(77.01, 6.664)
 
-# print("Scenario 1")
-# print("\tICP {}".format(en.compute(correct.getRandom(len(ice.samples)), ice.samples)))
-# print("\tlagEM {}".format(en.compute(correct.getRandom(len(ice.samples)), lagEM.getRandom(len(ice.samples)))))
-# plotDistributions({
-#     CORRECT: correct,
-#     ICE: ice,
-#     LAGEM: lagEM
-# }, 'A-B')
+print("Scenario 1")
+print("\tICP {}".format(en.compute(correct.getRandom(len(ice.samples)), ice.samples)))
+print("\tlagEM {}".format(en.compute(correct.getRandom(len(ice.samples)), lagEM.getRandom(len(ice.samples)))))
+plotDistributions({
+    CORRECT: correct,
+    ICE: ice,
+    LAGEM: lagEM
+}, 'A-B')
 
 # Scenario 2
 lagEM = NormalDistribution(20.984125131811542, 16.758579591041652)
@@ -156,14 +156,14 @@ ice = KdeDistribution([
 ], None)
 correct = ExponentialDistribution(10.0, 25.0)
 
-# print("Scenario 2 - A B")
-# print("\tICP {}".format(en.compute(correct.getRandom(len(ice.samples)), ice.samples)))
-# print("\tlagEM {}".format(en.compute(correct.getRandom(len(ice.samples)), lagEM.getRandom(len(ice.samples)))))
-# plotDistributions({
-#     CORRECT: correct,
-#     ICE: ice,
-#     LAGEM: lagEM
-# }, 'A-B')
+print("Scenario 2 - A B")
+print("\tICP {}".format(en.compute(correct.getRandom(len(ice.samples)), ice.samples)))
+print("\tlagEM {}".format(en.compute(correct.getRandom(len(ice.samples)), lagEM.getRandom(len(ice.samples)))))
+plotDistributions({
+    CORRECT: correct,
+    ICE: ice,
+    LAGEM: lagEM
+}, 'A-B')
 
 lagEM = NormalDistribution(20.08482715452885, 6.241061956355687)
 ice = KdeDistribution([
@@ -256,14 +256,14 @@ ice = KdeDistribution([
 ], None)
 correct = UniformDistribution(15.0, 25.0)
 
-# print("Scenario 2 - C D")
-# print("\tICP {}".format(en.compute(correct.getRandom(len(ice.samples)), ice.samples)))
-# print("\tlagEM {}".format(en.compute(correct.getRandom(len(ice.samples)), lagEM.getRandom(len(ice.samples)))))
-# plotDistributions({
-#     CORRECT: correct,
-#     ICE: ice,
-#     LAGEM: lagEM
-# }, 'C-D')
+print("Scenario 2 - C D")
+print("\tICP {}".format(en.compute(correct.getRandom(len(ice.samples)), ice.samples)))
+print("\tlagEM {}".format(en.compute(correct.getRandom(len(ice.samples)), lagEM.getRandom(len(ice.samples)))))
+plotDistributions({
+    CORRECT: correct,
+    ICE: ice,
+    LAGEM: lagEM
+}, 'C-D')
 
 # Symantec 66-65
 correct = KdeDistribution(
