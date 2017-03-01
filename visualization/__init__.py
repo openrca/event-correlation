@@ -140,20 +140,26 @@ def plotDistributions(data, title=None, limit=None):
                 correct.__kernel.maxValue = 500
 
     lp = None
-    if (LP in data and data[LP] is not None and len(data[LP]) > 0):
-        lp = KdeDistribution(data[LP])
+    if (LP in data and data[LP] is not None):
+        lp = data[LP]
+        if (isinstance(data[LP], list) and len(data[LP]) > 0):
+            lp = KdeDistribution(data[LP])
         if (isinstance(lp._KdeDistribution__kernel, SingularKernel)):
             lp._KdeDistribution__kernel.maxValue = 500
 
     ice = None
-    if (ICE in data and data[ICE] is not None and len(data[ICE]) > 0):
-        ice = KdeDistribution(data[ICE])
+    if (ICE in data and data[ICE] is not None):
+        ice = data[ICE]
+        if (isinstance(data[ICE], list) and len(data[ICE]) > 0):
+            ice = KdeDistribution(data[ICE])
         if (isinstance(ice._KdeDistribution__kernel, SingularKernel)):
             ice._KdeDistribution__kernel.maxValue = 500
 
     lagEM = None
-    if (LAGEM in data and data[LAGEM] is not None and len(data[LAGEM]) > 0):
-        lagEM = NormalDistribution(data[LAGEM][0], data[LAGEM][1])
+    if (LAGEM in data and data[LAGEM] is not None):
+        lagEM = data[LAGEM]
+        if (isinstance(data[LAGEM], list) and len(data[LAGEM]) > 0):
+            lagEM = NormalDistribution(data[LAGEM][0], data[LAGEM][1])
 
     borders1 = correct.getCompleteInterval() if (correct is not None) else [sys.maxsize, -sys.maxsize]
     borders2 = lp.getCompleteInterval() if (lp is not None) else [sys.maxsize, -sys.maxsize]
@@ -162,7 +168,7 @@ def plotDistributions(data, title=None, limit=None):
 
     lower = min(borders1[0], borders2[0], borders3[0], borders4[0])
     upper = max(borders1[1], borders2[1], borders3[1], borders4[1])
-    x = np.linspace(lower - min(300, abs(lower / 5)), upper + min(300, abs(upper / 5)), 5000)
+    x = np.linspace(lower - min(100, abs(lower / 5)), upper + min(100, abs(upper / 5)), 5000)
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
