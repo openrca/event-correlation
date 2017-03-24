@@ -25,6 +25,8 @@
 
 \hyphenation{}
 
+\DeclareMathOperator*{\argmin}{arg\,min}
+
 
 \begin{document}
 
@@ -42,26 +44,27 @@
 
 
 
+%\title{Mining Temporal Lags in Event Sequences for Event Correlation}
 
-\title{Identification of Correlations and Root Causes \\ in Event Sequences}
+\title{An Iterative Algorithm for the Mining of  Temporal Lags in Event Sequences}
 
 
-\author{\IEEEauthorblockN{Michael Shell}
-\IEEEauthorblockA{School of Electrical and\\Computer Engineering\\
-Georgia Institute of Technology\\
-Atlanta, Georgia 30332--0250\\
-Email: http://www.michaelshell.org/contact.html}
+\author{
+\IEEEauthorblockN{Marc-Andre Z\"oller and Marcus Baum}
+\IEEEauthorblockA{Institute of Computer Science\\
+University of Goettingen, Germany\\
+Email: marc-andre.zoeller@stud.uni-goettingen.de,\\ marcus.baum@cs.uni-goettingen.de }
 \and
-\IEEEauthorblockN{Homer Simpson}
-\IEEEauthorblockA{Twentieth Century Fox\\
-Springfield, USA\\
-Email: homer@thesimpsons.com}
-\and
-\IEEEauthorblockN{James Kirk\\ and Montgomery Scott}
-\IEEEauthorblockA{Starfleet Academy\\
-San Francisco, California 96678--2391\\
-Telephone: (800) 555--1212\\
-Fax: (888) 555--1212}}
+\IEEEauthorblockN{
+ Marco F. Huber  
+}
+\IEEEauthorblockA{
+ USU Software AG\\ 
+ R\"üppurrer Str. 1, Karlsruhe, Germany\\
+Email: marco.huber@ieee.org
+}
+}
+ 
 
 
 
@@ -69,11 +72,12 @@ Fax: (888) 555--1212}}
 
 
 \begin{abstract}
-
-\textit{Event correlation} is the task to detect dependencies between different events in a sequence, e.g. a log file. Many domains utilise this knowledge for maintenance or prediction of future events. Even though it is desirable to detect those temporal dependencies automatically, no generic approach exists so far.
-
-In this work a new data-driven, generic algorithm for event correlation is presented. It uses a fast preliminary test statistic to determine promising event pairs. Next, the precise distribution of the temporal lag between those pairs is calculated. Therefore, an new method is introduced that calculates temporal distributions with a precision equal to state-of-the-art approaches but with a fractional amount of runtime.
-
+Event correlation is the task to detect dependencies between events in event sequences, e.g., for predictive maintenance based on log-files.
+In this work, a new data-driven, generic framework for event correlation is presented. 
+First, we use a fast preliminary test statistic to determine candidate event pairs. Next, the precise distribution of the temporal lag between those pairs is determined. 
+For this purpose, an new efficient iterative method is developed  that aligns two event sequences and finds the optimal  event assignments.
+%Based on the assignements,  a (non-parametric) temporal lag distribution can be estimated using a Kernel Density Estimator (KDE).
+In our experiments, the proposed method is much faster than state-of-the-art methods but always yields similar (or even better) results. 
 \end{abstract}
 
 
@@ -86,25 +90,24 @@ In this work a new data-driven, generic algorithm for event correlation is prese
 
 
 \section{Introduction}
-Nearly every modern computer system provides information about its status. This status information---usually collected by logging---is often aggregated in a monitoring system for further inspection and error handling. Usually, this data can be interpreted as a sequence of events. In the most basic case an event has to have some kind of label saying what this event represents and a time stamp when the event has occurred. In addition, events are often enriched with arbitrary supplementary data like a message, component description, input data, etc. A series of events is aggregated in a sequence \(\pmb{S}\). Figure \ref{fig:logToSequence} shows how a log file can be interpreted as a sequence of generic events.
+Nearly every modern computer system provides information about its status. This status information---usually collected by logging---is often aggregated in a monitoring system for further inspection and error handling. Usually, this data can be interpreted as a sequence of events. In the most basic case an event has to have some kind of label saying what this event represents and a time stamp when the event has occurred. In addition, events are often enriched with arbitrary supplementary data such as a message, component description, or input data. A series of events can be aggregated in a sequence as illustrated in Figure \ref{fig:logToSequence}.
 
-\begin{figure}[!htb]
+Events often influence and trigger each other forming a network of dependencies. With a certain complexity of the underlying system, a manual inspection and handling of all monitored events becomes quite time consuming and expensive. A major challenge during the analysis is that a single fault in an application often does not lead to a single event in monitoring. Instead, a fault---normally referred to as \textit{root cause}---often propagates through a system leading to consecutive errors depending on the first fault. This flood of events makes determination of the actual problem complicated and time consuming.
+
+Starting from the 1980s people developed methods to automatically aggregate and preprocess monitored events to reduce the manual work or completely eliminate it. The oldest approaches utilize domain experts to create a knowledge database. By asking a domain expert, explicit rules and dependencies between event types are stated. Based on these rules, events are aggregated and correlated, e.g. \cite{Houck1995}, \cite{Kettschau2002}. First of all, it is not possible to transfer this system to a new domain as all rules have to be recreated. Furthermore, the creation of rules is very time consuming, difficult and error prone for non-trivial systems.
+
+The most important generic approach utilizes time windows to find frequent event pairs, e.g. \cite{Jakobson1993}, \cite{Mannila1997} and \cite{Bouandas2007}. A time window with a fixed size is shifted over the complete sequence like an \(n\)-gram over a text. By counting how often event types occur in the same time window, frequent pairs can be found. A major drawback of this approach is that no reasonable way for choosing the window size exists. If the window size is too small, relevant event pairs may be missed. However, if the window size is too large, many false positive correlations will be detected.
+
+
+The most similar approach to our work is the \textit{lagEM} algorithm proposed by Zeng et al. \cite{Zeng2015}. The \textit{lagEM} algorithm models the temporal lag between two event types \(A\) and \(B\) by a normal distribution. By using \ac{EM}, the likelihood of the model parameters---namely mean \(\mu\) and variance \(\sigma^2\)---is maximized. This algorithm is considered as current state-of-the-art and is used as a performance reference for event correlation in this work.
+
+\begin{figure}[!tb]
 	\centering
-	\includegraphics[width=0.45\textwidth]{images/overview.png}
+	\frame{
+	\includegraphics[width=0.45\textwidth]{images/overview.png}}
 	\caption{Transformation of a log file to a sequence. The actual log entries are replaced by generic labels while preserving the order of all events. Correlated events are connected by arrows.}
 	\label{fig:logToSequence}
 \end{figure}
-
-These events often influence and trigger each other forming a network of dependencies. With a certain complexity of the underlying system, a manual inspection and handling of all monitored events becomes quite time consuming and therefore expensive. A major challenge during the analysis is that a single fault in an application often does not lead to a single event in monitoring. Instead, a fault---normally referred to as \textit{root cause}---often propagates through a system leading to consecutive errors depending on the first fault. This flood of events makes determination of the actual problem complicated and time consuming.
-
-Starting from the 1980s people developed methods to automatically aggregate and preprocess monitored events to reduce the manual work or completely eliminate it. The oldest approaches utilise domain experts to create a knowledge database. By asking a domain expert, explicit rules and dependencies between event types are stated. Based on these rules, events are aggregated and correlated, e.g. \cite{Houck1995}, \cite{Kettschau2002}. First of all, it is not possible to transfer this system to a new domain as all rules have to be recreated. Furthermore, the creation of rules is very time consuming, difficult and error prone for non-trivial systems.
-
-The most important generic approach utilises time windows to find frequent event pairs, e.g. \cite{Jakobson1993}, \cite{Mannila1997} and \cite{Bouandas2007}. A time window with a fixed size is shifted over the complete sequence like an \(n\)-gram over a text. By counting how often event types occur in the same time window, frequent pairs can be found. A major drawback of this approach is that no reasonable way for choosing the window size exists. If the window size is too small, relevant event pairs may be missed. However, if the window size is too large, many false positive correlations will be detected.
-
-
-An interesting existing approach is the \textit{lagEM} algorithm proposed by Zeng et al. \cite{Zeng2015}. The \textit{lagEM} algorithm models the temporal lag between two event types \(A\) and \(B\) by a normal distribution. By using \ac{EM}, the likelihood of the model parameters---namely mean \(\mu\) and variance \(\sigma^2\)---is maximised. This algorithm is considered as current state-of-the-art and is used as a performance reference for event correlation.
-
-
 
 
 \textit{Event correlation} is the task to detect correlations between different event types within a sequence. By examining the dependencies between the events, a directed graph can be calculated. In this graph, each node represents exactly one event type. A directed connection between two nodes means that event type \(A\) triggers \(B\). Using this knowledge it is possible to say which event types will follow after the current event predicting future states of a system. Another application is using the graph to find the root cause of a given event. Both abilities are highly desired in many domains like system monitoring, stock market, intrusion detection systems, etc. for \textit{predictive maintenance} and \textit{root cause analysis} \cite{Zeng2015}, \cite{Benferhat2008}.
@@ -130,15 +133,26 @@ Even though independence of two events is easy to check, event correlation is di
 \end{equation}
 with \(\mathcal{T}_\Delta\) being an arbitrary probability density function.
 
+In this paper, we present an event correlation method that consists of three parts:
+(1) Candidate  events are selected using the energy distance. (2) A novel iterative algorithm for aligning and assigning events from two event sequences is developed. (3) A
+non-parametric distribution for the time lag is estimated based on a Kernel Density Estimator (KDE).
+The final algorithm is in particular suitable for big data applications as it is highly efficient. 
+
+In the next section, we will describe the event correlation framework in detail.
+Section \ref{sec:exp} presents an experimental evaluation of the proposed method including a comparison with the state-of-the-art.
+The paper is concluded in Section \ref{sec:conc}
 
 
-\section{Methods}
-This approach investigates correlations between event type pairs. Therefore, all pair of event types have to be analysed. At first, a hypothesis test is done whether both event types are correlated. To rate the correlation between two event types the energy distance \cite{Rizzo2016} explained in Section~\ref{sec:energyDistance} is used. If this test is positive, the actual distribution of the temporal lag is calculated. Therefore an adapted version of the \ac{ICP} algorithm called \ac{ICE}--explained in Section \ref{sec:ice}--is used.
+
+\section{Event Correlation}
+We aim at finding and analyzing correlations between event type pairs. In a first step, all pair of event types have to be considered. A hypothesis test is done whether both event types are correlated or not. In order to rate the correlation between two event types,  the energy distance \cite{Rizzo2016} is used as explained in Section~\ref{sec:energyDistance}. 
+If this test is positive, the actual distribution of the temporal lag is calculated. Therefore, an adapted version of the \ac{ICP} algorithm called \ac{ICE} is developed that aligns two event sequences and determines optimal event assignments, see Section \ref{sec:ice}.
+Based on the result of the \ac{ICE} algorithm, a Kernel Density Estimator (KDE) determines the distribution of the time lags,  see Section~\ref{sec:labestimator}.
 
 
 
 
-\subsection{Energy Distance}
+\subsection{Finding Candidate Events}
 \label{sec:energyDistance}
 The \textit{energy distance} is inspired by gravitational potential energy from physics and was recently proposed by Rizzo \cite{Rizzo2016}. Like two objects attracting each other in a gravitational field, the samples of two distributions affect each other depending on their "distance". If both sample sets were produced by equivalent distributions their potential energy is zero.
 
@@ -153,7 +167,6 @@ To compute the empirical energy distance let \(A\) be a sample set with \(m\) sa
 A really useful property is that no pair-wise correlations between \(A\) and \(B\) are required to calculate the empirical energy distance. This allows computing the correlation score without doing the actual correlation. Consequently, only event pairs with a low energy distance should be processed by a matcher lowering the computational cost significantly.
 
 Based on this metric a hypothesis test is done to check whether two events are uncorrelated (\(H_0\)).  Therefore, \(A\) and \(B\) are combined into a single sample set, randomly permuted and then split again into \(A^\pi\) and \(B^\pi\). The test statistic is defined as
-
 \begin{equation}
 	S(A, B) = T(A, A) + T(A, B) + T(B, A) + T(B, B)
 \end{equation}
@@ -171,81 +184,84 @@ with \(k\) the number of repetitions.
 
 
 
-\subsection{Iterative Closest Events}
+\subsection{Iterative Closest Events (ICE)}
 \label{sec:ice}
 
-The algorithm to compute the temporal lag between two event types is called \acl{ICE}. This algorithm is an adaptation of the \ac{ICP} algorithm \cite{Besl1992}. \ac{ICP} is a quite famous \ac{EM} algorithm from computer vision for point set registration. Given two point clouds, \ac{ICP} searches for a rigid transformation of one point cloud such that the distance between both point clouds is minimised. This method is often used in computer vision to reconstruct 3D scans of an object.
+The algorithm to compute the temporal lag between two event types is called \acl{ICE} as it is an adaptation of the \ac{ICP} algorithm \cite{Besl1992}. \ac{ICP} is a widely-used in computer vision for point set registration. Given two point clouds, \ac{ICP} searches for a rigid transformation of one point cloud such that the distance between both point clouds is minimized. 
 
-Given two datasets called \textit{data} and \textit{reference}, the \ac{ICP} algorithm searches for a transformation that minimises a given cost function. This optimal transformation is calculated iteratively using the following steps \cite{Besl1992}:
+Given two datasets called \textit{data} and \textit{reference}, the \ac{ICP} algorithm searches for a transformation that minimizes a given cost function. This optimal transformation is calculated iteratively using the following steps \cite{Besl1992}:
 
 \begin{enumerate}
 	\item For each point in \textit{data} find the closest point in \textit{reference}.
-	\item Estimate a rigid transformation that minimises the distance between all \textit{data} - \textit{reference} pairs.
+	\item Estimate a rigid transformation that minimizes the distance between all \textit{data} - \textit{reference} pairs.
 	\item Apply the estimated transformation to \textit{data}.
 \end{enumerate}
-
 Those steps are repeated until the rigid transformation is sufficiently small.
 
-Let \(data = \pmb{S}_A\) be a sequence of events of type \(A\) with \(|\pmb{S}_A| = m\) the number of events of type \(A\) and \(reference = \pmb{S}_B\) a sequence of events of type \(B\) with \(|\pmb{S}_B| = n\) the number of events of type \(B\).
+In the following, we will apply the ICP ideas to our setting:
 
-\subsubsection{\textit{Data} - \textit{Reference} Assignment}
-For each point in \(\pmb{S}_A\) the corresponding point in \(\pmb{S}_B\) with minimal Euclidean distance has to be found. This calculation is normally done by computing all pairwise distances and selecting the smallest one. It is important to note that several points in \(\pmb{S}_A\) can be assigned to the same point in \(\pmb{S}_B\) and that some points in \(\pmb{S}_B\) can remain unpaired. Let \(b_{a_i}\) be the assigned point to \(a_i\).
+Let \(data\) be  an event sequence \(\pmb{S}_A = (a_1,\ldots, a_m)\)   of type \(A\) with \(|\pmb{S}_A| = m\) events,  and \(reference\) be an event sequence \(\pmb{S}_B=(b_1,\ldots, b_n)\)  of events of type \(B\) with \(|\pmb{S}_B| = n\).
 
-
-\subsubsection{Transformation Estimation}
-With the pairwise correlations given, the optimal rigid transformation can be calculated. Therefore, the optimisation problem
-
-\begin{equation} \label{eq:originalICP}
-	\underset{ r, t \; \in \; \mathbb{R}^n }{\text{minimise}}	\quad	\dfrac{1}{m} \left\| \sum_{i = 0}^{m} (r \cdot a_i + t) - b_{a_i} \right\|_2 \\
-\end{equation}
-
-with \(r\) being a rotation matrix and \(t\) being a translation vector has to be solved. For this optimisation problem an arbitrary solver can be used.
-
-Originally, the \ac{ICP} algorithm was developed to match three dimensional point clouds. However, for this application the problem can be simplified: It is possible to interpret \textit{reference} and \textit{data} as two one-dimensional vectors. Those vectors are not rotated against each other and only shifted in one direction. Consequently, the transformation estimation in Equation \eqref{eq:originalICP} can be simplified to
-
+The objective is to find a transformation $t$ such that minimizes 
 \begin{equation}
-	\underset{t \; \in \; \mathbb{R}}{\text{minimise}}	\quad	\dfrac{1}{m} \sum_{i = 0}^{m} \left| (a_i + t) - b_{a_i} \right| \\
+ \dfrac{1}{m} \sum_{i = 1}^{m} \left( (a_i + t) - b_{\alpha_i(t)} \right)^2 \enspace , \\
 \end{equation}
 
-with \(t\) being a scalar. This optimisation problem can be efficiently solved using least squares. Additionally, the Jacobi matrix can be computed as
+where $\alpha_i(t)= \argmin_j \; (a_i+t-b_j)^2$ is the index of the closest event of type  $B$  to the event $a_i$.
 
+The \acl{ICE} algorithm starts with an initial guess $t^{(0)}$ for the translation and iteratively improves the current guess $t^{(l)}$ it in two steps as described in the following.
+
+\begin{enumerate}
+ \item \emph{Assignment Step}\\
+For each point in \(\pmb{S}_A\) the corresponding point in \(\pmb{S}_B\) with minimal squared Euclidean distance has to be found under incorporation of the current translation $t^{(0)}$, i.e., 
 \begin{equation}
-	J(t, \pmb{S}_A, \pmb{S}_B) = \dfrac{1}{m} \sum_{i = 0}^{m} \dfrac{ (a_i + t) - b_{a_i} }{ \left| (a_i + t) - b_{a_i} \right| }
+\alpha_i(t^{(l)})= \argmin_j \;  (a_i+t^{(l)}-b_j)^2  \enspace .
 \end{equation}
 
-and a constant Hessian matrix
 
+This calculation is normally done by computing all pairwise distances and selecting the smallest one. It is important to note that several points in \(\pmb{S}_A\) can be assigned to the same point in \(\pmb{S}_B\) and that some points in \(\pmb{S}_B\) can remain unpaired.  
+
+
+
+\item  \emph{Transformation Estimation Step}\\
+With the pairwise correlations given, the optimal rigid transformation can be calculated. Therefore, the optimization problem
 \begin{equation}
-	H(t, \pmb{S}_A, \pmb{S}_B) = 0~.
+t^{(l+1)}= \argmin_{t} \;  \dfrac{1}{m} \sum_{i = 1}^{m} \left( (a_i + t) - b_{\alpha_i(t^{(l)})} \right)^2 \enspace , \\
 \end{equation}
+
+ which can be solved analytically using least squares.
+
+\end{enumerate}
+
+
+
 
 Naively implemented, these two steps run in \(\mathcal{O}(m \cdot n)\) as all pair-wise distances have to be calculated. However, several techniques exist to improve the \(data\)-\(reference\) assignment using \(k-d\) trees or caching \cite{Pomerleau2015}. Furthermore, it can be proven that the number of iterations is also limited by \(\mathcal{O}(m \cdot n)\) as the input samples are one-dimensional \cite{Ezra2008}.
 
-\ac{ICE} calculates one transformation for all \textit{data} points. As a consequence outliers can influence the optimisation process. To counter the effects of additional points in \(\pmb{S}_A\), a random sampling of \textit{data} is done before calculating the best pairs. If the rough number of outliers is known in advance, \textit{data} can be simply trimmed by their distances \cite{Chetverikov2002}. However, if the amount of outliers is not known---as it is usually the case---this approach is not reasonable. For this situation it is better to adjust the used samples dynamically. A quite simple approach is performing plain outlier removal using \(z\)-scores and thresholding \cite{Phillips2007}. Unfortunately, additional points in \(\pmb{S_B}\) cannot be easily sorted out.
+\ac{ICE} calculates one transformation for all \textit{data} points. As a consequence outliers can influence the optimization process. To counter the effects of additional points in \(\pmb{S}_A\), a random sampling of \textit{data} is done before calculating the best pairs. If the rough number of outliers is known in advance, \textit{data} can be simply trimmed by their distances \cite{Chetverikov2002}. However, if the amount of outliers is not known---as it is usually the case---this approach is not reasonable. For this situation it is better to adjust the used samples dynamically. A quite simple approach is performing plain outlier removal using \(z\)-scores and thresholding \cite{Phillips2007}. Unfortunately, additional points in \(\pmb{S_B}\) cannot be easily sorted out.
 
 
-As \ac{ICE} is a special case of an \ac{EM} algorithm, \ac{ICE} suffers from local minima \cite{Do2008}. Consequently, it is important that optimisation starts close to the true solution to ensure a global minimum. Therefore, the \textit{data} set is shifted by a "good" initial guess. To obtain a good initial guess, a \ac{RANSAC} \cite{Fischler1981} algorithm is used:
-
+As an iterative algorithm, \ac{ICE} finds a local minimum \cite{Do2008}. Consequently, it is important that optimization starts close to the true solution to ensure a global minimum. In order to obtain a good initial guess, a \ac{RANSAC} \cite{Fischler1981} algorithm is used:
 \begin{enumerate}
 	\item Select \(n\) sample points randomly from \(\pmb{S}_A\). Ensure that all sample points have a minimal distance \(d\) to limit the effects of local distortions.
-	\item For each selected sample point find the \(k\) nearest neighbours in \(\pmb{S}_B\) and select one of these at random.
+	\item For each selected sample point find the \(k\) nearest neighbors in \(\pmb{S}_B\) and select one of these at random.
 	\item Based on these \(n\) pairs, compute the rigid transformation as usually in \ac{ICE}.
 \end{enumerate}
 
-These three steps are repeated \(q\) times and the transformation with the minimal error is used as initial guess. This method ensures that with very high probability the initial guess is not influenced by outliers. If a priori information about the true distribution is given, this knowledge can be used to enhance the initial guess. This allows basic incorporation of additional knowledge.
+These three steps are repeated \(q\) times and the transformation with the minimal error is used as initial guess. This method ensures that, with very high probability, the initial guess is not influenced by outliers. If a priori information about the true distribution is given, this knowledge can be used to enhance the initial guess. This allows basic incorporation of additional knowledge.
 
-Finally, the optimal transformation and final assignments are computed. Based on the final assignments, the time lag distribution is calculated. For each event pair a sample point is generated. This set of samples is used to train a \ac{KDE} with
 
+\subsection{Time Lag Estimator} \label{sec:labestimator}
+Based on the final assignments $\alpha_i(t)$ and the final transformation $t$, the time lag distribution is calculated. For each event pair, a sample point is generated. This set of samples is used to train a \ac{KDE} with
 \begin{equation}
 	\label{eq:solutionICP}
 	P(B \; | \; A) = \hat{f}_h \left(
 		\left[
-			b_{a_1} - a_1 + t \;
+			b_{\alpha_i(t)} - a_1 + t \;
 			\dots \;
-			b_{a_m} - a_m + t
+			b_{\alpha_i(t)} - a_m + t
 		\right] \right)~.
 \end{equation}
-
 The bandwidth of the \ac{KDE} is selected by Scott's rule-of-thumb \cite{Scott1992}.
 
 
@@ -259,12 +275,13 @@ The bandwidth of the \ac{KDE} is selected by Scott's rule-of-thumb \cite{Scott19
 
 
 
-\section{Experiments}
+\section{Experiments} \label{sec:exp}
 %TODO distances neu berechnen
 
-This chapter does a performance evaluation for synthetic and real word data. The correlated event types are identified using the energy distance described in Section \ref{sec:energyDistance}. Furthermore, all detected correlations are evaluated against a ground truth. This is done visually and using the energy distance.
+This section is devoted to a performance evaluation for synthetic and real data. The correlated event types are identified using the energy distance as described in Section \ref{sec:energyDistance}. Furthermore, all detected correlations are evaluated against the  ground truth both visually and based on the energy distance.
+We compare our approach with the \textit{lagEM} algorithm \cite{Zeng2015}
 
-For using the \textit{lagEM} algorithm, an initial guess of \(mu\) and \(\sigma\) has to be given. Zeng et al. described the initialisation as "initialise \(\mu\) and \(\sigma\) randomly" \cite{Zeng2015}, without providing details of the exact procedure. For all following experiments, the initial mean is generated from a uniform distribution \(\mathcal{U}(0, 100)\) and all correct means are also in \([0, 100]\).
+For using the \textit{lagEM} algorithm, an initial guess of \(mu\) and \(\sigma\) has to be given. Zeng et al. described the initialization as "initialize \(\mu\) and \(\sigma\) randomly" \cite{Zeng2015}, without providing details of the exact procedure. For all following experiments, the initial mean is generated from a uniform distribution \(\mathcal{U}(0, 100)\) and all correct means are also in \([0, 100]\).
 
 
 
@@ -422,7 +439,7 @@ As Table \ref{tbl:resources} shows, \textit{lagEM} has a longer runtime than \ac
 
 
 
-\section{Conclusion}
+\section{Conclusion} \label{sec:conc}
 We presented a new data-driven approach for event correlation. Therefore, a general framework was introduced that only utilises an event time stamp and label. This framework is able to automatically detect correlated event pairs and determine the temporal lag distribution between those. It uses a preliminary test for goodness of correlation to determine promising event pairs before applying a time consuming matching. These promising pairs can be processed by \ac{ICE} or an already existing approach like \textit{lagEM}. By examining only pair-wise event types, this framework is highly applicable in big data as all event pairs can be processed in parallel.
 
 For calculating the temporal lag distribution between two event types, a new algorithm \ac{ICE} has been proposed. This approach does not require any a priori information, e.g. a good initialisation or domain knowledge. Furthermore, no inherent assumptions about the true distribution of the temporal lag is included making it highly flexible. While obtaining results similar to state-of-the-art approaches, the runtime is significantly less. Instead of a few hours calculation time, results are available within seconds.
