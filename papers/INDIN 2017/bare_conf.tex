@@ -94,7 +94,7 @@ Nearly every modern computer system provides information about its status. This 
 
 Events often influence and trigger each other, and hence, form a network of dependencies. With a certain complexity of the underlying system, a manual inspection and handling of all monitored events becomes quite time consuming and expensive. A major challenge during the analysis is that a single fault in an application often does not lead to a single event in monitoring. Instead, a fault---normally referred to as \textit{root cause}---often propagates through a system leading to consecutive errors depending on the first fault. This flood of events makes determination of the actual problem complicated and time consuming.
 
-Starting from the 1980s people developed methods to automatically aggregate and preprocess monitored events to reduce the manual work or completely eliminate it. The oldest approaches utilize domain experts to create a knowledge database. By asking a domain expert, explicit rules and dependencies between event types are stated. Based on these rules, events are aggregated and correlated, e.g. \cite{Houck1995}, \cite{Kettschau2002}. First of all, it is not possible to transfer this system to a new domain as all rules have to be recreated. Furthermore, the creation of rules is very time consuming, difficult and error prone for non-trivial systems.
+Starting from the 1980s, methods to automatically aggregate and preprocess monitored events were investigated in order to reduce the manual work. Early approaches utilize domain experts to create a knowledge database. By asking a domain expert, explicit rules and dependencies between event types are stated. Based on these rules, events are aggregated and correlated, e.g. \cite{Houck1995}, \cite{Kettschau2002}. First of all, it is not possible to transfer this system to a new domain as all rules have to be recreated. Furthermore, the creation of rules is very time consuming, difficult and error prone for non-trivial systems.
 
 The most important generic approach utilizes time windows to find frequent event pairs, e.g. \cite{Jakobson1993}, \cite{Mannila1997} and \cite{Bouandas2007}. A time window with a fixed size is shifted over the complete sequence like an \(n\)-gram over a text. By counting how often event types occur in the same time window, frequent pairs can be found. A major drawback of this approach is that no reasonable way for choosing the window size exists. If the window size is too small, relevant event pairs may be missed. However, if the window size is too large, many false positive correlations will be detected.
 
@@ -105,7 +105,7 @@ The most similar approach to our work is the \textit{lagEM} algorithm proposed b
 	\centering
 	{
 	\includegraphics[width=0.45\textwidth]{images/overview.png}}
-	\caption{Interpretation of a log file as an event sequence. The actual log entries are replaced by generic labels while preserving the order of all events. Correlated events are connected by arrows.}
+	\caption{Interpretation of a log file as an event sequence. The actual log entries are replaced by generic labels while preserving the order and time stamps of all events. Correlated events highlighted  by arrows.}
 	\label{fig:logToSequence}
 \end{figure}
 
@@ -134,17 +134,17 @@ Even though independence of two events is easy to check, event correlation is di
 with \(\mathcal{T}_\Delta\) being an arbitrary probability density function.
 
 In this paper, we present an event correlation method that consists of three parts:
-(1) Candidate  events are selected using the energy distance. (2) A novel iterative algorithm for aligning and assigning events from two event sequences is developed. (3) A non-parametric distribution for the time lag is estimated based on a Kernel Density Estimator (KDE).
+(1) Candidate  events are identified using the energy distance. (2) A novel iterative algorithm for aligning and assigning events from two event sequences is developed. (3) A non-parametric distribution for the time lag is estimated based on a Kernel Density Estimator (KDE).
 The final algorithm is in particular suitable for big data applications as it is highly efficient. 
 
-In the next section, we will describe the event correlation framework in detail.
+In the next section, we will describe the proposed event correlation framework in detail.
 Section \ref{sec:exp} presents an experimental evaluation of the proposed method including a comparison with the state-of-the-art.
 The paper is concluded in Section \ref{sec:conc}
 
 
 
 \section{Event Correlation Approach}
-We aim at finding and analyzing correlations between pairs of different events. In a first step, all possible pairings of event types are considered. A hypothesis test is done whether both event types are correlated or not. In order to rate the correlation between two event types,  the energy distance \cite{Rizzo2016} is used as explained in Section~\ref{sec:energyDistance}. 
+We aim at finding and analyzing correlations between pairs of different event types. In a first step, all  pairings of event types are considered and a hypothesis test is done to check if both event types are correlated or not. In order to rate the correlation between two event types,  the energy distance \cite{Rizzo2016} is used as explained in Section~\ref{sec:energyDistance}. 
 If this test is positive, the actual distribution of the temporal lag is calculated. Therefore, an adapted version of the \ac{ICP} algorithm called \ac{ICE} is developed that aligns two event sequences and determines optimal event assignments, see Section \ref{sec:ice}.
 Based on the result of the \ac{ICE} algorithm, a Kernel Density Estimator (KDE) determines the distribution of the time lags,  see Section~\ref{sec:labestimator}.
 
@@ -163,9 +163,10 @@ To compute the empirical energy distance let \(A\) be a sample set with \(m\) sa
 \end{split}
 \end{align}
 
-An important property of the energy distance is that no pair-wise correlations between \(A\) and \(B\) are required to calculate the empirical energy distance. This allows computing the correlation score without doing the actual correlation. Consequently, only event pairs with a low energy distance should be processed by a matcher lowering the computational cost significantly.
+An important property of the energy distance is that no pair-wise  mapping between \(A\) and \(B\) is required to calculate the empirical energy distance. This allows computing the correlation score without knowing event assignments. 
+Consequently, only event pairs with a low energy distance can be analyzed more detailed, e.g., be determining the time lag, which lowers the computational cost significantly.
 
-Based on this metric a hypothesis test is done to check whether two events are uncorrelated (\(H_0\)).  Therefore, \(A\) and \(B\) are combined into a single sample set, randomly permuted and then split again into \(A^\pi\) and \(B^\pi\). The test statistic is defined as
+Based on the energy distance, a hypothesis test is done to check whether two events are uncorrelated (\(H_0\)).  Therefore, \(A\) and \(B\) are combined into a single sample set, randomly permuted and then split again into \(A^\pi\) and \(B^\pi\). The test statistic is defined as
 \begin{equation}
 	S(A, B) = T(A, A) + T(A, B) + T(B, A) + T(B, B)
 \end{equation}
@@ -173,37 +174,36 @@ with
 \begin{equation*}
 	T(A, B) = \dfrac{m \cdot n}{m + n} \text{Cor}(A, B) ~.
 \end{equation*}
-
 Based on this test statistic, the \(p\)-value is calculated as
 
 \begin{equation}
-	p = \dfrac{1}{k} \sum_{i = 1}^k 1 \left( S(A, B) > S(A^\pi , B^\pi) \right)
+	p = \dfrac{1}{k} \sum_{i = 1}^k 1 \left( S(A, B) > S(A^\pi , B^\pi) \right) \enspace, 
 \end{equation}
-with \(k\) the number of repetitions.
+where \(k\) is the number of repetitions.
 
 
 
 \subsection{Iterative Closest Events (ICE)}
 \label{sec:ice}
 
-The algorithm to compute the temporal lag between two event types is called \acl{ICE} (\ac{ICE}) as it is an adaptation of the \acl{ICP} (\ac{ICP}) algorithm \cite{Besl1992}. \ac{ICP} is a widely-used in computer vision for point set registration. Given two point clouds, \ac{ICP} searches for a rigid transformation of one point cloud such that the distance between both point clouds is minimized. 
+We call the algorithm to match two event sequence  \acl{ICE} (\ac{ICE}) algorithm as it is an adaptation of the \acl{ICP} (\ac{ICP}) algorithm \cite{Besl1992}. \ac{ICP} is a widely-used in computer vision for point set registration, i.e., given two point clouds, \ac{ICP} searches for a rigid transformation of one point cloud to the other one. 
 
 Given two datasets called \textit{data} and \textit{reference}, the \ac{ICP} algorithm searches for a transformation that minimizes a given cost function. This optimal transformation is calculated iteratively using the following steps \cite{Besl1992} until convergence is reached:
 
 \begin{enumerate}
-	\item For each point in \textit{data}, find the closest point in \textit{reference}.
-	\item Estimate a rigid transformation that minimizes the distance between all \textit{data}-\textit{reference} pairs.
-	\item Apply the estimated transformation to \textit{data}.
+	\item \emph{Assignment Step}\\ 
+	   For each point in \textit{data}, find the closest point in \textit{reference}.
+	\item \emph{Transformation  Step}\\ Estimate a rigid transformation that minimizes the distance between all \textit{data-reference} pairs. Apply the estimated transformation to \textit{data}.
 \end{enumerate}
 
 
 In the following, we will apply the \ac{ICP} concept for matching two event sequences:
 
-Let \(data\) be  an event sequence \(\pmb{S}_A = (a_1,\ldots, a_m)\)   of type \(A\) with \(m\) events,  and \(reference\) be an event sequence \(\pmb{S}_B=(b_1,\ldots, b_n)\)  of \(  n\) events of type \(B\) with.
-
-The objective is to find a translation $t \in \mathbb{R}$ that minimizes 
+Let \(data\) be  an event sequence \(\pmb{S}_A = (a_1,\ldots, a_m)\)   of type \(A\) with \(m\) events,  and \(reference\) be an event sequence \(\pmb{S}_B=(b_1,\ldots, b_n)\)  of \(  n\) events of type \(B\) with. 
+We aim at finding the temporal translation between these two event sequences as it represents the ``mean'' time lag.
+Hence, the objective is to find a translation $t \in \mathbb{R}$ that minimizes 
 \begin{equation}
- \dfrac{1}{m} \sum_{i = 1}^{m} \left( (a_i + t) - b_{\alpha_i(t)} \right)^2 \enspace , \\
+ \dfrac{1}{m} \sum_{i = 1}^{m} \left( a_i + t - b_{\alpha_i(t)} \right)^2 \enspace , \\
 \end{equation}
 where $\alpha_i(t)= \argmin_j \; (a_i+t-b_j)^2$ is the index of the closest event of type  $B$  to the event $a_i$.
 
@@ -222,7 +222,7 @@ This calculation is normally done by computing all pairwise distances and select
 \item  \emph{Translation  Step}\\
 With the pairwise correlations given, the optimal translation can be calculated by solving  the optimization problem
 \begin{equation}
-t^{(l+1)}= \argmin_{t} \;  \dfrac{1}{m} \sum_{i = 1}^{m} \left( (a_i + t) - b_{\alpha_i(t^{(l)})} \right)^2 \enspace , \\
+t^{(l+1)}= \argmin_{t} \;  \dfrac{1}{m} \sum_{i = 1}^{m} \left( a_i + t - b_{\alpha_i(t^{(l)})} \right)^2 \enspace , \\
 \end{equation}
 using the  least squares formulas.
  
@@ -231,7 +231,7 @@ using the  least squares formulas.
 
 
 
-Naively implemented, these two steps run in \(\mathcal{O}(m \cdot n)\) as all pair-wise distances have to be calculated. However, several techniques exist to improve the \(data\)-\(reference\) assignment using \(k-d\) trees or caching \cite{Pomerleau2015}. Furthermore, it can be proven that the number of iterations is also limited by \(\mathcal{O}(m \cdot n)\) as the input samples are one-dimensional \cite{Ezra2008}.
+Naively implemented, these two steps run in \(\mathcal{O}(m \cdot n)\) as all pair-wise distances have to be calculated. However, several techniques exist to improve the \textit{data-reference} assignment using \(k-d\) trees or caching \cite{Pomerleau2015}. Furthermore, it can be proven that the number of iterations is also limited by \(\mathcal{O}(m \cdot n)\) as the input samples are one-dimensional \cite{Ezra2008}.
 
 \ac{ICE} calculates one translation for all \textit{data} points. As a consequence, outliers can influence the optimization process. To counter the effects of additional points in \(\pmb{S}_A\), a random sampling of \textit{data} is done before calculating the best pairs. If the rough number of outliers is known in advance, \textit{data} can be simply trimmed by their distances \cite{Chetverikov2002}. However, if the amount of outliers is not known---as it is usually the case---this approach is not reasonable. For this situation it is better to adjust the used samples dynamically. A quite simple approach is performing plain outlier removal using \(z\)-scores and thresholding \cite{Phillips2007}. Unfortunately, additional points in \(\pmb{S_B}\) cannot be easily sorted out.
 
@@ -247,18 +247,21 @@ These three steps are repeated \(q\) times and the translation with the minimal 
 
 
 \subsection{Time Lag Estimator} \label{sec:labestimator}
-Based on the final assignments $\alpha_i(t)$ and the final transformation $t$, the time lag distribution is calculated. Each event pair is interpreted as a sample. The samples are used to train a \ac{KDE} with
+Based on the final assignments $\alpha_i(t^*)$ and the final transformation $t^*$, the time lag distribution is calculated. Each event pair is interpreted as a sample. The samples are used to train a \ac{KDE} with
+% \begin{equation}
+% 	\label{eq:solutionICP}
+% 	P(B \; | \; A) = \hat{f}_h \left(
+% 		\left[
+% 			b_{\alpha_i(t^*)} - a_1 + t \;
+% 			\dots \;
+% 			b_{\alpha_i(t^*)} - a_m + t
+% 		\right] \right)~.
+% \end{equation}
 \begin{equation}
 	\label{eq:solutionICP}
-	P(B \; | \; A) = \hat{f}_h \left(
-		\left[
-			b_{\alpha_i(t)} - a_1 + t \;
-			\dots \;
-			b_{\alpha_i(t)} - a_m + t
-		\right] \right)~.
-\end{equation}
-The bandwidth of the \ac{KDE} is selected by Scott's rule-of-thumb~\cite{Scott1992}.
-
+ f_{\text{Lag}}(t) = \tfrac{1}{m}  \sum_{i=1}^m  K\left( \frac{t+ b_{\alpha_i(t^*)} - a_i }{ h} \right)  \enspace ,
+	\end{equation}
+with Gaussian kernel function $K(\cdot)$ and bandwidth $h$ that is selected by Scott's rule-of-thumb~\cite{Scott1992}.
 
 
 
@@ -282,9 +285,9 @@ Zeng et al. suggest to  initialize \(\mu\) and \(\sigma\) for  \textit{lagEM} ra
 
 
 \subsection{Synthetic Sequences}
-At first,  two synthetic sequences  were generated and analyzed as described in the following.
+At first,  two synthetic sequences  are generated and analyzed as described in the following.
 \paragraph{Scenario 1}
-For the first synthetic sequence, an experiment used by Zeng at al. was reused (see \cite{Zeng2015}, Table I): A sequence contains 200 elements in total. Event \(A\) occurs based on an exponential distribution with \(\beta = 27.5\). Event \(B\) follows after event \(A\) with a normally distributed time lag \(\mathcal{N}(77.01, 6.664)\). All events are lost with a probability of 10\%.
+For the first synthetic sequence, an experiment used by Zeng at al.  \cite{Zeng2015} is considered (see  Table I): A sequence contains $200$ elements in total. Event \(A\) occurs based on an exponential distribution with \(\beta = 27.5\). Event \(B\) follows after event \(A\) with a normally distributed time lag \(\mathcal{N}(77.01, 6.664)\). All events are lost with a probability of 10\%.
 
 
 \begin{figure}[!tb]
@@ -294,12 +297,12 @@ For the first synthetic sequence, an experiment used by Zeng at al. was reused (
 	\label{fig:scen1}
 \end{figure}
 
-Figure \ref{fig:scen1} shows the estimated distributions for both matchers. Even though nearly all event pairs overlap, \ac{ICE} (0.0509) is able to estimate the true distribution. Even with several retries, \textit{lagEM} was not able to estimate the correct distribution. This is also visible in the calculated distance of 0.3209. Zeng et al. reported the same behaviour but were able to solve it by using longer sequences \cite{Zeng2015}.
+Figure \ref{fig:scen1} shows the estimated distributions for both matchers. Even though nearly all event pairs overlap, \ac{ICE} ($0.0509$) is able to estimate the true distribution. Even with several retries, \textit{lagEM} was not able to estimate the correct distribution, which is also reflected in the calculated distance of $0.3209$. Zeng et al. reported the same behavior but were able to solve it by using longer sequences \cite{Zeng2015}.
 
 
 
 \paragraph{Scenario 2}
-This scenario introduces two additional event types. Furthermore, the temporal lag is not modelled by normal distributions: A sequence contains 1000 elements in total. Event \(A\) occurs based on an uniform distribution with \(\mathcal{U}(30, 50)\). Event \(B\) follows after event \(A\) with an exponentially distributed time lag with \(\beta = 10\) and an offset of 25. Independently of \(A\) and \(B\) an additional event pair exists. Event \(C\) occurs based on an exponential distribution with \(\beta = 25\) and an offset of 10. Event \(D\) follows after event \(C\) with a uniformly distributed time lag \(\mathcal{U}(15, 25)\). Again, all event types are lost with a probability of 10\%.
+This scenario introduces two additional event types. Furthermore, the temporal lag is not modeled by normal distributions: A sequence contains $1000$ elements in total. Event \(A\) occurs based on an uniform distribution with \(\mathcal{U}(30, 50)\). Event \(B\) follows after event \(A\) with an exponentially distributed time lag with \(\beta = 10\) and an offset of $25$. Independently of \(A\) and \(B\) an additional event pair exists. Event \(C\) occurs based on an exponential distribution with \(\beta = 25\) and an offset of $10$. Event \(D\) follows after event \(C\) with a uniformly distributed time lag \(\mathcal{U}(15, 25)\). Again, all event types are lost with a probability of 10\%.
 
 
 \begin{figure}[!tb]
@@ -316,9 +319,9 @@ This scenario introduces two additional event types. Furthermore, the temporal l
 	\label{fig:scen2-2}	
 \end{figure}
 
-First of all, the hypothesis test using the energy distance is able to detect only correlations between the event types \(A \leftrightarrow B\) and \(C \leftrightarrow D\). Figure \ref{fig:scen2-1} shows the estimated distributions between event \(A\) and \(B\). Basically, both algorithms are able to estimate the correct distribution quite well. \ac{ICE} misses the trailing event pairs. Consequently, the distance is quite large with 0.0675. The \textit{lagEM} algorithm estimates a quite good mean. But the probability of small or even negative time lags is overestimated. This is caused by the inherent assumption that the temporal lag is normally distributed. Nevertheless, the estimate is still slightly worse than \ac{ICE} with 0.0938.
+First of all, the hypothesis test using the energy distance is able to detect only correlations between the event types \(A \leftrightarrow B\) and \(C \leftrightarrow D\). Figure \ref{fig:scen2-1} shows the estimated distributions between event \(A\) and \(B\). Basically, both algorithms are able to estimate the correct distribution quite well. \ac{ICE} misses the trailing event pairs. Consequently, the distance is quite large with $0.0675$. The \textit{lagEM} algorithm estimates the mean precisely. But the probability of small or even negative time lags is overestimated. This is caused by the inherent assumption that the temporal lag is normally distributed. Nevertheless, the estimate is still slightly worse than \ac{ICE} with $0.0938$.
 
-The same behavior can be observed in Figure \ref{fig:scen2-2} for the temporal lag between \(C\) and \(D\). \textit{lagEM} estimates the correct mean. However, the variance is too big as it is hard to approximate a uniform distribution with a normal distribution. This yields a higher distance of 0.0547. In contrast, \ac{ICE} (0.0052) is able to estimate the correct distribution better. The jittery probability density can be explained by the limited number of samples.
+The same behavior can be observed in Figure \ref{fig:scen2-2} for the temporal lag between \(C\) and \(D\). \textit{lagEM} estimates the correct mean. However, the variance is too big as it is hard to approximate a uniform distribution with a normal distribution. This yields a higher distance of $0.0547$. In contrast, \ac{ICE} ($0.0052$) is able to estimate the correct distribution better. The jittery probability density can be explained by the limited number of samples.
 
 
 
@@ -426,16 +429,16 @@ Besides the quality of the estimation, the resource consumption---namely runtime
 
 
 
-As Table \ref{tbl:resources} shows, \textit{lagEM} has a longer runtime than \ac{ICE}. This is effect is especially visible for many evenst. Concerning memory consumption, both algorithms are very similar and constant for all scenarios.
+As Table \ref{tbl:resources} shows, \textit{lagEM} has a longer runtime than \ac{ICE}. This is effect is especially visible for many events. Concerning memory consumption, both algorithms are very similar and constant for all scenarios.
 
 
 
 \section{Conclusion} \label{sec:conc}
-We developed a new data-driven approach for event correlation. Therefore, a general framework was introduced that only utilizes an event time stamp and label. This framework is able to automatically detect correlated event pairs and determine the temporal lag distribution between those. It uses a preliminary test for goodness of correlation to determine promising event pairs before applying a time consuming matching. These promising pairs can be processed by our new \ac{ICE} algorithm or an already existing approach like \textit{lagEM}. By examining only pair-wise event types, this framework is highly applicable to big data as all event pairs can be processed in parallel.
+We developed a new data-driven approach for event correlation that only utilizes an event time stamp and label. This framework is able to automatically detect correlated event pairs and determine the temporal lag distribution between those. It uses a  test for goodness of correlation to determine candidate event pairs before applying a time consuming matching. These candidate pairs can be processed by our new \ac{ICE} algorithm or an already existing approach like \textit{lagEM}. By examining only pair-wise event types, this framework is highly applicable to big data as all event pairs can be processed in parallel.
 
-For calculating the temporal lag distribution between two event types, a new algorithm \ac{ICE} has been proposed. This approach does not require any a priori information, e.g. a good initialization or domain knowledge. Furthermore, no inherent assumptions about the true distribution of the temporal lag is included making it highly flexible. While obtaining results similar to state-of-the-art approaches, the runtime is significantly less. Instead of a few hours calculation time, results are available within seconds.
+For calculating the temporal lag distribution between two event types, a new algorithm \ac{ICE} has been proposed. This approach does not require any  prior information, e.g. a good initialization or domain knowledge. Furthermore, no inherent assumptions about the true distribution of the temporal lag is included making it highly flexible. While often obtaining results better than state-of-the-art approaches, the runtime is also significantly less. Instead of a few hours calculation time, results are available within seconds.
 
-Tests with simulated data and a real data set showed the power of the presented method. Using the Symantec log, several diverse and complicated temporal lag distributions have been estimated and analyzed. This data set demonstrated the advantage of eliminating assumptions about the true distribution from the event correlation process as \ac{ICE} has  more precise results than \textit{lagEM}.
+Tests with simulated data and a real data set demonstrated the performance of the presented method. Using the Symantec log, several diverse and highly complex temporal lag distributions have been estimated and analyzed. This data set demonstrated the advantage of eliminating assumptions about the true distribution from the event correlation process as \ac{ICE} has  more precise results than \textit{lagEM}.
 
 Furthermore, the data set has shown that the presented methods work with very limited sample sets--using only eight samples to estimate a distribution. However, for large sample sets--as in the simulated sequences--a fast runtime with memory consumption equal to \textit{lagEM} is obtained.
 
@@ -457,7 +460,7 @@ Furthermore, the data set has shown that the presented methods work with very li
 
 
 
-\bibliographystyle{IEEEtran}
+\bibliographystyle{IEEEtranS}
 \bibliography{references}
 
 
