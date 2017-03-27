@@ -63,7 +63,7 @@ plotDistributions({
     CORRECT: correct,
     ICE: ice,
     LAGEM: lagEM
-}, 'A-B')
+}, '1')
 
 # Scenario 2
 lagEM = NormalDistribution(20.984125131811542, 16.758579591041652)
@@ -281,7 +281,7 @@ plotDistributions({
     ICE: ice,
     # LP: lp,
     LAGEM: lagEM
-}, 'A-B')
+}, '2-AB')
 
 lagEM = NormalDistribution(20.08482715452885, 6.241061956355687)
 ice = KdeDistribution([
@@ -490,7 +490,7 @@ plotDistributions({
     ICE: ice,
     # LP: lp,
     LAGEM: lagEM
-}, 'C-D')
+}, '2-CD')
 
 # Symantec 66-65
 correct = KdeDistribution(

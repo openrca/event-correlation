@@ -179,21 +179,22 @@ def plotDistributions(data, title=None, limit=None):
     if (limit is not None):
         ax.set_ylim([0, limit])
 
-    lw = 1.2
+    lw = 1.5
     if (correct is not None):
         y1 = correct.getPDFValue(x)
         ax.plot(x, y1, "r", label="True distribution", linewidth=lw)
 
     if (lp is not None):
         y2 = lp.getPDFValue(x)
-        ax.plot(x, y2, "g", label="LpMatcher", linewidth=lw)
+        ax.plot(x, y2, "c", label="LpMatcher", linewidth=lw)
 
     if (ice is not None):
         y3 = ice.getPDFValue(x)
-        ax.plot(x, y3, "c", label="ICE", linewidth=lw)
+        ax.plot(x, y3, "g", label="ICE", linewidth=lw, linestyle='dashed')
 
     if (lagEM is not None):
         y4 = lagEM.getPDFValue(x)
-        ax.plot(x, y4, 'b', label='lagEM', linewidth=lw)
+        ax.plot(x, y4, 'b', label='lagEM', linewidth=lw, linestyle='dotted')
 
     plt.legend(loc='best')
+    fig.savefig('../plots/' + title + '.pdf', format='PDF', transparent=True)
