@@ -27,6 +27,9 @@
 
 \DeclareMathOperator*{\argmin}{arg\,min}
 
+\clubpenalty=10000
+\widowpenalty=10000
+
 
 \begin{document}
 
@@ -56,7 +59,7 @@ University of Goettingen, Germany\\
 Email: marc-andre.zoeller@stud.uni-goettingen.de,\\ marcus.baum@cs.uni-goettingen.de }
 \and
 \IEEEauthorblockN{
- Marco F. Huber  
+ Marco F. Huber
 }
 \IEEEauthorblockA{
  USU Software AG\\ 
@@ -75,8 +78,8 @@ Email: marco.huber@ieee.org
 Event correlation is the task of detecting dependencies between events in event sequences, e.g., for predictive maintenance based on log-files.
 In this work, a new data-driven, generic framework for event correlation is presented. 
 First, we use a fast preliminary test statistic to determine candidate event pairs. Next, the precise distribution of the temporal lag between those pairs is determined. 
-For this purpose, a new efficient iterative method is developed  that aligns two event sequences and finds the optimal  event assignments.
-%Based on the assignements,  a (non-parametric) temporal lag distribution can be estimated using a \ac{KDE}.
+For this purpose, a new efficient iterative method is developed that aligns two event sequences and finds the optimal event assignments.
+%Based on the assignements, a (non-parametric) temporal lag distribution can be estimated using a \ac{KDE}.
 In our experiments, the proposed method is much faster than state-of-the-art methods but always yields similar (or even better) results. 
 \end{abstract}
 
@@ -105,7 +108,7 @@ The most similar approach to our work is the \textit{lagEM} algorithm proposed b
 	\centering
 	{
 	\includegraphics[width=0.45\textwidth]{images/overview.png}}
-	\caption{Interpretation of a log file as an event sequence. The actual log entries are replaced by generic labels while preserving the order and time stamps of all events. Correlated events are indicated  by arrows.}
+	\caption{Interpretation of a log file as an event sequence. The actual log entries are replaced by generic labels while preserving the order and time stamps of all events. Correlated events are indicated by arrows.}
 	\label{fig:logToSequence}
 \end{figure}
 
@@ -116,8 +119,8 @@ Event correlation is the task of identifying correlations between different even
 
 \begin{figure}[!tb]
 	\centering
-	\includegraphics[width=0.45\textwidth]{images/dependency-graph}
-	\caption{Example dependency graph. Each node represents an event type with a hexadecimal label. An arrow indicates a  correlation between two event types.}
+	\includegraphics[width=0.45\textwidth]{images/graph.pdf}
+	\caption{Example dependency graph. Each node represents an event type with a label. An arrow indicates a correlation between two event types.}
 	\label{fig:exampleDependencyGraph}
 \end{figure}
 
@@ -128,7 +131,7 @@ Mathematically, the problem can be formulated as follows. Let a sequence \(\pmb{
 \end{equation}
 with \(P(A)\) the probability of \(A\) and \(P(A, B)\) the joint probability of \(A\) and \(B\). Those event pairs are called \textit{correlated}.
 
-Furthermore, let \(\pmb{S}_A = (a_1,\ldots, a_m)\) be a subsequence of  \(\pmb{S}\) with type \(A\) with \(m\) events  and \(\pmb{S}_B=(b_1,\ldots, b_n)\) be a subsequence with \(n\) events of type \(B\). For simplicity \(a_i\) also denote the time stamp of the \(i\)-th event of \(A\). \(b_i\) is used analogously.
+Furthermore, let \(\pmb{S}_A = (a_1,\ldots, a_m)\) be a subsequence of \(\pmb{S}\) with type \(A\) with \(m\) events and \(\pmb{S}_B=(b_1,\ldots, b_n)\) be a subsequence with \(n\) events of type \(B\). For simplicity \(a_i\) also denote the time stamp of the \(i\)-th event of \(A\). \(b_i\) is used analogously.
 
 Even though independence of two events is easy to check, event correlation is difficult as neither \(P(A)\), \(P(B)\) nor \(P(A, B)\) are known a priori in general. This task gets even more complicated as two events do not have to appear at the same time even though they are correlated. Often, one event---called the \textit{trigger event}---happens a few seconds or minutes before the correlated event---called the \textit{response event}. For example, assume an application running on a server. The trigger event is a failure of the network card and the response event is an application alerting the lost network connection after some connection retries. The time between the network card failure and the detected network loss is called \textit{temporal lag}
 \begin{equation}
@@ -137,7 +140,7 @@ Even though independence of two events is easy to check, event correlation is di
 with \(\mathcal{T}_\Delta\) being an arbitrary probability density function.
 
 In this paper, we present an event correlation method that consists of three parts:
-(1) Candidate  events are identified using the energy distance. (2) A novel iterative algorithm for aligning and assigning events from two event sequences is developed. (3) A non-parametric distribution for the time lag is estimated based on a \ac{KDE}.
+(1) Candidate events are identified using the energy distance. (2) A novel iterative algorithm for aligning and assigning events from two event sequences is developed. (3) A non-parametric distribution for the time lag is estimated based on a \ac{KDE}.
 The final algorithm is in particular suitable for big data applications as it is highly efficient. 
 
 In the next section, we will describe the proposed event correlation framework in detail.
@@ -147,9 +150,9 @@ The paper is concluded in Section \ref{sec:conc}.
 
 
 \section{Event Correlation Approach}
-We aim at finding and analyzing correlations between pairs of different event types. In a first step, all  pairings of event types are considered and a hypothesis test is done to check if both event types are correlated or not. In order to rate the correlation between two event types,  the energy distance \cite{Rizzo2016} is used as explained in Section~\ref{sec:energyDistance}. 
+We aim at finding and analyzing correlations between pairs of different event types. In a first step, all pairings of event types are considered and a hypothesis test is done to check if both event types are correlated or not. In order to rate the correlation between two event types, the energy distance \cite{Rizzo2016} is used as explained in Section~\ref{sec:energyDistance}. 
 If this test is positive, the actual distribution of the temporal lag is calculated. Therefore, an adapted version of the \ac{ICP} algorithm called \ac{ICE} is developed that aligns two event sequences and determines the optimal event assignments, see Section \ref{sec:ice}.
-Based on the result of the \ac{ICE} algorithm, a \ac{KDE} determines the distribution of the time lags,  see Section~\ref{sec:labestimator}.
+Based on the result of the \ac{ICE} algorithm, a \ac{KDE} determines the distribution of the time lags, see Section~\ref{sec:labestimator}.
 
 
 
@@ -166,10 +169,12 @@ To compute the empirical energy distance let \(A\) be a sample set with \(m\) sa
 \end{split}
 \end{align}
 
-An important property of the energy distance is that no pair-wise  mapping between \(A\) and \(B\) is required to calculate the empirical energy distance. This allows computing the correlation score without knowing event assignments. 
+By using normalization, a closed measure \(\text{Cor}^*(A, B) \in [0, 1]\) for the similarity of two sample sets is obtained.
+
+An important property of the energy distance is that no pair-wise mapping between \(A\) and \(B\) is required to calculate the empirical energy distance. This allows computing the correlation score without knowing event assignments. 
 Consequently, only event pairs with a low energy distance can be analyzed more detailed, e.g., by determining the time lag, which lowers the computational cost significantly.
 
-Based on the energy distance, a hypothesis test is done to check whether two events are uncorrelated (\(H_0\)).  Therefore, \(A\) and \(B\) are combined into a single sample set, randomly permuted and then split again into \(A^\pi\) and \(B^\pi\). The test statistic is defined as
+Based on the energy distance, a hypothesis test is done to check whether two events are uncorrelated (\(H_0\)). Therefore, \(A\) and \(B\) are combined into a single sample set, randomly permuted and then split again into \(A^\pi\) and \(B^\pi\). The test statistic is defined as
 \begin{equation}
 	S(A, B) = T(A, A) + T(A, B) + T(B, A) + T(B, B)
 \end{equation}
@@ -189,45 +194,45 @@ where \(k\) is the number of repetitions.
 \subsection{Iterative Closest Events (ICE)}
 \label{sec:ice}
 
-We call the algorithm to match two event sequence  \acf{ICE} algorithm as it is an adaptation of the \acf{ICP} algorithm \cite{Besl1992}. \ac{ICP} is a widely-used in computer vision for point set registration, i.e., given two point clouds, \ac{ICP} searches for a rigid transformation of one point cloud to the other one. 
+We call the algorithm to match two event sequence \acf{ICE} algorithm as it is an adaptation of the \acf{ICP} algorithm \cite{Besl1992}. \ac{ICP} is a widely-used in computer vision for point set registration, i.e., given two point clouds, \ac{ICP} searches for a rigid transformation of one point cloud to the other one. 
 
 Given two datasets called \textit{data} and \textit{reference}, the \ac{ICP} algorithm searches for a transformation that minimizes a given cost function. This optimal transformation is calculated iteratively using the following steps \cite{Besl1992} until convergence is reached:
 
 \begin{enumerate}
 	\item \emph{Assignment Step}\\ 
-	   For each point in \textit{data}, find the closest point in \textit{reference}.
-	\item \emph{Transformation  Step}\\ Estimate a rigid transformation that minimizes the distance between all \textit{data-reference} pairs. Apply the estimated transformation to \textit{data}.
+	For each point in \textit{data}, find the closest point in \textit{reference}.
+	\item \emph{Transformation Step}\\ Estimate a rigid transformation that minimizes the distance between all \textit{data-reference} pairs. Apply the estimated transformation to \textit{data}.
 \end{enumerate}
 
 
 In the following, we will apply the \ac{ICP} concept for matching two event sequences:
 
-Let \(data\) be  an event sequence \(\pmb{S}_A = (a_1,\ldots, a_m)\)   of type \(A\) with \(m\) events,  and \(reference\) be an event sequence \(\pmb{S}_B=(b_1,\ldots, b_n)\)  of \(  n\) events of type \(B\) with. 
+Let \(data\) be an event sequence \(\pmb{S}_A = (a_1,\ldots, a_m)\) of type \(A\) with \(m\) events, and \(reference\) be an event sequence \(\pmb{S}_B=(b_1,\ldots, b_n)\) of \(n\) events of type \(B\) with. 
 We aim at finding the temporal translation between these two event sequences as it represents the ``mean'' time lag.
 Hence, the objective is to find a translation $t \in \mathbb{R}$ that minimizes 
 \begin{equation}
  \dfrac{1}{m} \sum_{i = 1}^{m} \left( a_i + t - b_{\alpha_i(t)} \right)^2 \enspace , \\
 \end{equation}
-where $\alpha_i(t)= \argmin_j \; (a_i+t-b_j)^2$ is the index of the closest event of type  $B$  to the event $a_i$.
+where $\alpha_i(t)= \argmin_j \; (a_i+t-b_j)^2$ is the index of the closest event of type $B$ to the event $a_i$.
 
-The \ac{ICE} algorithm starts with an initial guess $t^{(0)}$ for the translation and iteratively improves the current guess $t^{(l)}$  in two steps as described in the following.
+The \ac{ICE} algorithm starts with an initial guess $t^{(0)}$ for the translation and iteratively improves the current guess $t^{(l)}$ in two steps as described in the following.
 
 \begin{enumerate}
  \item \emph{Assignment Step}\\
 For each point in \(\pmb{S}_A\) the corresponding point in \(\pmb{S}_B\) with minimal squared Euclidean distance has to be found under incorporation of the current translation $t^{(0)}$, i.e., 
 \begin{equation}
-\alpha_i(t^{(l)})= \argmin_j \;  (a_i+t^{(l)}-b_j)^2  \enspace .
+\alpha_i(t^{(l)})= \argmin_j \; (a_i+t^{(l)}-b_j)^2 \enspace .
 \end{equation}
-This calculation is normally done by computing all pairwise distances and selecting the smallest one. It is important to note that several points in \(\pmb{S}_A\) can be assigned to the same point in \(\pmb{S}_B\) and that some points in \(\pmb{S}_B\) can remain unpaired.  
+This calculation is normally done by computing all pairwise distances and selecting the smallest one. It is important to note that several points in \(\pmb{S}_A\) can be assigned to the same point in \(\pmb{S}_B\) and that some points in \(\pmb{S}_B\) can remain unpaired.
 
 
 
-\item  \emph{Translation  Step}\\
-With the pairwise correlations given, the optimal translation can be calculated by solving  the optimization problem
+\item \emph{Translation Step}\\
+With the pairwise correlations given, the optimal translation can be calculated by solving the optimization problem
 \begin{equation}
-t^{(l+1)}= \argmin_{t} \;  \dfrac{1}{m} \sum_{i = 1}^{m} \left( a_i + t - b_{\alpha_i(t^{(l)})} \right)^2 \enspace , \\
+t^{(l+1)}= \argmin_{t} \; \dfrac{1}{m} \sum_{i = 1}^{m} \left( a_i + t - b_{\alpha_i(t^{(l)})} \right)^2 \enspace , \\
 \end{equation}
-using the  least squares formulas.
+using the least squares formulas.
  
 \end{enumerate}
 
@@ -262,7 +267,7 @@ Based on the final assignments $\alpha_i(t^*)$ and the final transformation $t^*
 % \end{equation}
 \begin{equation}
 	\label{eq:solutionICP}
- f_{\text{Lag}}(t) = \tfrac{1}{m}  \sum_{i=1}^m  K\left( \frac{t+ b_{\alpha_i(t^*)} - a_i }{ h} \right)  \enspace ,
+ f_{\text{Lag}}(t) = \tfrac{1}{m} \sum_{i=1}^m K\left( \frac{t+ b_{\alpha_i(t^*)} - a_i }{ h} \right) \enspace ,
 	\end{equation}
 with Gaussian kernel function $K(\cdot)$ and bandwidth $h$ that is selected by Scott's rule-of-thumb~\cite{Scott1992}.
 
@@ -278,18 +283,18 @@ with Gaussian kernel function $K(\cdot)$ and bandwidth $h$ that is selected by S
 
 \section{Experiments} \label{sec:exp}
 
-This section is devoted to a performance evaluation based on synthetic and real data. The correlated event types are identified using the energy distance as described in Section \ref{sec:energyDistance}. Furthermore, all detected correlations are evaluated against the ground truth both visually and based on the energy distance.
-We compare the time lags obtained from the  \ac{ICE} approach  with \textit{lagEM} \cite{Zeng2015}. %For using the \textit{lagEM} algorithm, an initial guess of \(\mu\) and \(\sigma\) has to be given. 
-Zeng et al. suggest to  initialize \(\mu\) and \(\sigma^2\) for  \textit{lagEM} randomly \cite{Zeng2015}. Hence, for all  experiments, the initial mean and variance are generated from a uniform distribution \(\mathcal{U}(0, 100)\) and all correct values are also in \([0, 100]\).
+This section is devoted to a performance evaluation based on synthetic and real data. The correlated event types are identified using the energy distance as described in Section \ref{sec:energyDistance}. Furthermore, all detected correlations are evaluated against the ground truth both visually and based on the normalized energy distance.
+We compare the time lags obtained from the \ac{ICE} approach with \textit{lagEM} \cite{Zeng2015}. %For using the \textit{lagEM} algorithm, an initial guess of \(\mu\) and \(\sigma\) has to be given. 
+Zeng et al. suggest to initialize \(\mu\) and \(\sigma^2\) for \textit{lagEM} randomly \cite{Zeng2015}. Hence, for all experiments, the initial mean and variance are generated from a uniform distribution \(\mathcal{U}(0, 100)\) and all correct values are also in \([0, 100]\).
 
 
 
 
 
 \subsection{Synthetic Sequences}
-At first,  two synthetic sequences  are generated and analyzed as described in the following.
+At first, two synthetic sequences are generated and analyzed as described in the following.
 \paragraph{Scenario 1}
-For the first synthetic sequence, an experiment used by Zeng at al. \cite{Zeng2015} is considered (see  Table I in \cite{Zeng2015}): A sequence contains $200$ elements in total. Event \(A\) occurs based on an exponential distribution with \(\beta = 27.5\). Event \(B\) follows after event \(A\) with a normally distributed time lag \(\mathcal{N}(77.01, 6.664)\). All events are lost with a probability of 10\%.
+For the first synthetic sequence, an experiment used by Zeng at al. \cite{Zeng2015} is considered (see Table I in \cite{Zeng2015}): A sequence contains $200$ elements in total. Event \(A\) occurs based on an exponential distribution with \(\beta = 27.5\). Event \(B\) follows after event \(A\) with a normally distributed time lag \(\mathcal{N}(77.01, 6.664)\). All events are lost with a probability of 10\%.
 
 
 \begin{figure}[!tb]
@@ -299,7 +304,7 @@ For the first synthetic sequence, an experiment used by Zeng at al. \cite{Zeng20
 	\label{fig:scen1}
 \end{figure}
 
-Figure \ref{fig:scen1} shows the estimated distributions for both matchers. Even though nearly all event pairs overlap, \ac{ICE} ($0.0509$) is able to estimate the true distribution. Even with several retries, \textit{lagEM} was not able to estimate the correct distribution, which is also reflected in the calculated distance of $0.3209$. Zeng et al. reported the same behavior but were able to solve it by using longer sequences \cite{Zeng2015}.
+Figure \ref{fig:scen1} shows the estimated distributions for both matchers. Even though nearly all event pairs overlap, \ac{ICE} is able to estimate the true distribution with a very low energy distance of $0.0509$. Even with several retries, \textit{lagEM} was not able to estimate the correct distribution, which is also reflected in the calculated distance of $0.3209$. Zeng et al. reported the same behavior but were able to solve it by using longer sequences \cite{Zeng2015}.
 
 
 
@@ -369,7 +374,7 @@ Figure \ref{fig:7-66} shows the detected correlations of \ac{ICE} and \textit{la
 	\label{fig:66-65}
 \end{figure}
 
-Figure \ref{fig:66-65} also shows the estimated time lag by the \textit{lagEM} algorithm. This algorithm computes a time lag distributed by \(\mathcal{N}(19.125, 12.9365)\) leading to a distance of $0.1314$. However, it is important to note, that the \textit{lagEM} algorithm was initialized with a \(\mu\) close to the correct solution. Even though the rough distribution is estimated quite well, the estimate of \ac{ICE} resembles the true distribution perfectly - yielding a distance of $0$. This is a very impressive  as the data set contains roughly 38\% outliers.
+Figure \ref{fig:66-65} also shows the estimated time lag by the \textit{lagEM} algorithm. This algorithm computes a time lag distributed by \(\mathcal{N}(19.125, 12.9365)\) leading to a distance of $0.1314$. However, it is important to note, that the \textit{lagEM} algorithm was initialized with a \(\mu\) close to the correct solution. Even though the rough distribution is estimated quite well, the estimate of \ac{ICE} resembles the true distribution perfectly - yielding a distance of $0$. This is a very impressive as the data set contains roughly 38\% outliers.
 
 
 
@@ -441,11 +446,11 @@ As Table \ref{tbl:resources} shows, \textit{lagEM} has a longer runtime than \ac
 
 
 \section{Conclusion} \label{sec:conc}
-We developed a new data-driven approach for event correlation that only utilizes an event time stamp and label. This framework is able to automatically detect correlated event pairs and determine the temporal lag distribution between those. It uses a  test for goodness of correlation to determine candidate event pairs before applying a time consuming matching. These candidate pairs can be processed by our new \ac{ICE} algorithm or an already existing approach like \textit{lagEM}. By examining only pair-wise event types, this framework is highly applicable to big data as all event pairs can be processed in parallel.
+We developed a new data-driven approach for event correlation that only utilizes an event time stamp and label. This framework is able to automatically detect correlated event pairs and determine the temporal lag distribution between those. It uses a test for goodness of correlation to determine candidate event pairs before applying a time consuming matching. These candidate pairs can be processed by our new \ac{ICE} algorithm or an already existing approach like \textit{lagEM}. By examining only pair-wise event types, this framework is highly applicable to big data as all event pairs can be processed in parallel.
 
-For calculating the temporal lag distribution between two event types, a new algorithm \ac{ICE} has been proposed. This approach does not require any  prior information, e.g. a good initialization or domain knowledge. Furthermore, no inherent assumptions about the true distribution of the temporal lag is included making it highly flexible. While often obtaining results better than state-of-the-art approaches, the runtime is also significantly less. Instead of a few hours calculation time, results are available within seconds.
+For calculating the temporal lag distribution between two event types, a new algorithm \ac{ICE} has been proposed. This approach does not require any prior information, e.g. a good initialization or domain knowledge. Furthermore, no inherent assumptions about the true distribution of the temporal lag is included making it highly flexible. While often obtaining results better than state-of-the-art approaches, the runtime is also significantly less. Instead of a few hours calculation time, results are available within seconds.
 
-Tests with simulated data and a real data set demonstrated the performance of the presented method. Using the Symantec log, several diverse and highly complex temporal lag distributions have been estimated and analyzed. This data set demonstrated the advantage of eliminating assumptions about the true distribution from the event correlation process as \ac{ICE} has  more precise results than \textit{lagEM}.
+Tests with simulated data and a real data set demonstrated the performance of the presented method. Using the Symantec log, several diverse and highly complex temporal lag distributions have been estimated and analyzed. This data set demonstrated the advantage of eliminating assumptions about the true distribution from the event correlation process as \ac{ICE} has more precise results than \textit{lagEM}.
 
 Furthermore, the data set has shown that the presented methods work with very limited sample sets--using only eight samples to estimate a distribution. However, for large sample sets---as in the simulated sequences---a fast runtime with memory consumption equal to \textit{lagEM} is obtained.
 
