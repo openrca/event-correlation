@@ -72,7 +72,7 @@ Email: marco.huber@ieee.org
 
 
 \begin{abstract}
-Event correlation is the task to detect dependencies between events in event sequences, e.g., for predictive maintenance based on log-files.
+Event correlation is the task of detecting dependencies between events in event sequences, e.g., for predictive maintenance based on log-files.
 In this work, a new data-driven, generic framework for event correlation is presented. 
 First, we use a fast preliminary test statistic to determine candidate event pairs. Next, the precise distribution of the temporal lag between those pairs is determined. 
 For this purpose, a new efficient iterative method is developed  that aligns two event sequences and finds the optimal  event assignments.
@@ -110,7 +110,8 @@ The most similar approach to our work is the \textit{lagEM} algorithm proposed b
 \end{figure}
 
 
-\textit{Event correlation} is the task to identify correlations between different event types within a sequence. By examining the dependencies between the events, a directed graph can be formed. In this graph, each node represents exactly one event type. A directed connection between two nodes means that event type \(A\) triggers \(B\). Using this knowledge it is possible to say which event types will follow after the current event predicting future states of a system. Another application is using the graph to find the root cause of a given event. Both abilities are highly desired in many domains like system monitoring, stock market, intrusion detection systems, etc. for \textit{predictive maintenance} and \textit{root cause analysis} \cite{Zeng2015}, \cite{Benferhat2008}.
+\section{Problem Statement}
+Event correlation is the task of identifying correlations between different event types within a sequence. By examining the dependencies between the events, a directed graph can be formed. In this graph, each node represents exactly one event type. A directed connection between two nodes means that event type \(A\) triggers \(B\). Using this knowledge it is possible to say which event types will follow after the current event predicting future states of a system. Another application is using the graph to find the root cause of a given event. Both abilities are highly desired in many domains like system monitoring, stock market, intrusion detection systems, etc. for \textit{predictive maintenance} and \textit{root cause analysis} \cite{Zeng2015}, \cite{Benferhat2008}.
 
 
 \begin{figure}[!tb]
@@ -127,9 +128,11 @@ Mathematically, the problem can be formulated as follows. Let a sequence \(\pmb{
 \end{equation}
 with \(P(A)\) the probability of \(A\) and \(P(A, B)\) the joint probability of \(A\) and \(B\). Those event pairs are called \textit{correlated}.
 
+Furthermore, let \(\pmb{S}_A = (a_1,\ldots, a_m)\) be a subsequence of  \(\pmb{S}\) with type \(A\) with \(m\) events  and \(\pmb{S}_B=(b_1,\ldots, b_n)\) be a subsequence with \(n\) events of type \(B\). For simplicity \(a_i\) also denote the time stamp of the \(i\)-th event of \(A\). \(b_i\) is used analogously.
+
 Even though independence of two events is easy to check, event correlation is difficult as neither \(P(A)\), \(P(B)\) nor \(P(A, B)\) are known a priori in general. This task gets even more complicated as two events do not have to appear at the same time even though they are correlated. Often, one event---called the \textit{trigger event}---happens a few seconds or minutes before the correlated event---called the \textit{response event}. For example, assume an application running on a server. The trigger event is a failure of the network card and the response event is an application alerting the lost network connection after some connection retries. The time between the network card failure and the detected network loss is called \textit{temporal lag}
 \begin{equation}
-	P(B \; | \; A) = \mathcal{T}_\Delta (B \; | \; A) = \mathcal{T}_\Delta (B - A)
+	P(B \; | \; A) = \mathcal{T}_\Delta (B \; | \; A) = \mathcal{T}_\Delta (b - a)
 \end{equation}
 with \(\mathcal{T}_\Delta\) being an arbitrary probability density function.
 
@@ -153,7 +156,7 @@ Based on the result of the \ac{ICE} algorithm, a \ac{KDE} determines the distrib
 
 \subsection{Finding Candidate Events}
 \label{sec:energyDistance}
-The energy distance is inspired by gravitational potential energy from physics and was recently proposed by Rizzo \cite{Rizzo2016}. Like two objects attracting each other in a gravitational field, the samples of two distributions affect each other depending on their "distance". If both sample sets were produced by equivalent distributions their potential energy is zero. To the best of our knowledge the energy distance has not yet been used for event correlation.
+The energy distance is inspired by gravitational potential energy from physics and was recently proposed by Rizzo \cite{Rizzo2016}. Like two objects attracting each other in a gravitational field, the samples of two distributions affect each other depending on their ``distance''. If both sample sets were produced by equivalent distributions their potential energy is zero. To the best of our knowledge the energy distance has not yet been used for event correlation.
 
 To compute the empirical energy distance let \(A\) be a sample set with \(m\) samples and \(B\) a sample set with size \(n\). The empirical energy distance is defined as
 \begin{align}
@@ -233,7 +236,7 @@ using the  least squares formulas.
 
 Naively implemented, these two steps run in \(\mathcal{O}(m \cdot n)\) as all pair-wise distances have to be calculated. However, several techniques exist to improve the \textit{data-reference} assignment using \(k-d\) trees or caching \cite{Pomerleau2015}. Furthermore, it can be proven that the number of iterations is also limited by \(\mathcal{O}(m \cdot n)\) as the input samples are one-dimensional \cite{Ezra2008}.
 
-\ac{ICE} calculates one translation for all \textit{data} points. As a consequence, outliers can influence the optimization process. To counter the effects of additional points in \(\pmb{S}_A\), a random sampling of \textit{data} is done after the assignment step. If the rough number of outliers is known in advance, \textit{data} can be simply trimmed by their distances \cite{Chetverikov2002}. However, if the amount of outliers is not known---as it is usually the case---this approach is not reasonable. For this situation it is better to adjust the used samples dynamically. A quite simple approach is performing plain outlier removal using \(z\)-scores and thresholding \cite{Phillips2007}. Unfortunately, additional points in \(\pmb{S_B}\) cannot be easily sorted out.
+\ac{ICE} calculates one translation for all \textit{data} points. As a consequence, outliers can influence the optimization process. To counter the effects of additional points in \(\pmb{S}_A\), a random sampling of \textit{data} is done after the assignment step. We used the quite simple approach of plain outlier removal using \(z\)-scores and thresholding. However, more sophisticated methods for outlier removal exist, e.g. \cite{Hontani2012}, \cite{Phillips2007}.
 
 
 As an iterative algorithm, \ac{ICE} finds a local minimum \cite{Do2008}. Consequently, it is important that optimization starts close to the true solution to ensure a global minimum. In order to obtain a good initial guess, a \ac{RANSAC} \cite{Fischler1981} algorithm is used:
@@ -274,7 +277,6 @@ with Gaussian kernel function $K(\cdot)$ and bandwidth $h$ that is selected by S
 
 
 \section{Experiments} \label{sec:exp}
-%TODO distances neu berechnen
 
 This section is devoted to a performance evaluation based on synthetic and real data. The correlated event types are identified using the energy distance as described in Section \ref{sec:energyDistance}. Furthermore, all detected correlations are evaluated against the ground truth both visually and based on the energy distance.
 We compare the time lags obtained from the  \ac{ICE} approach  with \textit{lagEM} \cite{Zeng2015}. %For using the \textit{lagEM} algorithm, an initial guess of \(\mu\) and \(\sigma\) has to be given. 
@@ -319,7 +321,7 @@ This scenario introduces two additional event types. Furthermore, the temporal l
 	\label{fig:scen2-2}	
 \end{figure}
 
-First of all, the hypothesis test using the energy distance is able to detect only correlations between the event types \(A \leftrightarrow B\) and \(C \leftrightarrow D\). Figure \ref{fig:scen2-1} shows the estimated distributions between event \(A\) and \(B\). Basically, both algorithms are able to estimate the correct distribution quite well. \ac{ICE} misses the trailing event pairs. Consequently, the distance is quite large with $0.0675$. The \textit{lagEM} algorithm estimates the mean precisely. But the probability of small or even negative time lags is overestimated. This is caused by the inherent assumption that the temporal lag is normally distributed. Nevertheless, the estimate is still slightly worse than \ac{ICE} with $0.0938$.
+First of all, the hypothesis test using the energy distance is able to detect only correlations between the event types \(A \leftrightarrow B\) and \(C \leftrightarrow D\) both with a \(p\)-value of $0.99$. Figure \ref{fig:scen2-1} shows the estimated distributions between event \(A\) and \(B\). Basically, both algorithms are able to estimate the correct distribution quite well. \ac{ICE} misses the trailing event pairs. Consequently, the distance is quite large with $0.0675$. The \textit{lagEM} algorithm estimates the mean precisely. But the probability of small or even negative time lags is overestimated. This is caused by the inherent assumption that the temporal lag is normally distributed. Nevertheless, the estimate is still slightly worse than \ac{ICE} with $0.0938$.
 
 The same behavior can be observed in Figure \ref{fig:scen2-2} for the temporal lag between \(C\) and \(D\). \textit{lagEM} estimates the correct mean. However, the variance is too big as it is hard to approximate a uniform distribution with a normal distribution. This yields a higher distance of $0.0547$. In contrast, \ac{ICE} ($0.0052$) is able to estimate the correct distribution better. The jittery probability density can be explained by the limited number of samples.
 
@@ -337,7 +339,7 @@ The same behavior can be observed in Figure \ref{fig:scen2-2} for the temporal l
 \subsection{Symantec Log}
 \label{sec:symantecLog}
 
-After using synthetic data for testing the performance, real world data is evaluated. Therefore, an event log of a \textit{Symantec Endpoint Protection Client} was collected and analyzed. The event log contains events from 5. March 2015 to 10. March 2016. In total, the log contained 3742 events of 19 different types.
+After using synthetic data for testing the performance, real world data is evaluated. Therefore, an event log of a \textit{Symantec Endpoint Protection Client} was collected and analyzed. The event log contains events from March 5, 2015 to March 10, 2016. In total, the log contained 3742 events of 19 different types.
 
 
 
@@ -384,6 +386,9 @@ As Figure \ref{fig:2-3} shows, all algorithms are capable of detecting the rough
 
 
 \begin{table}[!ht]
+	\caption{Excerpt of all event types in the Symantec log file with a short description and the number of occurrences.}
+	\label{tbl:symantecEvents}
+
 	\centering
 	\begin{tabular}{c p{0.3\textwidth} c}
 		\textbf{Event ID} & \multicolumn{1}{c}{\textbf{Description}} & \textbf{Count} \\
@@ -394,8 +399,7 @@ As Figure \ref{fig:2-3} shows, all algorithms are capable of detecting the rough
 		\textit{65}	& Symantec antivirus scan suspended. & 36 \\
 		\textit{66}	& Symantec antivirus scan continued. & 38 \\
 	\end{tabular}
-	\caption{Excerpt of all event types in the Symantec log file with a short description and the number of occurrences.}
-	\label{tbl:symantecEvents}
+
 \end{table}
 
 
@@ -405,6 +409,9 @@ Besides the quality of the estimation, the resource consumption---namely runtime
 
 \begin{table}[!tb]
 	\centering
+	\caption{Resource consumption of both algorithms for all scenarios. The last two columns contain the runtime in minutes and memory usage in megabytes.}
+	\label{tbl:resources}
+
 	\begin{tabular}{c c c c}
 		\textbf{Scenario} & \textbf{Algorithm} & \textbf{Runtime} & \textbf{Memory} \\
 		\hline
@@ -413,6 +420,7 @@ Besides the quality of the estimation, the resource consumption---namely runtime
 		\\
 		2	& \ac{ICE}				&	~00:12.749	&	~~94.756510	\\
 			& \textit{lagEM}		&	258:32.001	&	~~95.985677	\\
+		\hline
 		\\
 		2--3 & \ac{ICE}				&	~00:01.815	&	169.492188 \\
 			&	\textit{lagEM}		&	~00:00.297	&	169.085938 \\
@@ -423,13 +431,12 @@ Besides the quality of the estimation, the resource consumption---namely runtime
 		7--66 & \ac{ICE}			&	~00:04.394	&	176.121094 \\
 			&	\textit{lagEM}		&	~00:18.022	&	176.394531 \\
 	\end{tabular}
-	\caption{Resource consumption of both algorithms for all scenarios. The last two columns contain the runtime in minutes and memory usage in megabytes.}
-	\label{tbl:resources}
+
 \end{table}
 
 
 
-As Table \ref{tbl:resources} shows, \textit{lagEM} has a longer runtime than \ac{ICE}. This is effect is especially visible for longer sequences. Concerning memory consumption, both algorithms are very similar and constant for all scenarios.
+As Table \ref{tbl:resources} shows, \textit{lagEM} has a longer runtime than \ac{ICE}. This is effect is especially visible for longer sequences. Concerning memory consumption, both algorithms are very similar and almost constant for all scenarios. Scenario 1 and 2 refer to the synthetic sequences, while 2--3, 66--65 and 7--66 refer to the Symantec data set.
 
 
 
@@ -440,7 +447,7 @@ For calculating the temporal lag distribution between two event types, a new alg
 
 Tests with simulated data and a real data set demonstrated the performance of the presented method. Using the Symantec log, several diverse and highly complex temporal lag distributions have been estimated and analyzed. This data set demonstrated the advantage of eliminating assumptions about the true distribution from the event correlation process as \ac{ICE} has  more precise results than \textit{lagEM}.
 
-Furthermore, the data set has shown that the presented methods work with very limited sample sets--using only eight samples to estimate a distribution. However, for large sample sets--as in the simulated sequences--a fast runtime with memory consumption equal to \textit{lagEM} is obtained.
+Furthermore, the data set has shown that the presented methods work with very limited sample sets--using only eight samples to estimate a distribution. However, for large sample sets---as in the simulated sequences---a fast runtime with memory consumption equal to \textit{lagEM} is obtained.
 
 
 
