@@ -1,10 +1,11 @@
 import matplotlib.pyplot as plt
 
 from core.distribution import NormalDistribution, KdeDistribution, ExponentialDistribution, UniformDistribution
-from core.performance import EnergyDistance
+from core.performance import EnergyDistance, SquaredIntegratedDistance
 from visualization import plotDistributions, CORRECT, ICE, LAGEM, LP
 
-en = EnergyDistance()
+# en = EnergyDistance()
+en = SquaredIntegratedDistance();
 
 # Scenario 1
 lagEM = NormalDistribution(65.4711352108, 13.0084410317)

@@ -8,7 +8,7 @@ import scipy.integrate
 import scipy.stats
 
 from core import distribution
-from core.distribution import KDE
+from core.distribution import KDE, KdeDistribution
 
 
 class Performance(abc.ABC):
@@ -242,3 +242,15 @@ class EnergyDistance(Metric):
         # actual computation is done in C++ extension
         value, p = fastEnergyDistance.compute(eventA, eventB, eventA.size, eventB.size, 999)
         return (value, p)
+
+
+class SquaredIntegratedDistance(Metric):
+    def compute(self, eventA, eventB):
+        distA = KdeDistribution(eventA)
+        distB = KdeDistribution(eventB)
+
+        lower = min(distA.getCompleteInterval()[0], distB.getCompleteInterval()[0])
+        upper = max(distA.getCompleteInterval()[1], distB.getCompleteInterval()[1])
+
+        x = scipy.integrate.quad(lambda x: (distA.getPDFValue(x) - distB.getPDFValue(x)) ** 2, lower, upper)
+        return (x[0], 0)
