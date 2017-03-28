@@ -42,6 +42,7 @@
 	\acro{ICP}{Iterative Closest Point}
 	\acro{KDE}{Kernel Density Estimator}
 	\acro{RANSAC}{Random Sample Consensus}
+	\acro{ISD}{Integral Squared Distance}
 \end{acronym}
 
 
@@ -112,6 +113,15 @@ The most similar approach to our work is the \textit{lagEM} algorithm proposed b
 	\label{fig:logToSequence}
 \end{figure}
 
+In this paper, we present an event correlation method that consists of three parts:
+(1) Candidate events are identified using the energy distance. (2) A novel iterative algorithm for aligning and assigning events from two event sequences is developed. (3) A non-parametric distribution for the time lag is estimated based on a \ac{KDE}.
+The final algorithm is in particular suitable for big data applications as it is highly efficient. 
+
+In the next section, we will provide an extended problem description.
+Section \ref{sec:approach} describe the proposed event correlation framework in detail.
+Finally, Section \ref{sec:exp} presents an experimental evaluation of the proposed method including a comparison with the state-of-the-art.
+The paper is concluded in Section \ref{sec:conc}.
+
 
 \section{Problem Statement}
 Event correlation is the task of identifying correlations between different event types within a sequence. By examining the dependencies between the events, a directed graph can be formed. In this graph, each node represents exactly one event type. A directed connection between two nodes means that event type \(A\) triggers \(B\). Using this knowledge it is possible to say which event types will follow after the current event predicting future states of a system. Another application is using the graph to find the root cause of a given event. Both abilities are highly desired in many domains like system monitoring, stock market, intrusion detection systems, etc. for \textit{predictive maintenance} and \textit{root cause analysis} \cite{Zeng2015}, \cite{Benferhat2008}.
@@ -139,17 +149,11 @@ Even though independence of two events is easy to check, event correlation is di
 \end{equation}
 with \(\mathcal{T}_\Delta\) being an arbitrary probability density function.
 
-In this paper, we present an event correlation method that consists of three parts:
-(1) Candidate events are identified using the energy distance. (2) A novel iterative algorithm for aligning and assigning events from two event sequences is developed. (3) A non-parametric distribution for the time lag is estimated based on a \ac{KDE}.
-The final algorithm is in particular suitable for big data applications as it is highly efficient. 
-
-In the next section, we will describe the proposed event correlation framework in detail.
-Section \ref{sec:exp} presents an experimental evaluation of the proposed method including a comparison with the state-of-the-art.
-The paper is concluded in Section \ref{sec:conc}.
 
 
 
 \section{Event Correlation Approach}
+\label{sec:approach}
 We aim at finding and analyzing correlations between pairs of different event types. In a first step, all pairings of event types are considered and a hypothesis test is done to check if both event types are correlated or not. In order to rate the correlation between two event types, the energy distance \cite{Rizzo2016} is used as explained in Section~\ref{sec:energyDistance}. 
 If this test is positive, the actual distribution of the temporal lag is calculated. Therefore, an adapted version of the \ac{ICP} algorithm called \ac{ICE} is developed that aligns two event sequences and determines the optimal event assignments, see Section \ref{sec:ice}.
 Based on the result of the \ac{ICE} algorithm, a \ac{KDE} determines the distribution of the time lags, see Section~\ref{sec:labestimator}.
@@ -168,8 +172,6 @@ To compute the empirical energy distance let \(A\) be a sample set with \(m\) sa
 	& - \dfrac{1}{m^2} \sum_{i = 1}^m \sum_{j = 1}^m \left\| a_i - a_j \right\| - \dfrac{1}{n^2} \sum_{i = 1}^n \sum_{j = 1}^n \left\| b_i - b_j \right\| ~.
 \end{split}
 \end{align}
-
-By using normalization, a closed measure \(\text{Cor}^*(A, B) \in [0, 1]\) for the similarity of two sample sets is obtained.
 
 An important property of the energy distance is that no pair-wise mapping between \(A\) and \(B\) is required to calculate the empirical energy distance. This allows computing the correlation score without knowing event assignments. 
 Consequently, only event pairs with a low energy distance can be analyzed more detailed, e.g., by determining the time lag, which lowers the computational cost significantly.
@@ -283,7 +285,10 @@ with Gaussian kernel function $K(\cdot)$ and bandwidth $h$ that is selected by S
 
 \section{Experiments} \label{sec:exp}
 
-This section is devoted to a performance evaluation based on synthetic and real data. The correlated event types are identified using the energy distance as described in Section \ref{sec:energyDistance}. Furthermore, all detected correlations are evaluated against the ground truth both visually and based on the normalized energy distance.
+This section is devoted to a performance evaluation based on synthetic and real data. The correlated event types are identified using the energy distance as described in Section \ref{sec:energyDistance}. Furthermore, all detected correlations are evaluated against the ground truth both visually and based on the \ac{ISD} measure \cite{Izenman1991}
+\begin{equation}
+	G(\hat{f}_h(x), f_h(x)) = \dfrac{1}{2} \int_\mathbb{R} (\hat{f}_h(x) - f_h(x))^2 \; \mathrm{d}x \; .
+\end{equation}
 We compare the time lags obtained from the \ac{ICE} approach with \textit{lagEM} \cite{Zeng2015}. %For using the \textit{lagEM} algorithm, an initial guess of \(\mu\) and \(\sigma\) has to be given. 
 Zeng et al. suggest to initialize \(\mu\) and \(\sigma^2\) for \textit{lagEM} randomly \cite{Zeng2015}. Hence, for all experiments, the initial mean and variance are generated from a uniform distribution \(\mathcal{U}(0, 100)\) and all correct values are also in \([0, 100]\).
 
@@ -304,7 +309,7 @@ For the first synthetic sequence, an experiment used by Zeng at al. \cite{Zeng20
 	\label{fig:scen1}
 \end{figure}
 
-Figure \ref{fig:scen1} shows the estimated distributions for both matchers. Even though nearly all event pairs overlap, \ac{ICE} is able to estimate the true distribution with a very low energy distance of $0.0509$. Even with several retries, \textit{lagEM} was not able to estimate the correct distribution, which is also reflected in the calculated distance of $0.3209$. Zeng et al. reported the same behavior but were able to solve it by using longer sequences \cite{Zeng2015}.
+Figure \ref{fig:scen1} shows the estimated distributions for both matchers. Even though nearly all event pairs overlap, \ac{ICE} is able to estimate the true distribution with a low \ac{ISD} of $0.0091$. Even with several retries, \textit{lagEM} was not able to estimate the correct distribution, which is also reflected in the calculated distance of $0.0255$. Zeng et al. reported the same behavior but were able to solve it by using longer sequences \cite{Zeng2015}.
 
 
 
@@ -326,12 +331,9 @@ This scenario introduces two additional event types. Furthermore, the temporal l
 	\label{fig:scen2-2}	
 \end{figure}
 
-First of all, the hypothesis test using the energy distance is able to detect only correlations between the event types \(A \leftrightarrow B\) and \(C \leftrightarrow D\) both with a \(p\)-value of $0.99$. Figure \ref{fig:scen2-1} shows the estimated distributions between event \(A\) and \(B\). Basically, both algorithms are able to estimate the correct distribution quite well. \ac{ICE} misses the trailing event pairs. Consequently, the distance is quite large with $0.0675$. The \textit{lagEM} algorithm estimates the mean precisely. But the probability of small or even negative time lags is overestimated. This is caused by the inherent assumption that the temporal lag is normally distributed. Nevertheless, the estimate is still slightly worse than \ac{ICE} with $0.0938$.
+First of all, the hypothesis test using the energy distance is able to detect only correlations between the event types \(A \leftrightarrow B\) and \(C \leftrightarrow D\) both with a \(p\)-value of $0.99$. Figure \ref{fig:scen2-1} shows the estimated distributions between event \(A\) and \(B\). Basically, both algorithms are able to estimate the correct distribution quite well. \ac{ICE} misses the trailing event pairs. Consequently, the \ac{ISD} is quite large with $0.0024$. The \textit{lagEM} algorithm estimates the mean precisely. But the probability of small or even negative time lags is overestimated. This is caused by the inherent assumption that the temporal lag is normally distributed. Nevertheless, the estimate is still slightly worse than \ac{ICE} with $0.0025$.
 
-The same behavior can be observed in Figure \ref{fig:scen2-2} for the temporal lag between \(C\) and \(D\). \textit{lagEM} estimates the correct mean. However, the variance is too big as it is hard to approximate a uniform distribution with a normal distribution. This yields a higher distance of $0.0547$. In contrast, \ac{ICE} ($0.0052$) is able to estimate the correct distribution better. The jittery probability density can be explained by the limited number of samples.
-
-
-
+The same behavior can be observed in Figure \ref{fig:scen2-2} for the temporal lag between \(C\) and \(D\). \textit{lagEM} estimates the correct mean. However, the variance is too big as it is hard to approximate a uniform distribution with a normal distribution. This yields a higher distance of $0.0228$. In contrast, \ac{ICE} ($0.0040$) is able to estimate the correct distribution better. The jittery probability density can be explained by the limited number of samples.
 
 
 
@@ -360,7 +362,7 @@ First, it was tested which correlations are detected by a hypothesis test using 
 	\label{fig:7-66}
 \end{figure}
 
-Figure \ref{fig:7-66} shows the detected correlations of \ac{ICE} and \textit{lagEM}. Both algorithms estimate the main peak of the true distribution quite good. However, no algorithm is able to estimate the true distribution completely correct. The \textit{lagEM} algorithm underestimates the mean, \ac{ICE} estimates a second peak around zero. These observations are also visible via the energy distance: \ac{ICE} calculates a better result (0.0805) than \textit{lagEM} (0.3854).
+Figure \ref{fig:7-66} shows the detected correlations of \ac{ICE} and \textit{lagEM}. Both algorithms estimate the main peak of the true distribution quite good. However, no algorithm is able to estimate the true distribution completely correct. The \textit{lagEM} algorithm underestimates the mean, \ac{ICE} estimates a second peak around zero. These observations are also visible via the energy distance: \ac{ICE} calculates a better result (\ac{ISD} $0.0027$) than \textit{lagEM} (\ac{ISD} $0.0031$).
 
 
 
@@ -374,7 +376,7 @@ Figure \ref{fig:7-66} shows the detected correlations of \ac{ICE} and \textit{la
 	\label{fig:66-65}
 \end{figure}
 
-Figure \ref{fig:66-65} also shows the estimated time lag by the \textit{lagEM} algorithm. This algorithm computes a time lag distributed by \(\mathcal{N}(19.125, 12.9365)\) leading to a distance of $0.1314$. However, it is important to note, that the \textit{lagEM} algorithm was initialized with a \(\mu\) close to the correct solution. Even though the rough distribution is estimated quite well, the estimate of \ac{ICE} resembles the true distribution perfectly - yielding a distance of $0$. This is a very impressive as the data set contains roughly 38\% outliers.
+Figure \ref{fig:66-65} also shows the estimated time lag by the \textit{lagEM} algorithm. This algorithm computes a time lag distributed by \(\mathcal{N}(19.125, 12.9365)\) leading to an \ac{ISD} of $0.0198$. However, it is important to note, that the \textit{lagEM} algorithm was initialized with a \(\mu\) close to the correct solution. Even though the rough distribution is estimated quite well, the estimate of \ac{ICE} resembles the true distribution perfectly - yielding a distance of $0$. This is a very impressive as the data set contains roughly 38\% outliers.
 
 
 
@@ -387,7 +389,7 @@ Figure \ref{fig:66-65} also shows the estimated time lag by the \textit{lagEM} a
 	\label{fig:2-3}
 \end{figure}
 
-As Figure \ref{fig:2-3} shows, all algorithms are capable of detecting the rough distribution of the true time lag with a quite low distance (\ac{ICE} 0.0085, \textit{lagEM} 0.0894).
+As Figure \ref{fig:2-3} shows, both algorithms are capable of detecting the rough distribution of the true time lag. However, \ac{ICE} yields a much lower distance (0.0005) than \textit{lagEM} (0.0173).
 
 
 \begin{table}[!ht]
