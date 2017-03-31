@@ -8,6 +8,8 @@
 \usepackage{graphicx}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{rotating}
+\usepackage{multirow, multicol}
 \usepackage[nolist]{acronym}
 
 \usepackage{listings}
@@ -416,25 +418,24 @@ Besides the quality of the estimation, the resource consumption---namely runtime
 	\centering
 	\caption{Resource consumption of both algorithms for all scenarios. The last two columns contain the runtime in minutes and memory usage in megabytes.}
 	\label{tbl:resources}
-
-	\begin{tabular}{c c c c}
-		\textbf{Scenario} & \textbf{Algorithm} & \textbf{Runtime} & \textbf{Memory} \\
+	\begin{tabular}{c c c c c}
+		\multicolumn{2}{c}{\textbf{Scenario}} & \textbf{Algorithm} & \textbf{Runtime} & \textbf{Memory} \\
 		\hline
-		1	& \ac{ICE}				&	~00:02.981	&	~~93.516927	\\
-			& \textit{lagEM}		&	~26:45.805	&	115.217656	\\
-		\\
-		2	& \ac{ICE}				&	~00:12.749	&	~~94.756510	\\
-			& \textit{lagEM}		&	258:32.001	&	~~95.985677	\\
+		\multirow{4}{2mm}{\begin{sideways} Synthetic \hspace{1mm} \end{sideways}} & 1	& \ac{ICE}				&	~00:02.981	&	~~93.516927	\\
+			& & \textit{lagEM}		&	~26:45.805	&	115.217656	\\
+		\\[-1ex]
+		&2	& \ac{ICE}				&	~00:12.749	&	~~94.756510	\\
+		&	& \textit{lagEM}		&	258:32.001	&	~~95.985677	\\
 		\hline
+		\\[-1ex]
+		\multirow{4}{2mm}{\begin{sideways} Symantec Log \hspace{2mm} \end{sideways}} &2--3 & \ac{ICE}				&	~00:01.815	&	169.492188 \\
+		&	&	\textit{lagEM}		&	~00:00.297	&	169.085938 \\[-1ex]
 		\\
-		2--3 & \ac{ICE}				&	~00:01.815	&	169.492188 \\
-			&	\textit{lagEM}		&	~00:00.297	&	169.085938 \\
+		&66--65 & \ac{ICE}			&	~00:00.711	&	178.468750 \\
+		&	&	\textit{lagEM}		&	~00:01.342	&	178.078125 \\[-1ex]
 		\\
-		66--65 & \ac{ICE}			&	~00:00.711	&	178.468750 \\
-			&	\textit{lagEM}		&	~00:01.342	&	178.078125 \\
-		\\
-		7--66 & \ac{ICE}			&	~00:04.394	&	176.121094 \\
-			&	\textit{lagEM}		&	~00:18.022	&	176.394531 \\
+		&7--66 & \ac{ICE}			&	~00:04.394	&	176.121094 \\
+		&	&	\textit{lagEM}		&	~00:18.022	&	176.394531
 	\end{tabular}
 
 \end{table}
