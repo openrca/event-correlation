@@ -14,7 +14,6 @@
 
 \usepackage{listings}
 
-%\usepackage{algorithmic}
 \usepackage{array}
 
 \theoremstyle{examplestyle}
@@ -35,8 +34,6 @@
 \begin{document}
 
 
-
-
 \begin{acronym}
 	\acro{EM}{Expectation-Maximisation}
 	\acro{ICE}{Iterative Closest Events}
@@ -47,9 +44,6 @@
 \end{acronym}
 
 
-
-
-%\title{Mining Temporal Lags in Event Sequences for Event Correlation}
 
 \title{Mining Event Correlations and Temporal Lags in Event Sequences}
 
@@ -81,7 +75,6 @@ Event correlation is the task of detecting dependencies between events in event 
 In this work, a new data-driven, generic framework for event correlation is presented. 
 First, we use a fast preliminary test statistic to determine candidate event pairs. Next, the precise distribution of the temporal lag between those pairs is determined. 
 For this purpose, a new efficient iterative method is developed that aligns two event sequences and finds the optimal event assignments.
-%Based on the assignements, a (non-parametric) temporal lag distribution can be estimated using a \ac{KDE}.
 In our experiments, the proposed method is much faster than state-of-the-art methods but always yields similar (or even better) results. 
 \end{abstract}
 
@@ -244,30 +237,23 @@ using the least squares formulas.
 
 Naively implemented, these two steps run in \(\mathcal{O}(m \cdot n)\) as all pair-wise distances have to be calculated, where $O(.)$ is the big-o in Landau notation. However, several techniques exist to improve the \textit{data-reference} assignment using \(k-d\) trees or caching \cite{Pomerleau2015}. Furthermore, it can be proven that the number of iterations is also limited by \(\mathcal{O}(m \cdot n)\) as the input samples are one-dimensional \cite{Ezra2008}.
 
-\ac{ICE} calculates one translation for all \textit{data} points. As a consequence, outliers can influence the optimization process. To counter the effects of additional points in \(\pmb{S}_A\), a random sampling of \textit{data} is done after the assignment step. We used the quite simple approach of plain outlier removal using \(z\)-scores and thresholding. However, more sophisticated methods for outlier removal exist, e.g. \cite{Hontani2012}, \cite{Phillips2007}.
+\ac{ICE} calculates one translation for all \textit{data} points. As a consequence, outliers can influence the optimization process. To counter the effects of additional points in \(\pmb{S}_A\), a random sampling of \textit{data} is done after the assignment step. We used the quite simple approach of plain outlier removal using \(z\)-scores---a measure of the deviation from the expectation value in standard deviations--and thresholding.
+However, more sophisticated methods for outlier removal exist, e.g. \cite{Hontani2012}, \cite{Phillips2007}.
 
 
-As an iterative algorithm, \ac{ICE} finds a local minimum \cite{Do2008}. Consequently, it is important that optimization starts close to the true solution to ensure a global minimum. In order to obtain a good initial guess, a \ac{RANSAC} \cite{Fischler1981} algorithm is used:
+As an iterative algorithm, \ac{ICE} finds a local minimum \cite{Do2008}. Consequently, it is important that the optimization starts close to the true solution to ensure a global minimum. In order to obtain a good initial guess, a \ac{RANSAC} \cite{Fischler1981} algorithm is used:
 \begin{enumerate}
 	\item Select \(n\) sample points randomly from \(\pmb{S}_A\). Ensure that all sample points have a minimal distance \(d\) to limit the effects of local distortions.
 	\item For each selected sample point find the \(k\) nearest neighbors in \(\pmb{S}_B\) and select one of these at random.
-	\item Based on these \(n\) pairs, compute the rigid transformation as usually in \ac{ICE}.
+	\item Based on these \(n\) pairs, compute the rigid transformation as usual in \ac{ICE}.
 \end{enumerate}
 
 These three steps are repeated \(q\) times and the translation with the minimal error is used as initial guess. This method ensures that, with very high probability, the initial guess is not influenced by outliers. If a priori information about the true distribution is given, this knowledge can be used to enhance the initial guess. This allows basic incorporation of additional knowledge.
 
 
 \subsection{Time Lag Estimator} \label{sec:labestimator}
-Based on the final assignments $\alpha_i(t^*)$ and the final transformation $t^*$, the time lag distribution is calculated. Each event pair is interpreted as a sample. The samples are used to train a \ac{KDE} with
-% \begin{equation}
-% 	\label{eq:solutionICP}
-% 	P(B \; | \; A) = \hat{f}_h \left(
-% 		\left[
-% 			b_{\alpha_i(t^*)} - a_1 + t \;
-% 			\dots \;
-% 			b_{\alpha_i(t^*)} - a_m + t
-% 		\right] \right)~.
-% \end{equation}
+Based on the final assignments $\alpha_i(t^*)$ and the final transformation $t^*$, the time lag distribution is calculated. Each event pair is interpreted as a sample. The samples are used to train a \ac{KDE} according to
+
 \begin{equation}
 	\label{eq:solutionICP}
  f_{\text{Lag}}(t) = \tfrac{1}{m} \sum_{i=1}^m K\left( \frac{t+ b_{\alpha_i(t^*)} - a_i }{ h} \right) \enspace ,
@@ -285,11 +271,20 @@ with Gaussian kernel function $K(\cdot)$ and bandwidth $h$ that is selected by S
 
 
 \section{Experiments} \label{sec:exp}
+%TODO In den Experimenten ist nicht beschrieben, welche Werte für die Parameter für Hypothesentest und ICE verwendet wurde. Das heißt, es muss da stehen wie $k$ (in Gleichung (5)), $d$ (aus Schritt 1 von RANSAC), $k$ (aus Schritt 2 von RANSAC. BTW: wir haben hier zwei versch. Parameter mit dem Symbol $k$), $q$ (Anzahl Wiederholungen von RANSAC) in den Experimenten gesetzt wurden. Das kann man beispielsweise in einer Tabelle machen.
 
 This section is devoted to a performance evaluation based on synthetic and real data.
 The correlated event types are identified using the energy distance as described in Section \ref{sec:energyDistance}.
 Furthermore, all detected correlations are evaluated against the ground truth both visually and based on the normalized \ac{SID} measure \cite{Hanebeck2003}.
-We compare the time lags obtained from the \ac{ICE} approach with \textit{lagEM} \cite{Zeng2015}. %For using the \textit{lagEM} algorithm, an initial guess of \(\mu\) and \(\sigma\) has to be given. 
+
+\begin{equation}
+	\text{SID}(f_{Lag}, f_{true}) = \frac{\int \left( f_{Lag} (t) - f_{true}(t) \right)^2 d t}{\int f_{Lag} (t)^2 \text{d} t + \int f_{true}(t)^2 \text{d} t}
+\end{equation}
+with $f_{Lag}$ being the KDE according to \eqref{eq:solutionICP} and $f_{true}$ being the true temporal lag distribution. The SID can be calculated analytically in closed form and takes values in $[0,1]$, where zero means that both density are identical and one corresponds to non-overlapping densities.
+
+
+
+We compare the time lags obtained from the \ac{ICE} approach with \textit{lagEM} \cite{Zeng2015}.
 Zeng et al. suggest to initialize \(\mu\) and \(\sigma^2\) for \textit{lagEM} randomly \cite{Zeng2015}. Hence, for all experiments, the initial mean and variance are generated from a uniform distribution \(\mathcal{U}(0, 100)\) and all correct values are also in \([0, 100]\).
 
 
@@ -299,7 +294,7 @@ Zeng et al. suggest to initialize \(\mu\) and \(\sigma^2\) for \textit{lagEM} ra
 \subsection{Synthetic Sequences}
 At first, two synthetic sequences are generated and analyzed as described in the following.
 \paragraph{Scenario 1}
-For the first synthetic sequence, an experiment used by Zeng at al. \cite{Zeng2015} is considered (see Table I in \cite{Zeng2015}): A sequence contains $200$ elements in total. Event \(A\) occurs based on an exponential distribution with \(\beta = 27.5\). Event \(B\) follows after event \(A\) with a normally distributed time lag \(\mathcal{N}(77.01, 6.664)\). All events are lost with a probability of 10\%.
+For the first synthetic sequence, an experiment used by Zeng at al. \cite{Zeng2015} is considered (see Table I in \cite{Zeng2015}). A sequence contains $200$ elements in total. Event \(A\) occurs based on an exponential distribution with \(\beta = 27.5\). Event \(B\) follows after event \(A\) with a normally distributed time lag \(\mathcal{N}(77.01, 6.664)\). All events are lost with a probability of 10\%.
 
 
 \begin{figure}[!tb]
@@ -314,7 +309,7 @@ Figure \ref{fig:scen1} shows the estimated distributions for both matchers. Even
 
 
 \paragraph{Scenario 2}
-This scenario introduces two additional event types. Furthermore, the temporal lag is not modeled by normal distributions: A sequence contains $1000$ elements in total. Event \(A\) occurs based on an uniform distribution with \(\mathcal{U}(30, 50)\). Event \(B\) follows after event \(A\) with an exponentially distributed time lag with \(\beta = 10\) and an offset of $25$. Independently of \(A\) and \(B\) an additional event pair exists. Event \(C\) occurs based on an exponential distribution with \(\beta = 25\) and an offset of $10$. Event \(D\) follows after event \(C\) with a uniformly distributed time lag \(\mathcal{U}(15, 25)\). Again, all event types are lost with a probability of 10\%.
+This scenario introduces two additional event types. Furthermore, the temporal lag is not modeled by normal distributions. A sequence contains $1000$ elements in total. Event \(A\) occurs based on an uniform distribution with \(\mathcal{U}(30, 50)\). Event \(B\) follows after event \(A\) with an exponentially distributed time lag with \(\beta = 10\) and an offset of $25$. Independently of \(A\) and \(B\) an additional event pair exists. Event \(C\) occurs based on an exponential distribution with \(\beta = 25\) and an offset of $10$. Event \(D\) follows after event \(C\) with a uniformly distributed time lag \(\mathcal{U}(15, 25)\). Again, all event types are lost with a probability of 10\%.
 
 
 \begin{figure}[!tb]
@@ -331,9 +326,9 @@ This scenario introduces two additional event types. Furthermore, the temporal l
 	\label{fig:scen2-2}	
 \end{figure}
 
-First of all, the hypothesis test using the energy distance is able to detect only correlations between the event types \(A \leftrightarrow B\) and \(C \leftrightarrow D\) both with a \(p\)-value of $0.99$. Figure \ref{fig:scen2-1} shows the estimated distributions between event \(A\) and \(B\). Basically, both algorithms are able to estimate the correct distribution quite well. \ac{ICE} misses the trailing event pairs. Consequently, the \ac{SID} is quite large with $0.0625$. The \textit{lagEM} algorithm estimates the mean precisely. But the probability of small or even negative time lags is overestimated. This is caused by the inherent assumption that the temporal lag is normally distributed. Nevertheless, the estimate is still slightly worse than \ac{ICE} with $0.0692$.
+First of all, the hypothesis test using the energy distance is able to detect only correlations between the event types \(A \leftrightarrow B\) and \(C \leftrightarrow D\) both with a \(p\)-value of $0.99$. Figure \ref{fig:scen2-1} shows the estimated distributions between event \(A\) and \(B\). Basically, both algorithms are able to estimate the correct distribution quite well. \ac{ICE} misses the trailing event pairs. Nevertheless, the \ac{SID} is quite low with $0.0625$. The \textit{lagEM} algorithm estimates the mean precisely, but the probability of small or even negative time lags is overestimated. This is caused by the inherent assumption that the temporal lag is normally distributed. Nevertheless, the estimate is still slightly worse than \ac{ICE} with $0.0692$.
 
-The same behavior can be observed in Figure \ref{fig:scen2-2} for the temporal lag between \(C\) and \(D\). \textit{lagEM} estimates the correct mean. However, the variance is too big as it is hard to approximate a uniform distribution with a normal distribution. This yields a higher distance of $0.1976$. In contrast, \ac{ICE} ($0.0116$) is able to estimate the correct distribution better. The jittery probability density can be explained by the limited number of samples.
+The same behavior can be observed in Figure \ref{fig:scen2-2} for the temporal lag between \(C\) and \(D\). \textit{lagEM} estimates the correct mean. However, the variance is too big as it is hard to approximate a uniform distribution with a normal distribution. This yields a higher distance of $0.1976$. In contrast, \ac{ICE} (\ac{SID}~=~$0.0116$) is able to estimate the correct distribution better. The jittery probability density can be explained by the limited number of samples.
 
 
 
@@ -362,7 +357,7 @@ First, it was tested which correlations are detected by a hypothesis test using 
 	\label{fig:7-66}
 \end{figure}
 
-Figure \ref{fig:7-66} shows the detected correlations of \ac{ICE} and \textit{lagEM}. Both algorithms estimate the main peak of the true distribution quite good. However, no algorithm is able to estimate the true distribution completely correct. The \textit{lagEM} algorithm underestimates the mean, \ac{ICE} estimates a second peak around zero. These observations are also visible via \ac{SID}: \ac{ICE} calculates a better result (\ac{SID} $0.1895$) than \textit{lagEM} (\ac{SID} $0.4404$).
+Figure \ref{fig:7-66} shows the detected correlations of \ac{ICE} and \textit{lagEM}. Both algorithms estimate the main peak of the true distribution quite good. However, no algorithm is able to estimate the true distribution completely correct. The \textit{lagEM} algorithm underestimates the mean, \ac{ICE} estimates a second peak around zero. These observations are also visible via \ac{SID}: \ac{ICE} calculates a better result (\ac{SID}~=~$0.1895$) than \textit{lagEM} (\ac{SID}~=~$0.4404$).
 
 
 
@@ -376,7 +371,7 @@ Figure \ref{fig:7-66} shows the detected correlations of \ac{ICE} and \textit{la
 	\label{fig:66-65}
 \end{figure}
 
-Figure \ref{fig:66-65} also shows the estimated time lag by the \textit{lagEM} algorithm. This algorithm computes a time lag distributed by \(\mathcal{N}(19.125, 12.9365)\) leading to an \ac{SID} of $0.6512$. However, it is important to note, that the \textit{lagEM} algorithm was initialized with a \(\mu\) close to the correct solution. Even though the rough distribution is estimated quite well, the estimate of \ac{ICE} resembles the true distribution perfectly - yielding a distance of $0$. This is a very impressive as the data set contains roughly 38\% outliers.
+Figure \ref{fig:66-65} also shows the estimated time lag by the \textit{lagEM} algorithm. This algorithm computes a time lag distributed by \(\mathcal{N}(19.125, 12.9365)\) leading to an \ac{SID} of $0.6512$. However, it is important to note, that the \textit{lagEM} algorithm was initialized with a \(\mu\) close to the correct solution. Even though the rough distribution is estimated quite well, the estimate of \ac{ICE} resembles the true distribution perfectly---yielding a distance of $0$. This is a very impressive as the data set contains roughly 38\% outliers.
 
 
 
@@ -389,7 +384,7 @@ Figure \ref{fig:66-65} also shows the estimated time lag by the \textit{lagEM} a
 	\label{fig:2-3}
 \end{figure}
 
-As Figure \ref{fig:2-3} shows, both algorithms are capable of detecting the rough distribution of the true time lag. However, \ac{ICE} yields a much lower distance (\ac{SID} $0.0194$) than \textit{lagEM} (\ac{SID} $0.2494$).
+As Figure \ref{fig:2-3} shows, both algorithms are capable of detecting the rough distribution of the true time lag. However, \ac{ICE} yields a much lower distance (\ac{SID} $0.0194$) than \textit{lagEM} (\ac{SID}~=~$0.2494$).
 
 
 \begin{table}[!ht]
@@ -442,30 +437,18 @@ Besides the quality of the estimation, the resource consumption---namely runtime
 
 
 
-As Table \ref{tbl:resources} shows, \textit{lagEM} has a longer runtime than \ac{ICE}. This is effect is especially visible for longer sequences. Concerning memory consumption, both algorithms are very similar and almost constant for all scenarios. Scenario 1 and 2 refer to the synthetic sequences, while 2--3, 66--65 and 7--66 refer to the Symantec data set.
+As Table \ref{tbl:resources} shows, \textit{lagEM} has a longer runtime than \ac{ICE}. This is effect is especially visible for longer sequences. Concerning memory consumption, both algorithms are very similar and almost constant for all scenarios.
 
 
 
 \section{Conclusion} \label{sec:conc}
 We developed a new data-driven approach for event correlation that only utilizes an event time stamp and label. This framework is able to automatically detect correlated event pairs and determine the temporal lag distribution between those. It uses a test for goodness of correlation to determine candidate event pairs before applying a time consuming matching. These candidate pairs can be processed by our new \ac{ICE} algorithm or an already existing approach like \textit{lagEM}. By examining only pair-wise event types, this framework is highly applicable to big data as all event pairs can be processed in parallel.
 
-For calculating the temporal lag distribution between two event types, a new algorithm \ac{ICE} has been proposed. This approach does not require any prior information, e.g. a good initialization or domain knowledge. Furthermore, no inherent assumptions about the true distribution of the temporal lag is included making it highly flexible. While often obtaining results better than state-of-the-art approaches, the runtime is also significantly less. Instead of a few hours calculation time, results are available within seconds.
+For calculating the temporal lag distribution between two event types, a new algorithm \ac{ICE} has been proposed. This approach does not require any prior information e.g., a good initialization or domain knowledge. Furthermore, no inherent assumptions about the true distribution of the temporal lag is included making it highly flexible. While often obtaining results better than state-of-the-art approaches, the runtime is also significantly less. Instead of a few hours calculation time, results are available within seconds.
 
 Tests with simulated data and a real data set demonstrated the performance of the presented method. Using the Symantec log, several diverse and highly complex temporal lag distributions have been estimated and analyzed. This data set demonstrated the advantage of eliminating assumptions about the true distribution from the event correlation process as \ac{ICE} has more precise results than \textit{lagEM}.
 
 Furthermore, the data set has shown that the presented methods work with very limited sample sets--using only eight samples to estimate a distribution. However, for large sample sets---as in the simulated sequences---a fast runtime with memory consumption equal to \textit{lagEM} is obtained.
-
-
-
-% conference papers do not normally have an appendix
-
-
-% use section* for acknowledgment
-% \section*{Acknowledgment}
-% 
-% 
-% The authors would like to thank...
-
 
 
 
