@@ -25,7 +25,6 @@
 
 \hyphenation{}
 
-\DeclareMathOperator*{\argmin}{arg\,min}
 
 \clubpenalty=10000
 \widowpenalty=10000
@@ -54,7 +53,7 @@
 
 
 \author{
-\IEEEauthorblockN{Marc-Andre Z\"oller and Marcus Baum}
+\IEEEauthorblockN{Marc-Andre Z\"oller\(^*\) and Marcus Baum}
 \IEEEauthorblockA{Institute of Computer Science\\
 University of Goettingen, Germany\\
 Email: marc-andre.zoeller@stud.uni-goettingen.de,\\ marcus.baum@cs.uni-goettingen.de }
@@ -96,7 +95,7 @@ In our experiments, the proposed method is much faster than state-of-the-art met
 \section{Introduction}
 Nearly every modern computer system provides information about its status. This status information---usually collected by logging---is often aggregated in a monitoring system for further inspection and error handling. Usually, this data can be interpreted as a sequence of events. In the most basic case an event has to have some kind of label saying what this event represents and a time stamp when the event has occurred. In addition, events are often enriched with arbitrary supplementary data such as a message, component description, or input data. A series of events can be aggregated in a sequence as illustrated in Figure \ref{fig:logToSequence}.
 
-Events often influence and trigger each other, and hence, form a network of dependencies. With a certain complexity of the underlying system, a manual inspection and handling of all monitored events becomes quite time consuming and expensive. A major challenge during the analysis is that a single fault in an application often does not lead to a single event in monitoring. Instead, a fault---normally referred to as \textit{root cause}---often propagates through a system leading to consecutive errors depending on the first fault. This flood of events makes determination of the actual problem complicated and time consuming.
+Events often influence and trigger each other, and hence, form a network of dependencies. With a certain complexity of the underlying system, a manual inspection and handling of all monitored events becomes quite time consuming and expensive. A major challenge during the analysis is that a single fault in an application often does not lead to a single event in monitoring. Instead, a fault---normally referred to as \textit{root cause}---often propagates through a system leading to consecutive errors depending on the first fault. This flood of events makes the determination of the actual problem complicated and time consuming.
 
 Starting from the 1980s, methods to automatically aggregate and preprocess monitored events were investigated in order to reduce the manual work. Early approaches utilize domain experts to create a knowledge database. By asking a domain expert, explicit rules and dependencies between event types are stated. Based on these rules, events are aggregated and correlated, e.g. \cite{Houck1995}, \cite{Kettschau2002}. Unfortunately, it is not possible to transfer this system to a new domain as all rules have to be recreated. Furthermore, the creation of rules is very time consuming, difficult and error prone for non-trivial systems.
 
@@ -124,7 +123,7 @@ The paper is concluded in Section \ref{sec:conc}.
 
 
 \section{Problem Statement}
-Event correlation is the task of identifying correlations between different event types within a sequence. By examining the dependencies between the events, a directed graph can be formed. In this graph, each node represents exactly one event type. A directed connection between two nodes means that event type \(A\) triggers \(B\). Using this knowledge it is possible to say which event types will follow after the current event predicting future states of a system. Another application is using the graph to find the root cause of a given event. Both abilities are highly desired in many domains like system monitoring, stock market, intrusion detection systems, etc. for \textit{predictive maintenance} and \textit{root cause analysis} \cite{Zeng2015}, \cite{Benferhat2008}.
+Event correlation is the task of identifying correlations between different event types within a sequence. By examining the dependencies between the events, a directed graph can be formed as depicted in Figure \ref{fig:exampleDependencyGraph}. In this graph, each node represents exactly one event type. A directed connection between two nodes means that event type \(A\) triggers \(B\). Using this knowledge it is possible to say which event types will follow after the current event predicting future states of a system. Another application is using the graph to find the root cause of a given event. Both abilities are highly desired in many domains like system monitoring, stock market, intrusion detection systems, etc. for \textit{predictive maintenance} and \textit{root cause analysis} \cite{Zeng2015}, \cite{Benferhat2008}.
 
 
 \begin{figure}[!tb]
@@ -141,7 +140,7 @@ Mathematically, the problem can be formulated as follows. Let a sequence \(\pmb{
 \end{equation}
 with \(P(A)\) the probability of \(A\) and \(P(A, B)\) the joint probability of \(A\) and \(B\). Those event pairs are called \textit{correlated}.
 
-Furthermore, let \(\pmb{S}_A = (a_1,\ldots, a_m)\) be a subsequence of \(\pmb{S}\) with type \(A\) with \(m\) events and \(\pmb{S}_B=(b_1,\ldots, b_n)\) be a subsequence with \(n\) events of type \(B\). For simplicity \(a_i\) also denote the time stamp of the \(i\)-th event of \(A\). \(b_i\) is used analogously.
+Furthermore, let \(\pmb{S}_A = (a_1,\ldots, a_m)\) be a subsequence of \(\pmb{S}\) with type \(A\) with \(m\) events and \(\pmb{S}_B=(b_1,\ldots, b_n)\) be a subsequence with \(n\) events of type \(B\). For simplicity \(a_i\) also denotes the time stamp of the \(i\)-th event of \(A\). \(b_i\) is used analogously.
 
 Even though independence of two events is easy to check, event correlation is difficult as neither \(P(A)\), \(P(B)\) nor \(P(A, B)\) are known a priori in general. This task gets even more complicated as two events do not have to appear at the same time even though they are correlated. Often, one event---called the \textit{trigger event}---happens a few seconds or minutes before the correlated event---called the \textit{response event}. For example, assume an application running on a server. The trigger event is a failure of the network card and the response event is an application alerting the lost network connection after some connection retries. The time between the network card failure and the detected network loss is called \textit{temporal lag}
 \begin{equation}
@@ -209,30 +208,30 @@ Given two datasets called \textit{data} and \textit{reference}, the \ac{ICP} alg
 
 In the following, we will apply the \ac{ICP} concept for matching two event sequences:
 
-Let \(data\) be an event sequence \(\pmb{S}_A = (a_1,\ldots, a_m)\) of type \(A\) with \(m\) events, and \(reference\) be an event sequence \(\pmb{S}_B=(b_1,\ldots, b_n)\) of \(n\) events of type \(B\) with. 
+Let \(data\) be an event sequence \(\pmb{S}_A\) of type \(A\) and \(reference\) be the event sequence \(\pmb{S}_B\) of type \(B\). 
 We aim at finding the temporal translation between these two event sequences as it represents the ``mean'' time lag.
 Hence, the objective is to find a translation $t \in \mathbb{R}$ that minimizes 
 \begin{equation}
  \dfrac{1}{m} \sum_{i = 1}^{m} \left( a_i + t - b_{\alpha_i(t)} \right)^2 \enspace , \\
 \end{equation}
-where $\alpha_i(t)= \argmin_j \; (a_i+t-b_j)^2$ is the index of the closest event of type $B$ to the event $a_i$.
+where $\alpha_i(t)= \arg\,\min\limits_j \; (a_i+t-b_j)^2$ is the index of the closest event of type $B$ to the event $a_i$.
 
 The \ac{ICE} algorithm starts with an initial guess $t^{(0)}$ for the translation and iteratively improves the current guess $t^{(l)}$ in two steps as described in the following.
 
 \begin{enumerate}
  \item \emph{Assignment Step}\\
-For each point in \(\pmb{S}_A\) the corresponding point in \(\pmb{S}_B\) with minimal squared Euclidean distance has to be found under incorporation of the current translation $t^{(0)}$, i.e., 
+For each point in \(\pmb{S}_A\) the corresponding point in \(\pmb{S}_B\) with minimal squared Euclidean distance has to be found under incorporation of the current translation $t^{(l)}$, i.e., 
 \begin{equation}
-\alpha_i(t^{(l)})= \argmin_j \; (a_i+t^{(l)}-b_j)^2 \enspace .
+\alpha_i(t^{(l)})= \arg\,\min\limits_j \; (a_i+t^{(l)}-b_j)^2 \enspace .
 \end{equation}
-This calculation is normally done by computing all pairwise distances and selecting the smallest one. It is important to note that several points in \(\pmb{S}_A\) can be assigned to the same point in \(\pmb{S}_B\) and that some points in \(\pmb{S}_B\) can remain unpaired.
+This calculation is usually done by computing all pairwise distances and selecting the smallest one. It is important to note that several points in \(\pmb{S}_A\) can be assigned to the same point in \(\pmb{S}_B\) and that some points in \(\pmb{S}_B\) can remain unpaired.
 
 
 
 \item \emph{Translation Step}\\
 With the pairwise correlations given, the optimal translation can be calculated by solving the optimization problem
 \begin{equation}
-t^{(l+1)}= \argmin_{t} \; \dfrac{1}{m} \sum_{i = 1}^{m} \left( a_i + t - b_{\alpha_i(t^{(l)})} \right)^2 \enspace , \\
+t^{(l+1)}= \arg\,\min\limits_{t} \; \dfrac{1}{m} \sum_{i = 1}^{m} \left( a_i + t - b_{\alpha_i(t^{(l)})} \right)^2 \enspace , \\
 \end{equation}
 using the least squares formulas.
  
@@ -241,7 +240,7 @@ using the least squares formulas.
 
 
 
-Naively implemented, these two steps run in \(\mathcal{O}(m \cdot n)\) as all pair-wise distances have to be calculated. However, several techniques exist to improve the \textit{data-reference} assignment using \(k-d\) trees or caching \cite{Pomerleau2015}. Furthermore, it can be proven that the number of iterations is also limited by \(\mathcal{O}(m \cdot n)\) as the input samples are one-dimensional \cite{Ezra2008}.
+Naively implemented, these two steps run in \(\mathcal{O}(m \cdot n)\) as all pair-wise distances have to be calculated, where $O(.)$ is the big-o in Landau notation. However, several techniques exist to improve the \textit{data-reference} assignment using \(k-d\) trees or caching \cite{Pomerleau2015}. Furthermore, it can be proven that the number of iterations is also limited by \(\mathcal{O}(m \cdot n)\) as the input samples are one-dimensional \cite{Ezra2008}.
 
 \ac{ICE} calculates one translation for all \textit{data} points. As a consequence, outliers can influence the optimization process. To counter the effects of additional points in \(\pmb{S}_A\), a random sampling of \textit{data} is done after the assignment step. We used the quite simple approach of plain outlier removal using \(z\)-scores and thresholding. However, more sophisticated methods for outlier removal exist, e.g. \cite{Hontani2012}, \cite{Phillips2007}.
 
