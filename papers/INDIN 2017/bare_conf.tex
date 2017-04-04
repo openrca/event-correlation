@@ -23,6 +23,7 @@
 \newcommand{\cmark}{\ding{51}}
 \newcommand{\xmark}{\ding{55}}
 
+\newcommand\imgsize{0.415}
 
 \hyphenation{}
 
@@ -123,7 +124,7 @@ Event correlation is the task of identifying correlations between different even
 
 \begin{figure}[!tb]
 	\centering
-	\includegraphics[width=0.45\textwidth]{images/graph.pdf}
+	\includegraphics[width=\imgsize\textwidth]{images/graph.pdf}
 	\caption{Example dependency graph. Each node represents an event type with a label. An arrow indicates a correlation between two event types.}
 	\label{fig:exampleDependencyGraph}
 \end{figure}
@@ -181,9 +182,9 @@ with
 Based on this test statistic, the \(p\)-value is calculated as
 
 \begin{equation}
-	p = \dfrac{1}{k} \sum_{i = 1}^k 1 \left( S(A, B) > S(A^\pi , B^\pi) \right) \enspace, 
+	p = \dfrac{1}{h} \sum_{i = 1}^h 1 \left( S(A, B) > S(A^\pi , B^\pi) \right) \enspace, 
 \end{equation}
-where \(k\) is the number of repetitions.
+where \(h\) is the number of repetitions.
 
 
 
@@ -283,23 +284,23 @@ Furthermore, all detected correlations are evaluated against the ground truth bo
 with $f_{Lag}$ being the KDE according to \eqref{eq:solutionICP} and $f_{true}$ being the true temporal lag distribution. The SID can be calculated analytically in closed form and takes values in $[0,1]$, where zero means that both density are identical and one corresponds to non-overlapping densities.
 
 
-
 We compare the time lags obtained from the \ac{ICE} approach with \textit{lagEM} \cite{Zeng2015}.
 Zeng et al. suggest to initialize \(\mu\) and \(\sigma^2\) for \textit{lagEM} randomly \cite{Zeng2015}. Hence, for all experiments, the initial mean and variance are generated from a uniform distribution \(\mathcal{U}(0, 100)\) and all correct values are also in \([0, 100]\).
 
 
+For all experiments the number of permutations for the energy distance is chosen as \(h = 999\). \ac{RANSAC} selects \(n = 3\) samples and for each sample \(k = 2\) data points. This procedure is repeated \(q = 500\) times.
 
 
 
 \subsection{Synthetic Sequences}
 At first, two synthetic sequences are generated and analyzed as described in the following.
 \paragraph{Scenario 1}
-For the first synthetic sequence, an experiment used by Zeng at al. \cite{Zeng2015} is considered (see Table I in \cite{Zeng2015}). A sequence contains $200$ elements in total. Event \(A\) occurs based on an exponential distribution with \(\beta = 27.5\). Event \(B\) follows after event \(A\) with a normally distributed time lag \(\mathcal{N}(77.01, 6.664)\). All events are lost with a probability of 10\%.
+For the first synthetic sequence, an experiment used by Zeng at al. is considered (see Table I in \cite{Zeng2015}). A sequence contains $200$ elements in total. Event \(A\) occurs based on an exponential distribution with \(\beta = 27.5\). Event \(B\) follows after event \(A\) with a normally distributed time lag \(\mathcal{N}(77.01, 6.664)\). All events are lost with a probability of 10\%.
 
 
 \begin{figure}[!tb]
 	\centering
-	\includegraphics[scale=0.4]{images/scenarios/1.pdf}
+	\includegraphics[width=\imgsize\textwidth]{images/scenarios/1.pdf}
 	\caption{Estimated distributions for scenario 1.}
 	\label{fig:scen1}
 \end{figure}
@@ -314,14 +315,14 @@ This scenario introduces two additional event types. Furthermore, the temporal l
 
 \begin{figure}[!tb]
 	\centering
-	\includegraphics[scale=0.4]{images/scenarios/2-AB.pdf}
+	\includegraphics[width=\imgsize\textwidth]{images/scenarios/2-AB.pdf}
 	\caption{Temporal lag between event \(A\) and \(B\) in scenario 2.}
 	\label{fig:scen2-1}	
 \end{figure}
 
 \begin{figure}[!tb]
 	\centering
-	\includegraphics[scale=0.4]{images/scenarios/2-CD.pdf}
+	\includegraphics[width=\imgsize\textwidth]{images/scenarios/2-CD.pdf}
 	\caption{Temporal lag between event \(C\) and \(D\) in scenario 2.}
 	\label{fig:scen2-2}	
 \end{figure}
@@ -341,7 +342,7 @@ The same behavior can be observed in Figure \ref{fig:scen2-2} for the temporal l
 \subsection{Symantec Log}
 \label{sec:symantecLog}
 
-After using synthetic data for testing the performance, real world data is evaluated. Therefore, an event log of a \textit{Symantec Endpoint Protection Client} was collected and analyzed. The event log contains events from March 5, 2015 to March 10, 2016. In total, the log contained 3742 events of 19 different types.
+After using synthetic data for testing the performance, real world data is evaluated. Therefore, an event log of a \textit{Symantec Endpoint Protection} was collected and analyzed. The event log contains events from March 5, 2015 to March 10, 2016. In total, the log contained 3742 events of 19 different types.
 
 
 
@@ -352,8 +353,8 @@ First, it was tested which correlations are detected by a hypothesis test using 
 
 \begin{figure}[!tb]
 	\centering
-	\includegraphics[scale=0.4]{images/symantec/7-66.pdf}
-	\caption{Distribution of the temporal lag between event 7 and~66.}
+	\includegraphics[width=\imgsize\textwidth]{images/symantec/7-66.pdf}
+	\caption{Temporal lag between event 7 and~66.}
 	\label{fig:7-66}
 \end{figure}
 
@@ -366,8 +367,8 @@ Figure \ref{fig:7-66} shows the detected correlations of \ac{ICE} and \textit{la
 
 \begin{figure}[!tb]
 	\centering
-	\includegraphics[scale=0.4]{images/symantec/66-65.pdf}
-	\caption{Distribution of the temporal lag between event 65 and~66.}
+	\includegraphics[width=\imgsize\textwidth]{images/symantec/66-65.pdf}
+	\caption{Temporal lag between event 65 and~66.}
 	\label{fig:66-65}
 \end{figure}
 
@@ -379,7 +380,7 @@ Figure \ref{fig:66-65} also shows the estimated time lag by the \textit{lagEM} a
 
 \begin{figure}[!tb]
 	\centering
-	\includegraphics[scale=0.4]{images/symantec/2-3.pdf}
+	\includegraphics[width=0.425\textwidth]{images/symantec/2-3.pdf}
 	\caption{Distribution of the temporal lag between event 2 and~3.}
 	\label{fig:2-3}
 \end{figure}
