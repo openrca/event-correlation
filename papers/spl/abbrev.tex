@@ -20,4 +20,33 @@
 
 %\algrenewcommand{\algorithmiccomment}[1]{$\triangleright$ \emph{#1}}
 
-{\theoremstyle{break}\theorembodyfont{\sffamily\small}\newtheorem{example}     {Example}}
+%{\theoremstyle{break}\theorembodyfont{\sffamily\small}\newtheorem{example}     {Example}}
+
+%\newtheoremstyle{style}
+%{0.5cm}                 %Space above    
+%{0.5cm}                 %Space below    
+%{\normalfont}                         %Body font: original {\normalfont}    
+%{}                         %Indent amount (empty = no indent,%\parindent = paraindent)    
+%{\normalfont\bfseries}  %Thm head font original 
+%{\normalfont :} {\newline}
+%{}
+%\theoremstyle{style}
+
+\setlength\theorempreskipamount{1ex}
+\setlength\theorempostskipamount{1ex}
+\theorembodyfont{\normalfont}
+\theoremstyle{plain}
+\newtheorem{Assumption}{Assumption}
+%\theoremstyle{marginbreak}
+\newtheorem{Theorem}{Theorem}
+\newtheorem{Corollary}{Corollary}
+\newtheorem{Definition}{Definition}
+\theoremheaderfont{\bfseries}
+\theoremstyle{plain}
+
+%\theoremheaderfont{\scshape\normalsize}
+%\theoremstyle{plain}
+%{\theorembodyfont{\normalfont\small} \newtheorem{Proof}	{Proof}}
+\newenvironment{Proof}
+{\noindent{\scshape Proof.}}
+{\hspace*{\fill}$\square$}%\bigskip}
