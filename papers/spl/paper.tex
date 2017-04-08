@@ -224,7 +224,7 @@ e-mail: \ttfamily{\scriptsize marco.huber@ieee.org}}% <-this % stops a space
 % As a general rule, do not put math, special symbols or citations
 % in the abstract or keywords.
 \begin{abstract}
-Many technical systems like manufacturing plants or software applications generate large event sequences. Knowing the temporal relationship between events is important for gaining insights into the status and behavior of the system. This paper proposes a novel approach for identifying the temporal lag between different event types. This identification task is formulated as a binary integer optimization problem that can be solved efficiently and close to optimality by means of a linear programming approximation. The performance of the proposed approach is demonstrated on artificial and real-world event sequences.
+Many technical systems like manufacturing plants or software applications generate large event sequences. Knowing the temporal relationship between events is important for gaining insights into the status and behavior of the system. This paper proposes a novel approach for identifying the temporal lag between different event types. This identification task is formulated as a binary integer optimization problem that can be solved efficiently and close to optimality by means of a linear programming approximation. The performance of the proposed approach is demonstrated on synthetic and real-world event sequences.
 \end{abstract}
 
 % Note that keywords are not normally used for peerreview papers.
@@ -254,7 +254,7 @@ Creating rules, however, is very time consuming, difficult, and error prone and 
 
 Generic approaches utilize time windows for finding correlated event pairs based on their relative frequency \cite{Jakobson1993, Mannila1997, Bouandas2007}. A major difficulty here is the selection of an appropriate window size. A too small window may lead to missed correlated event pairs, while a too large window size may cause false positive correlations. 
 
-In \cite{Zeng2015}, temporal dependencies among events are exploited for identifying correlated event pairs. Therefore, the temporal lag between two event types is estimated by means of expectation-maximization (EM). This approach is considered as current state-of-the-art and serves as a performance reference for event correlation throughout this work.
+In \cite{Zeng2015}, temporal dependencies among events are exploited for identifying correlated event pairs. Therefore, the temporal lag between two event types is estimated by means of expectation-maximization. This approach is considered as current state-of-the-art and serves as a performance reference for event correlation throughout this work.
 
 In this paper, a novel approach for estimating the temporal lag between event pairs is proposed. This estimation is formulated as an optimization problem. To solve it also for large event sequences in a computationally efficient manner, two approximations leading to a relaxed linear program formulation of the original problem are introduced. It is proven that the induced approximation error is limited and thus, a near-optimal solution can be found in polynomial time. 
 
@@ -463,7 +463,8 @@ Any matrix $\A$ containing only $-1$, $0$, and $1$ elements is totally unimodula
 
 See Theorem~7.3 in \cite{Sierksma2001} for a proof of Corollary~\ref{cor:totally-unimodular}. Based on this corollary, $\H$ and $\D$ are totally unimodular as they contain only $0$ and $1$ with only one $1$ per column. However, $\mat \Delta$ has to be rewritten to
 $\mat \Delta = \diag\big(\vec{\tilde \delta}\big)$ with $\vec{\tilde \delta} \DEF \big[\sign(\delta_{11})\ \sign(\delta_{21})\ \ldots\ \sign(\delta_{mn})\big]\T$ and $\sign(.)$ being the signum function, in order to fulfill the first condition in Corollary~\ref{cor:totally-unimodular}. This reformulation is not changing the optimal solution to \eqref{eq:relaxed-optimization-problem}. As $\mat \Delta$ now comprises only $-1$ and $1$ with only one non-zero element per column, it is also totally unimodular.
-
+\\[1ex]
+\noindent \textbf{Remark} Alternatively, one could directly relax \eqref{eq:optimization-problem}. This would lead to a concave minimization problem, which is known to be NP-hard \cite{Chinchuluun2005}. Again, only by then removing the quadratic term a computationally feasible solution would be possible.
 
 \subsection{Potential Extensions}
 \label{sec:lp_extensions}
