@@ -257,7 +257,7 @@ Based on the final assignments $\alpha_i(t^*)$ and the final transformation $t^*
 
 \begin{equation}
 	\label{eq:solutionICP}
- f_{\text{Lag}}(t) = \tfrac{1}{m} \sum_{i=1}^m K\left( \frac{t+ b_{\alpha_i(t^*)} - a_i }{ h} \right) \enspace ,
+ f_{\text{Lag}}(t) = \tfrac{1}{m} \sum_{i=1}^m K\left( \frac{a_i + t - b_{\alpha_i(t^*)}}{ h} \right) \enspace ,
 	\end{equation}
 with Gaussian kernel function $K(\cdot)$ and bandwidth $h$ that is selected by Scott's rule-of-thumb~\cite{Scott1992}.
 
@@ -272,8 +272,6 @@ with Gaussian kernel function $K(\cdot)$ and bandwidth $h$ that is selected by S
 
 
 \section{Experiments} \label{sec:exp}
-%TODO In den Experimenten ist nicht beschrieben, welche Werte für die Parameter für Hypothesentest und ICE verwendet wurde. Das heißt, es muss da stehen wie $k$ (in Gleichung (5)), $d$ (aus Schritt 1 von RANSAC), $k$ (aus Schritt 2 von RANSAC. BTW: wir haben hier zwei versch. Parameter mit dem Symbol $k$), $q$ (Anzahl Wiederholungen von RANSAC) in den Experimenten gesetzt wurden. Das kann man beispielsweise in einer Tabelle machen.
-
 This section is devoted to a performance evaluation based on synthetic and real data.
 The correlated event types are identified using the energy distance as described in Section \ref{sec:energyDistance}.
 Furthermore, all detected correlations are evaluated against the ground truth both visually and based on the normalized \ac{SID} measure \cite{Hanebeck2003}.
