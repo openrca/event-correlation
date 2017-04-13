@@ -1,8 +1,5 @@
-\documentclass[journal]{IEEEtran}
-%
-% If IEEEtran.cls has not been installed into the LaTeX system files,
-% manually specify the path to it like:
-% \documentclass[journal]{../sty/IEEEtran}
+\documentclass[journal, 10pt]{IEEEtran}
+%\documentclass[journal, 11pt, draft, onecolumn]{IEEEtran}
 
 
 % Some very useful LaTeX packages include:
@@ -35,20 +32,7 @@
 % *** CITATION PACKAGES ***
 %
 %\usepackage{cite}
-% cite.sty was written by Donald Arseneau
-% V1.6 and later of IEEEtran pre-defines the format of the cite.sty package
-% \cite{} output to follow that of the IEEE. Loading the cite package will
-% result in citation numbers being automatically sorted and properly
-% "compressed/ranged". e.g., [1], [9], [2], [7], [5], [6] without using
-% cite.sty will become [1], [2], [5]--[7], [9] using cite.sty. cite.sty's
-% \cite will automatically add leading space, if needed. Use cite.sty's
-% noadjust option (cite.sty V3.8 and later) if you want to turn this off
-% such as if a citation ever needs to be enclosed in parenthesis.
-% cite.sty is already installed on most LaTeX systems. Be sure and use
-% version 5.0 (2009-03-20) and later if using hyperref.sty.
-% The latest version can be obtained at:
-% http://www.ctan.org/pkg/cite
-% The documentation is contained in the cite.sty file itself.
+
 
 
 % *** GRAPHICS RELATED PACKAGES ***
@@ -94,10 +78,8 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{bm} % correct bold symbols, like \bm
-\usepackage{amsmath}
-\usepackage{amsfonts}
-\usepackage{amssymb}
 \usepackage{mathrsfs}
+%\usepackage[standard]{ntheorem}
 \usepackage{theorem}
 \usepackage{dsfont}
 \usepackage{nicefrac}
@@ -123,11 +105,6 @@
 % *** ALIGNMENT PACKAGES ***
 %
 %\usepackage{array}
-% IEEEtran contains the IEEEeqnarray family of commands that can be used to
-% generate multiline equations as well as matrices, tables, etc., of high
-% quality.
-
-
 
 
 % *** SUBFIGURE PACKAGES ***
@@ -136,65 +113,16 @@
 %\else
 %  \usepackage[caption=false,font=footnotesize]{subfig}
 %\fi
-% subfig.sty, written by Steven Douglas Cochran, is the modern replacement
-% for subfigure.sty, the latter of which is no longer maintained and is
-% incompatible with some LaTeX packages including fixltx2e. However,
-% subfig.sty requires and automatically loads Axel Sommerfeldt's caption.sty
-% which will override IEEEtran.cls' handling of captions and this will result
-% in non-IEEE style figure/table captions. To prevent this problem, be sure
-% and invoke subfig.sty's "caption=false" package option (available since
-% subfig.sty version 1.3, 2005/06/28) as this is will preserve IEEEtran.cls
-% handling of captions.
-% Note that the Computer Society format requires a larger sans serif font
-% than the serif footnote size font used in traditional IEEE formatting
-% and thus the need to invoke different subfig.sty package options depending
-% on whether compsoc mode has been enabled.
-%
-% The latest version and documentation of subfig.sty can be obtained at:
-% http://www.ctan.org/pkg/subfig
-
 
 
 
 % *** FLOAT PACKAGES ***
 %
 %\usepackage{fixltx2e}
-% fixltx2e, the successor to the earlier fix2col.sty, was written by
-% Frank Mittelbach and David Carlisle. This package corrects a few problems
-% in the LaTeX2e kernel, the most notable of which is that in current
-% LaTeX2e releases, the ordering of single and double column floats is not
-% guaranteed to be preserved. Thus, an unpatched LaTeX2e can allow a
-% single column figure to be placed prior to an earlier double column
-% figure.
 
 
 
 %\usepackage{stfloats}
-% stfloats.sty was written by Sigitas Tolusis. This package gives LaTeX2e
-% the ability to do double column floats at the bottom of the page as well
-% as the top. (e.g., "\begin{figure*}[!b]" is not normally possible in
-% LaTeX2e). It also provides a command:
-%\fnbelowfloat
-% to enable the placement of footnotes below bottom floats (the standard
-% LaTeX2e kernel puts them above bottom floats). This is an invasive package
-% which rewrites many portions of the LaTeX2e float routines. It may not work
-% with other packages that modify the LaTeX2e float routines. The latest
-% version and documentation can be obtained at:
-% http://www.ctan.org/pkg/stfloats
-% Do not use the stfloats baselinefloat ability as the IEEE does not allow
-% \baselineskip to stretch. Authors submitting work to the IEEE should note
-% that the IEEE rarely uses double column equations and that authors should try
-% to avoid such use. Do not be tempted to use the cuted.sty or midfloat.sty
-% packages (also by Sigitas Tolusis) as the IEEE does not format its papers in
-% such ways.
-% Do not attempt to use stfloats with fixltx2e as they are incompatible.
-% Instead, use Morten Hogholm'a dblfloatfix which combines the features
-% of both fixltx2e and stfloats:
-%
-% \usepackage{dblfloatfix}
-% The latest version can be found at:
-% http://www.ctan.org/pkg/dblfloatfix
-
 
 
 
@@ -203,53 +131,18 @@
 % \let\MYoriglatexcaption\caption
 % \renewcommand{\caption}[2][\relax]{\MYoriglatexcaption[#2]{#2}}
 %\fi
-% endfloat.sty was written by James Darrell McCauley, Jeff Goldberg and 
-% Axel Sommerfeldt. This package may be useful when used in conjunction with 
-% IEEEtran.cls'  captionsoff option. Some IEEE journals/societies require that
-% submissions have lists of figures/tables at the end of the paper and that
-% figures/tables without any captions are placed on a page by themselves at
-% the end of the document. If needed, the draftcls IEEEtran class option or
-% \CLASSINPUTbaselinestretch interface can be used to increase the line
-% spacing as well. Be sure and use the nomarkers option of endfloat to
-% prevent endfloat from "marking" where the figures would have been placed
-% in the text. The two hack lines of code above are a slight modification of
-% that suggested by in the endfloat docs (section 8.4.1) to ensure that
-% the full captions always appear in the list of figures/tables - even if
-% the user used the short optional argument of \caption[]{}.
-% IEEE papers do not typically make use of \caption[]'s optional argument,
-% so this should not be an issue. A similar trick can be used to disable
-% captions of packages such as subfig.sty that lack options to turn off
-% the subcaptions:
-% For subfig.sty:
-% \let\MYorigsubfloat\subfloat
-% \renewcommand{\subfloat}[2][\relax]{\MYorigsubfloat[]{#2}}
-% However, the above trick will not work if both optional arguments of
-% the \subfloat command are used. Furthermore, there needs to be a
-% description of each subfigure *somewhere* and endfloat does not add
-% subfigure captions to its list of figures. Thus, the best approach is to
-% avoid the use of subfigure captions (many IEEE journals avoid them anyway)
-% and instead reference/explain all the subfigures within the main caption.
-% The latest version of endfloat.sty and its documentation can obtained at:
-% http://www.ctan.org/pkg/endfloat
-%
-% The IEEEtran \ifCLASSOPTIONcaptionsoff conditional can also be used
-% later in the document, say, to conditionally put the References on a 
-% page by themselves.
 
 
 % *** PDF, URL AND HYPERLINK PACKAGES ***
 %
 %\usepackage{url}
-% url.sty was written by Donald Arseneau. It provides better support for
-% handling and breaking URLs. url.sty is already installed on most LaTeX
-% systems. The latest version and documentation can be obtained at:
-% http://www.ctan.org/pkg/url
-% Basically, \url{my_url_here}.
+
 
 \usepackage{color}
 \def\Del#1{{\color{red}\sout{#1}}}
 \def\OldNew#1#2{{\Del{#1}}{ \color{green}#2}}
 
+\usepackage{multirow}
 \usepackage[normalem]{ulem}
 \usepackage{tikz}
 
@@ -278,13 +171,12 @@
 % was not built to handle multiple paragraphs
 %
 
-\author{Michael~Shell,~\IEEEmembership{Member,~IEEE,}
-        John~Doe,~\IEEEmembership{Fellow,~OSA,}
-        and~Jane~Doe,~\IEEEmembership{Life~Fellow,~IEEE}% <-this % stops a space
-\thanks{M. Shell was with the Department
-of Electrical and Computer Engineering, Georgia Institute of Technology, Atlanta,
-GA, 30332 USA e-mail: (see http://www.michaelshell.org/contact.html).}% <-this % stops a space
-\thanks{J. Doe and J. Doe are with Anonymous University.}% <-this % stops a space
+\author{Marco~F.~Huber,~\IEEEmembership{Member,~IEEE,}
+        Marc-Andr\`e Z\"oller, %
+        and~Marcus Baum,~\IEEEmembership{Member,~IEEE}% <-this % stops a space
+\thanks{M. F.~Huber is with USU Software AG and Karlsruhe Institute of Technology (KIT), Karlsruhe, Germany.
+e-mail: \ttfamily{\scriptsize marco.huber@ieee.org}}% <-this % stops a space
+\thanks{M.~Z\"oller and M.~Baum are with the Institute of Computer Science, University of G\"ottingen, Germany. e-mail: \ttfamily{\scriptsize marcus.baum@cs.uni-goettingen.de} }% <-this % stops a space
 \thanks{Manuscript received MONTH xx, 2017; revised MONTH xx, 2017.}}
 
 % note the % following the last \IEEEmembership and also \thanks - 
@@ -332,12 +224,12 @@ GA, 30332 USA e-mail: (see http://www.michaelshell.org/contact.html).}% <-this %
 % As a general rule, do not put math, special symbols or citations
 % in the abstract or keywords.
 \begin{abstract}
-The abstract goes here.
+Many technical systems like manufacturing plants or software applications generate large event sequences. Knowing the temporal relationship between events is important for gaining insights into the status and behavior of the system. This paper proposes a novel approach for identifying the temporal lag between different event types. This identification task is formulated as a binary integer optimization problem that can be solved efficiently and close to optimality by means of a linear programming approximation. The performance of the proposed approach is demonstrated on synthetic and real-world event sequences.
 \end{abstract}
 
 % Note that keywords are not normally used for peerreview papers.
 \begin{IEEEkeywords}
-
+Event sequences, temporal lag, optimization, linear programming.
 \end{IEEEkeywords}
 
 
@@ -355,81 +247,335 @@ The abstract goes here.
 
 \section{Introduction}
 \label{sec:introduction}
-% The very first letter is a 2 line initial drop letter followed
-% by the rest of the first word in caps.
-% 
-% form to use if the first word consists of a single letter:
-% \IEEEPARstart{A}{demo} file is ....
-% 
-% form to use if you need the single drop letter followed by
-% normal text (unknown if ever used by the IEEE):
-% \IEEEPARstart{A}{}demo file is ....
-% 
-% Some journals put the first two words in caps:
-% \IEEEPARstart{T}{his demo} file is ....
-% 
-% Here we have the typical use of a "T" for an initial drop letter
-% and "HIS" in caps to complete the first word.
-\IEEEPARstart{T}{his} 
+Log files are a common way for collecting status information of technical systems and thus, are a valuable source for analyzing faults or anomalous system behavior. The data contained in these files can be  interpreted as a sequence of events. In the most basic case an event contains some kind of label and a timestamp. In addition, events are often enriched with supplementary information like messages, component description, or input data. 
+
+Events normally do not appear independently. Instead, they influence and trigger each other. With a certain complexity of the monitored system, a manual inspection of all events becomes impractical. Thus, from the 1980s on efforts for automating event processing started. Early approaches were expert systems, where a domain expert explicitly defined rules and dependencies between event types, cf. \cite{Houck1995, Kettschau2002}. 
+Creating rules, however, is very time consuming, difficult, and error prone and transferring rules to a new domain is often not possible.
+
+Generic approaches utilize time windows for finding correlated event pairs based on their relative frequency \cite{Jakobson1993, Mannila1997, Bouandas2007}. A major difficulty here is the selection of an appropriate window size. A too small window may lead to missed correlated event pairs, while a too large window size may cause false positive correlations. 
+
+In \cite{Zeng2015}, temporal dependencies among events are exploited for identifying correlated event pairs. Therefore, the temporal lag between two event types is estimated by means of expectation-maximization. This approach is considered as current state-of-the-art and serves as a performance reference for event correlation throughout this work.
+
+In this paper, a novel approach for estimating the temporal lag between event pairs is proposed. This estimation is formulated as an optimization problem. To solve it also for large event sequences in a computationally efficient manner, two approximations leading to a relaxed linear program formulation of the original problem are introduced. It is proven that the induced approximation error is limited and thus, a near-optimal solution can be found in polynomial time. 
+
+The next section gives a problem description. \Sec{sec:lp} describes the linear programming based temporal lag identification.
+Numerical results on synthetic and real-world data are provided in \Sec{sec:results}. 
+The paper concludes with \Sec{sec:conclusion}.
 
 \section{Problem Statement}
 \label{sec:problem}
 %
-\begin{itemize}
-	\item Event definition
-	\item Assignment variables $z_{ij} \in \{0,1\}$ with $\sum_i z_{ij} = 1$ (event of type B can only have one predecessor event of type A)
-	\item Temporal lag $\Delta t_{ij} \DEF t_j - t_i$
-	\item Definition of optimization problem
-	\begin{equation}
-		\min_{Z} \Var\[\Delta t\] = \tfrac{1}{n}\sum_i\sum_j z_{ij} \cdot (\Delta t_{ij} - \mu)^2
-		\label{eq:optimization-problem}
-	\end{equation}	
-	\item Optimization problem in \eqref{eq:optimization-problem} corresponds to binary quadratic program and thus is NP-hard \cite{Katayama2001}
-\end{itemize}
+It is assumed that the system under consideration generates a sequence of events $\SE = \{e_1, e_2, \ldots, e_k\}$ with pairs $e_i = (E_i, t_i)$, where $E_i \in \Omega$ is the actual event stemming from an event space $\Omega$ and $t_i$ is the timestamp of the event with $0<t_i < t_{i+1}$ and $i=1,2,\ldots,k$. %The events in $\SE$ are sorted in ascending order with respect to the timestamps.
 
-\section{Linear Programming Approximation}
+The focus of this paper is on identifying the temporal relationship between two types of events $A$ and $B$ from $\Omega$. Let $\SE_A = \{a_1, a_2, \ldots, a_m\}$ be a sub-sequence of $\SE$ comprising all events of type $A$. For simplicity and as we are merely interested on the temporal dependency, from now on $a_i$ synonymously refers to the timestamp of the $i$-th event in $\SE_A$. Analogously, $\SE_B = \{b_1, b_2, \ldots, b_n\}$ represents the timestamps of all events of type $B$ in $\SE$.
+
+To model the relation between events $a_i$ and $b_j$ we introduce a latent \emph{assignment variable} $z_{ij} \in \{0,1\}$.
+This variable is equal to one if $a_i$ triggers $b_j$, otherwise $z_{ij} = 0$. As we are interested in event types where there are no arbitrary relations, we make the following realistic assumptions.
+
+\begin{Assumption}%[One to many]
+\label{as:one-to-many}
+An event of type $B$ can only be triggered by one event of type $A$, i.e., $\textstyle\sum_{i=1}^m z_{ij}=1$  for all $j=1,\ldots,n$.
+\end{Assumption}
+
+\begin{Assumption}
+\label{as:b}
+An event of type $A$ can trigger at most one event of type $B$, i.e., $\textstyle\sum_{j=1}^n z_{ij}\le 1$  for all $i=1,\ldots,m$.
+\end{Assumption}
+
+In the triggering case, i.e., where $z_{ij} = 1$, $a_i$ is called the \emph{trigger event} and $b_j$ is the \emph{response event}.
+The response event follows the trigger event with some \emph{temporal lag} $\delta$ that is considered a random variable, as this lag may vary due to (unkown) interferences caused by the system. Thus, for specific event pairs $a_i$ and $b_j$, the actual temporal lag
+%
+\begin{equation}
+	\delta_{ij} = b_j - a_i
+	\label{eq:temporal-lag}
+\end{equation}
+%
+is considered a realization or sample of $\delta$. 
+
+\begin{Assumption}
+\label{as:positive-lags}
+A response event cannot occur before the trigger event, i.e., $\delta_{ij}\ge 0$ for all $i=1,\ldots,m$ and $j=1,\ldots,n$.
+\end{Assumption}
+
+According to \cite{Zeng2015}, the mean and the variance of $\delta$ can be calculated according to
+%
+\begin{align}
+	\label{eq:mean}
+	\mu &= \E[\delta] = \tfrac{1}{n} \sum_{i=1}^m\sum_{j=1}^n z_{ij}\cdot \delta_{ij}~,
+	\\
+	\label{eq:variance}
+	\sigma^2 &= \Var[\delta] = \tfrac{1}{n}\sum_{i=1}^m\sum_{j=1}^n z_{ij} \cdot (\delta_{ij} - \mu)^2~,
+\end{align}
+%
+respectively. 
+
+
+\section{Temporal Lag Identification}
 \label{sec:lp}
 %
+Estimating the temporal lag~$\delta$ between events of type $A$ and $B$ is considered as finding the correct assignment of trigger events to response events such that the variance of $\delta$ is minimized. This corresponds to the optimization problem
+%
+\begin{align}
+	\label{eq:optimization-problem}
+	\min_{\vz} \ \Var[\delta] \ & \\
+	\text{s.t.} \hspace{4mm} \H \cdot \vz &= \vec 1_p~,\\
+		 \D \cdot \vz &\le \vec 1_p~, \\
+	 \mat \Delta \cdot \vz &\ge \vec 0_p~, \\
+		\vz &\in \{0,1\}^p~,
+	%\text{s.t.} \hspace{4mm} \mat Z\T\cdot \vec 1 &= \vec 1~,\\
+		 %\mat Z\cdot \vec 1 &\le \vec 1~, \\
+	 %\diag(\vec \delta) \cdot \vz &\ge \vec 0~, \\
+		%\mat Z &\in \{0,1\}^{m\times n}~,
+\end{align}
+%
+where the first three constraints reflect the Assumptions~\ref{as:one-to-many}--\ref{as:positive-lags} with $\vec 0_p$ and $\vec 1_p$ being vectors of zeros and ones, respectively, of dimension $p=m\cdot n$, 
+$\H \DEF \I_n \otimes \vec 1_m\T$ with identity matrix $\I_n$ of dimension $n\times n$, Kronecker product $\otimes$, and matrix transpose $(.)\T$, 
+$\mat D \DEF \vec 1_n\T \otimes \I_m$, 
+$\mat \Delta \DEF \diag(\vec \delta)$ being a diagonal matrix with elements from  
+%$\odot$ being the Hadamard product, 
+%$\vec \delta\T = \[\vec \delta_1\T\ \vec \delta_2\T\ \ldots\ \vec \delta_m\T\]$ with $\vec \delta_i = \[\delta_{i1}\ \delta_{i2} \ \ldots\ \delta_{im}\]$ being the vectors of all temporal lags, 
+$\vec \delta \DEF [\delta_{11}\ \delta_{21} \ldots \delta_{mn}]\T$ being the vector of all temporal lags, and
+$\vz \DEF [z_{11}\ z_{21} \ldots z_{mn}]\T$ being the vector of all assignment variables.%, and %, where $z_{ij}$ is in row $i$ and column $j$ of $\mat Z$. $\mathrm{vec}(\A)$ being a matrix-vectorization operator converting a matrix $\A$ into a vector by stacking the columns of $\A$.
 
-\begin{itemize}
-	\item Elimination of quadratic terms results in linear problem 
-		\begin{itemize}
-			\item Proof that neglecting the quadratic term introduces only a small error
-			\item Problem becomes a linear integer program and is equivalent to solving 
-				\begin{equation}
-					\min_Z \E\[\Delta t^2\]
-					\label{eq:optimization-squared}
-				\end{equation}
-			\item Problem is still NP-hard
-		\end{itemize}
-	\item Relaxation to $z_{ij} \in [0,1]$ 
-		\begin{itemize}
-			\item \eqref{eq:optimization-squared} becomes a linear program 
-			\item Polynomial time solution exists
-			\item Relaxation introduces no error, as constraint matrix in unimodular
-		\end{itemize}
-	\item Optimal solution of relaxed problem via sorting
-	\item Generalize by introducing additional constraints (sorting then is suboptimal)
-		\begin{itemize}
-			\item An A event can only generate at most one B event
-			\item A B event can have more than one predecessor
-			\item Constraint on temporal lag like no negative lags allowed
-		\end{itemize}
-	\item Comparison to \cite{Zeng2015}
-		\begin{itemize}
-			\item No assumption on temporal lag distribution
-			\item No initializaion problem
-			\item Calculation of likelihood of B events also possible
-		\end{itemize}
-\end{itemize}
+Given the previously introduced vectors $\vz$ and $\vec \delta$, the variance in \eqref{eq:variance} and \eqref{eq:optimization-problem} can be rewritten in vector notation to
+%
+\begin{equation}
+ \Var[\delta] = \tfrac{1}{n} \cdot \(\(\vec \delta\odot\vec\delta\)\T\cdot \vz - \tfrac{1}{n}\cdot\vz\T\cdot\vec\delta\cdot\vec\delta\T\cdot\vz \)~.
+\label{eq:variance-vector}
+\end{equation}
+%
+%
+%\begin{equation}
+ %\Var\[\delta\] = \tfrac{1}{n-1} \cdot \( \(\mat \Delta\odot\mat\Delta\)\otimes \mat Z - \tfrac{1}{n}\cdot \trace\(\mat Z\mat\Delta \cdot \(\mat \Delta\mat Z\)\T\)\)%\(\mat Z\cdot \mat \Delta\) \otimes \(\mat Z\cdot\mat \Delta\)\T\)
+%\label{eq:variance-vector-matrix}
+%\end{equation}
+%
+%$\otimes$ being the Frobenius inner product, i.e., a Hadamard product followed by the summation of all elements of the resulting matrix.
+Due to the binary nature of $\vz$ and the quadratic form in~\eqref{eq:variance-vector}, the problem in \eqref{eq:optimization-problem} corresponds to a so-called \emph{binary quadratic program} and thus, is NP-hard \cite{Katayama2001}. A computationally feasible solution merely exists for very short event sequences. To also allow the identification of temporal lags in large event sequences, an approximation is proposed that relies on the following two steps: (i) neglecting the quadratic term $\vz\T\cdot\vec\delta\cdot\vec\delta\T\cdot\vz$ in \eqref{eq:variance-vector} and (ii) relaxation of the binary constraint $\vz \in \{0,1\}^p$.
+
+\subsection{Linear Approximation}
+\label{sec:lp_linear}
+%
+As the quadratic term in \eqref{eq:variance-vector} can also be expressed as 
+%
+\begin{equation}
+	\vz\T\cdot\vec\delta\cdot\vec\delta\T\cdot\vz = \(\sum_{i=1}^m \sum_{j=1}^n \delta_{ij}\cdot z_{ij}\)^2
+\label{eq:quadratic-term}
+\end{equation}
+%
+it becomes apparent that it is always non-negative. Thus, neglecting it results into a upper-bound approximation to \eqref{eq:variance-vector}, which is linear and equivalent to the expected value $\E\hspace{-.5mm}\big[\delta^2 \big]$. Furthermore, it can be shown that neglecting \eqref{eq:quadratic-term} introduces only a small approximation error.
+
+\begin{Theorem}
+For $m,n \rightarrow \infty$ the quadratic term \eqref{eq:quadratic-term} approaches zero.
+\end{Theorem}
+%
+\begin{Proof}
+As the variance \eqref{eq:variance-vector} by definition is always non-negative, it holds that
+%
+\begin{equation}
+	\(\vec \delta\odot\vec\delta\)\T\cdot \vz\ \ge\ \tfrac{1}{n}\cdot\vz\T\cdot\vec\delta\cdot\vec\delta\T\cdot\vz~,
+\label{eq:linear-ge-quadratic}
+\end{equation}
+%
+i.e., the linear term in \eqref{eq:variance-vector} dominates the quadratic one. Furthermore, by considering the ratio
+%
+\begin{equation}
+	\alpha \DEF \frac{\(\vec \delta\odot\vec\delta\)\T\cdot \vz}{\vz\T\cdot\vec\delta\cdot\vec\delta\T\cdot\vz} 
+	= \frac{\sum_{i=1}^m \sum_{j=1}^n \delta_{ij}^2\cdot z_{ij}}{\big(\sum_{i=1}^m \sum_{j=1}^n \delta_{ij}\cdot z_{ij}\big)^2}~,
+\label{eq:ratio}
+\end{equation}
+%
+which is bounded from above by one, it is possible to evaluate the influence of the quadratic term.
+%
+%\begin{align}
+	%\sum_{i=1}^m \sum_{j=1}^n \delta_{ij}^2\cdot z_{ij} 
+	%&= \sum_{i=1}^m \sum_{j=1}^n \delta_{ij}^2\cdot z_{ij}^2\\
+	%&= \sum_{i=1}^m \sum_{j=1}^n \(\delta_{ij}\cdot z_{ij}\)^2\\
+	%&\le \(\sum_{i=1}^m \sum_{j=1}^n \delta_{ij}\cdot z_{ij}\)^2\\
+	%&\le \sum_{i=1}^m \delta_{ij}^2\cdot \sum_{j=1}^n z_{ij}^2
+%\end{align}
+%
+By applying the Cauchy-Schwarz inequality, this ratio becomes
+%
+\begin{align}
+	\alpha 
+	&\ge \frac{\sum_{i=1}^m \sum_{j=1}^n \delta_{ij}^2\cdot z_{ij}}{\sum_{i=1}^m \sum_{j=1}^n 1^2 \cdot \sum_{i=1}^m \sum_{j=1}^n \big(\delta_{ij}\cdot z_{ij}\big)^2} \\
+	&= \frac{\sum_{i=1}^m \sum_{j=1}^n \delta_{ij}^2\cdot z_{ij}}{m\cdot n \cdot \sum_{i=1}^m \sum_{j=1}^n \big(\delta_{ij}\cdot z_{ij}\big)^2} \\
+	&= \frac{\sum_{i=1}^m \sum_{j=1}^n \delta_{ij}^2\cdot z_{ij}}{m\cdot n \cdot \sum_{i=1}^m \sum_{j=1}^n \delta_{ij}^2\cdot z_{ij}} \\
+	&= \frac{1}{m\cdot n}~.
+\label{eq:lower-bound}
+\end{align}
+%
+The equality in the third line follows from the fact that $z_{ij}$ is binary. In case of $z_{ij}$ being continuous with $z_{ij} \in [0,1]$, this equality turns into a greater-equal relation. Thus, this proof also holds for a relaxed formulation of the optimization problem, as it is considered in \Sec{sec:lp_relax}.
+\end{Proof}
+
+Thus, for an increasing number of events, the quadratic term vanishes as the ratio $\alpha$ approaches zero. 
+
+		
+\subsection{Continuous Relaxation}
+\label{sec:lp_relax}
+%
+Even by removing the quadratic term, the resulting binary linear program (BLP) is still NP-hard. % due to constraining $z_{ij}$ to be binary. 
+In order to reduce the complexity of the optimization problem, it is a common approach to \emph{relax} the problem. That is, instead of requiring the binary constraint $z_{ij}\in\{0,1\}$, the assignment variable is allowed to be continuous on the unity interval, i.e., $z_{ij} \in [0,1]$. The relaxation of BLP yields a linear program (LP)
+%
+\begin{align}
+	\label{eq:relaxed-optimization-problem}
+	\min_{\vz} \ \E\hspace{-.5mm}\big[\delta^2 \big] \ & \\
+	\text{s.t.} \hspace{4mm} \H \cdot \vz &= \vec 1_p~,\\
+		 \D \cdot \vz &\le \vec 1_p~, \\
+	 \mat \Delta \cdot \vz &\ge \vec 0_p~, \\
+		\vz &\in [0,1]^p~,
+	%\text{s.t.} \hspace{4mm} \mat Z\T\cdot \vec 1 &= \vec 1~,\\
+		 %\mat Z\cdot \vec 1 &\le \vec 1~, \\
+	 %\diag(\vec \delta) \cdot \vz &\ge \vec 0~, \\
+		%\mat Z &\in \{0,1\}^{m\times n}~,
+\end{align}
+%
+which is solvable in polynomial time by many algorithms, for example the famous \emph{Simplex} algorithm \cite{NelderMead1965}. 
+
+Obviously, the relaxation modifies and approximates the original BLP problem. This approximation usually introduces an additional error called the \emph{integrality gap} \cite{Arora2002}. Fortunately, under special circumstances, the LP is theoretically even able to find binary solutions without an approximation error being induced by the relaxation. Thus, the original BLP problem can be solved exactly even for large event sequences. 
+
+\begin{Theorem}
+The relaxed LP in \eqref{eq:relaxed-optimization-problem} is equivalent to the BLP problem. Thus, there exists a polynomial-time solution for the BLP.
+\end{Theorem}
+
+This theorem can be proven by showing that the LP always finds a binary solution if and only if the constraint matrices $\H$, $\D$, and $\mat \Delta$ in \eqref{eq:relaxed-optimization-problem} are \emph{totally unimodular} \cite{Sierksma2001}.
+
+%It has to be shown that the relaxation does not increase the error too much. 
+%
+%\begin{Corollary}
+%The cost of the LP solution is a lower bound to the cost of the BLP solution.
+%\end{Corollary}
+%
+%This corollary follows from that fact that the solution space of the BLP is completely contained in the LP solution space. 
+%Under special circumstances, LP is theoretically even able to find binary solutions and thus, to solve the original BLP problem exactly. More specifically, LP always finds a binary solution if and only if the constraint matrices $\H$, $\D$, and $\mat \Delta$ in \eqref{eq:relaxed-optimization-problem} are \emph{totally unimodular} \cite{Sierksma2001}.
+
+\begin{Definition}
+A matrix $\A$ is called totally unimodular if every square sub-matrix of $\A$ is unimodular. A square matrix $\A$ is called unimodular if $|\A| = \pm 1$, where $|.|$ is the determinant.
+\end{Definition}
+
+%Hence, instead of estimating the approximation error, it is proven in the following that the constraints are totally unimodular and consequently, no approximation error has been induced by the relaxation. For this purpose, the following corollary is helpful.
+
+\begin{Corollary}
+\label{cor:totally-unimodular}
+Any matrix $\A$ containing only $-1$, $0$, and $1$ elements is totally unimodular if each column of $\A$ contains at most two non-zero elements. Furthermore, all rows of $\A$ can be split into two sets such that two non-zero elements with the same sign from one column belong to different sets and two non-zero elements with different sign from one column belong to the same set.
+\end{Corollary}
+
+See Theorem~7.3 in \cite{Sierksma2001} for a proof of Corollary~\ref{cor:totally-unimodular}. Based on this corollary, $\H$ and $\D$ are totally unimodular as they contain only $0$ and $1$ with only one $1$ per column. However, $\mat \Delta$ has to be rewritten to
+$\mat \Delta = \diag\big(\vec{\tilde \delta}\big)$ with $\vec{\tilde \delta} \DEF \big[\sign(\delta_{11})\ \sign(\delta_{21})\ \ldots\ \sign(\delta_{mn})\big]\T$ and $\sign(.)$ being the signum function, in order to fulfill the first condition in Corollary~\ref{cor:totally-unimodular}. This reformulation is not changing the optimal solution to \eqref{eq:relaxed-optimization-problem}. As $\mat \Delta$ now comprises only $-1$ and $1$ with only one non-zero element per column, it is also totally unimodular.
+\\[1ex]
+\noindent \textbf{Remark} Alternatively, one could directly relax \eqref{eq:optimization-problem}. This would lead to a concave minimization problem, which is known to be NP-hard \cite{Chinchuluun2005}. Again, only by then removing the quadratic term a computationally feasible solution would be possible.
+
+\subsection{Potential Extensions}
+\label{sec:lp_extensions}
+%
+Besides the constraints considered for the identification problem in \eqref{eq:optimization-problem}, it is also possible to impose additional, more application-specific constraints. For instance:
+
+\begin{enumerate}
+	\item Assumption~\ref{as:one-to-many} can be relaxed by allowing that a response event can be triggered by more than one event, e.g., $\textstyle\sum_i z_{ij} \le N \in \NewN$.
+	\item A trigger event can create more than one response event by relaxing Assumption~\ref{as:b}, e.g., $\textstyle\sum_j z_{ij} \le M\in \NewN$.
+	\item Instead of merely avoiding negative temporal lags as in Assumption~\ref{as:positive-lags}, it is also possible to define bounds, e.g., $\tau \le \delta_{ij} \le T$ where $\tau, T \in \NewR^+$ and $\tau < T$.
+	\item If many events trigger a single response event, it is possible to define a bound on the time difference between the trigger events. For example, if two events $a_i$ and $a_j$ are necessary to trigger an event $b_k$, then the time difference between both trigger events has to be below $D \in \NewR^+$, which corresponds to $\delta_{ik}-\delta_{jk} \le D$.
+\end{enumerate}
+
+All these constraints can be expressed with constraint matrices being totally unimodular and thus, solving the estimation problem close to optimality in a computationally cheap manner still holds.
+
+
+\subsection{Comparison}
+\label{sec:lp_comparison}
+%
+BLPs for solving assignment problems as in \eqref{eq:optimization-problem} have been studied extensively in the literature for many applications like sensor selection \cite{Moon2017} or resource allocation \cite{Sultan2011}, but not for the temporal lag identification problem as considered in this paper. However, some general purpose BLP solution algorithms could also be applied here. For instance, for the special case of $\SE_A$ and $\SE_B$ being of the same length, i.e., $m=n$, the optimal solution to \eqref{eq:optimization-problem} can also be found via sorting, which is computationally the most efficient approach. Unfortunately, besides this special case and for extended versions of the considered problem as discussed in the previous section, sorting no longer works. The same holds for the well-known Hungarian algorithm \cite{Kuhn1955}.
+
+Closest to the proposed LP is the so-called \emph{lagEM} algorithm introduced in \cite{Zeng2015}. Here, the temporal lag between two event sequences is estimated by means of an expectation-maximization (EM) approach. For this purpose, it is assumed that the distribution of the temporal lag is Gaussian. As any EM algorithm, also lagEM can only find sub-optimal solutions and thus, requires a good initialization in order to find a meaningful result. In contrast to lagEM, LP always finds the optimal solution and makes no assumptions about the temporal lag distribution. Thus, by means of \eqref{eq:mean} and \eqref{eq:variance}, it is also possible to calculate a near-optimal Gaussian distribution approximating the true distribution, but without the limitations of lagEM.
+
 
 \section{Results}
 \label{sec:results}
 %
-\begin{itemize}
-	\item Artificial problem
-	\item Symantec Data
-\end{itemize}
+The proposed LP temporal lag identification approach is evaluated in the following on synthetically generated event sequences as well as on a real-world event log of a \emph{Symantec Endpoint Protection} virus scanner. LP is compared against the ground truth and the results of lagEM by means of the runtime as well as
+the standardized deviation between the true and estimated mean and variance
+%
+\begin{equation}
+	\Delta_\mu = \tfrac{|\tilde \mu - \mu|}{\sigma}~\text{ and }~\Delta_\sigma = \tfrac{|\tilde \sigma - \sigma|}{\sigma}~,
+	\label{eq:std-deviation}
+\end{equation}
+%
+respectively. Here, the tilde indicates the estimated value. 
+Furthermore, based on the assignments found, the temporal lag distribution is calculated via a kernel density estimator (KDE), where each event pair is interpreted as a sample. For the KDE, a Gaussian kernel is employed and its bandwidth is selected by Scott's rule-of-thumb~\cite{Scott1992}. For quantifying the similarity between the true distribution and the KDE estimate, the normalized squared integral deviation (SID)~\cite{Fusion08_Huber_PGMR}
+%
+\begin{equation}
+	\text{SID}\big(\tilde f(\delta), f(\delta)\big) = \frac{\int \big(\tilde f(\delta) - f(\delta)\big)^2 \dd \delta}{\int \tilde f(\delta)^2\dd \delta + \int f(\delta)^2 \dd \delta} \in [0,1]
+\label{eq:}
+\end{equation}
+%
+is calculated, with $\tilde f$ being the KDE estimate and $f$ being the true distribution. A value of zero corresponds to identical distributions, while a one indicates non-overlapping distributions.
+
+For all experiments, LP stops if it converges or the number of iterations exceeds 200. In the latter case, the examined event pair is considered as not correlated.
+
+\begin{table}%
+\centering
+\caption{}
+\label{}
+\begin{tabular}{c|cccc|cccc}
+\multirow{2}{5mm}{Sce-nario} & \multicolumn{4}{c|}{\textbf{LP}} & \multicolumn{4}{c}{\textbf{lagEM}}
+\\
+ & $\Delta_\mu$ & $\Delta_\sigma$ & SID & time & $\Delta_\mu$ & $\Delta_\sigma$ & SID & time
+\\ \hline
+ 1 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00
+\\
+ 2 & 0.00 & 0.00 & 0.0 & 0.0 & 0.0 & 0.0 & 0.0 & 0.0
+\\ \hline
+ 3 & 0.00 & 0.0 & 0.0 & 0.0 & 0.0 & 0.0 & 0.0 & 0.0
+\\
+ 4 & 0.0 & 0.0 & 0.0 & 0.0 & 0.0 & 0.0 & 0.0 & 0.0
+\\
+ 5 & 0.0 & 0.0 & 0.0 & 0.0 & 0.0 & 0.0 & 0.0 & 0.0
+\end{tabular}
+\end{table}
+
+
+\subsection{Synthetic Event Sequences}
+\label{sec:results_synthetic}
+%
+Two synthetic sequences are generated and analyzed as described in the following.
+
+\subsubsection{Scenario 1}
+At first, a sequence used by Zeng at al. is considered (see Table I in \cite{Zeng2015}), which comprises $200$ events in total. The occurrence of event $A$ follows an exponential distribution with $\beta = 27.5$. Event $B$ follows after event $A$ with a normally distributed temporal lag $\mathcal{N}(77.01, 6.664)$. All events are lost with a probability of 10\%.
+
+Figure \ref{fig:scen1} shows the estimated distributions. Although nearly all event pairs overlap, LP is able to estimate the true distribution with a low SID of $xxx$. Even with several retries, lagEM was not able to estimate the correct distribution, which is also reflected in the calculated distance of $0.3839$. Zeng et al. reported the same behavior but were able to solve it by using longer sequences \cite{Zeng2015}.
+
+
+\subsubsection{Scenario 2}
+This scenario introduces two additional event types. Furthermore, the temporal lag is not modeled by normal distributions. A sequence contains $1000$ events in total. Event $A$ appears according to the uniform distribution $\mathcal{U}(30, 50)$. Event $B$ follows after event $A$ with an exponentially distributed temporal lag with $\beta = 10$ and an offset of $25$. Independently of $A$ and $B$ an additional event pair exists. Event $C$ occurs based on an exponential distribution with $\beta = 25$ and an offset of $10$. Event $D$ follows after event $C$ with a uniformly distributed temporal lag $\mathcal{U}(15, 25)$. Again, all event types are lost with a probability of 10\%.
+
+According to \Fig{}, both algorithms provide a good estimate of the temporal lag distribution between type $A$ and $B$ events.
+Even though, LP misses the long tail, the SID is quite low with $xxx$. The lagEM algorithm estimates the mean precisely, but the probability of small or even negative time lags is overestimated. This is caused by the inherent assumption that the temporal lag is normally distributed. Nevertheless, the estimate is merely slightly worse than LP.
+
+A similar behavior can be observed for events $C$ and $D$ (see \Fig{}). lagEM estimates the correct mean, but the variance is too large as a uniform distribution can hardly be approximated by a normal distribution. %This yields a higher distance of $0.1976$. 
+In contrast, LP (SID~=~$xxx$) provides a better estimate. The jittery probability density can be explained by the limited number of samples.
+
+\subsection{Symantec Events}
+\label{sec:results_symantec}
+%
+The Symantec event log covers the time span from March 5, 2015 to March 10, 2016 and contains in total $3742$ events of $19$ different types. 
+In the following some exemplary detected event pairs are discussed, where \Tab{tab:symantecEvents} contains a short description of the involved event types. 
+
+\begin{table}[!ht]
+	\caption{Excerpt of all event types in the Symantec log file with a short description and the number of occurrences.}
+	\label{tab:symantecEvents}
+
+	\centering
+	\begin{tabular}{c p{0.3\textwidth} c}
+		Event ID & \multicolumn{1}{c}{Description} & Count \\
+		\hline
+		\textit{2}	& Symantec finishes a hard drive scan & 8 \\
+		\textit{3}	& Symantec starts a hard drive scan & 10 \\
+		\textit{7}	& A virus definition with new threat descriptions has been found & 308 \\
+		\textit{65}	& Symantec antivirus scan suspended & 36 \\
+		\textit{66}	& Symantec antivirus scan continued & 38 \\
+	\end{tabular}
+
+\end{table}
 
 \section{Conclusion and Future Work}
 \label{sec:conclusion}
@@ -439,9 +585,7 @@ The abstract goes here.
 \appendices
 % use section* for acknowledgment
 \section*{Acknowledgment}
-
-
-The authors would like to thank...
+This work was partially supported by the BMWi project SAKE (Grant No. 01MD15006A).
 
 
 % Can use something like this to put references on a page
