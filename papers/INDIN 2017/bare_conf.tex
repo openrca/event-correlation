@@ -74,7 +74,7 @@ Email: marco.huber@ieee.org
 \begin{abstract}
 Event correlation is the task of detecting dependencies between events in event sequences, e.g., for predictive maintenance based on log-files.
 In this work, a new data-driven, generic framework for event correlation is presented. 
-First, we use a fast preliminary test statistic to determine candidate event pairs. Next, the precise distribution of the temporal lag between those pairs is determined. 
+First, we use a fast preliminary test statistic to determine candidate event type pairs. Next, the precise distribution of the temporal lag between those pairs is calculated. 
 For this purpose, a new efficient iterative method is developed that aligns two event sequences and finds the optimal event assignments.
 In our experiments, the proposed method is much faster than state-of-the-art methods but always yields similar (or even better) results. 
 \end{abstract}
@@ -95,7 +95,7 @@ Events often influence and trigger each other, and hence, form a network of depe
 
 Starting from the 1980s, methods to automatically aggregate and preprocess monitored events were investigated in order to reduce the manual work. Early approaches utilize domain experts to create a knowledge database. By asking a domain expert, explicit rules and dependencies between event types are stated. Based on these rules, events are aggregated and correlated, e.g. \cite{Houck1995}, \cite{Kettschau2002}. Unfortunately, it is not possible to transfer this system to a new domain as all rules have to be recreated. Furthermore, the creation of rules is very time consuming, difficult and error prone for non-trivial systems.
 
-The most important generic approach utilizes time windows to find frequent event pairs, e.g. \cite{Jakobson1993}, \cite{Mannila1997} and \cite{Bouandas2007}. A time window with a fixed size is shifted over the complete sequence like an \(n\)-gram over a text. By counting how often event types occur in the same time window, frequent pairs can be found. A major drawback of this approach is that no reasonable way for choosing the window size exists. If the window size is too small, relevant event pairs may be missed. However, if the window size is too large, many false positive correlations will be detected.
+The most important generic approach utilizes time windows to find frequent event pairs, e.g. \cite{Jakobson1993}, \cite{Mannila1997} and \cite{Bouandas2007}. A time window with a fixed size is shifted over the complete sequence like an \(n\)-gram over a text. By counting how often different event types occur in the same time window, frequent pairs can be found. A major drawback of this approach is that no reasonable way for choosing the window size exists. If the window size is too small, relevant event pairs may be missed. However, if the window size is too large, many false positive correlations will be detected.
 
 
 The most similar approach to our work is the \textit{lagEM} algorithm proposed by Zeng et al. \cite{Zeng2015}. The \textit{lagEM} algorithm models the temporal lag between two event types \(A\) and \(B\) by a normal distribution. By using \ac{EM}, the likelihood of the model parameters---namely mean \(\mu\) and variance \(\sigma^2\)---is maximized. This algorithm is considered as current state-of-the-art and serves as a performance reference for event correlation in this work.
@@ -138,7 +138,7 @@ with \(P(A)\) the probability of \(A\) and \(P(A, B)\) the joint probability of 
 
 Furthermore, let \(\pmb{S}_A = (a_1,\ldots, a_m)\) be a subsequence of \(\pmb{S}\) with type \(A\) with \(m\) events and \(\pmb{S}_B=(b_1,\ldots, b_n)\) be a subsequence with \(n\) events of type \(B\). For simplicity \(a_i\) also denotes the time stamp of the \(i\)-th event of \(A\). \(b_i\) is used analogously.
 
-Even though independence of two events is easy to check, event correlation is difficult as neither \(P(A)\), \(P(B)\) nor \(P(A, B)\) are known a priori in general. This task gets even more complicated as two events do not have to appear at the same time even though they are correlated. Often, one event---called the \textit{trigger event}---happens a few seconds or minutes before the correlated event---called the \textit{response event}. For example, assume an application running on a server. The trigger event is a failure of the network card and the response event is an application alerting the lost network connection after some connection retries. The time between the network card failure and the detected network loss is called \textit{temporal lag}
+Even though independence of two events is easy to check, event correlation is difficult as neither \(P(A)\), \(P(B)\) nor \(P(A, B)\) are known a priori in general. This task gets even more complicated as two events do not have to appear at the same time even though they are correlated. Often, one event---called the \textit{trigger event}---happens a few seconds or minutes before the correlated event---called the \textit{response event}. For example, assume an application running on a server. The trigger event is the failure of the network card and the response event is an application alerting the lost network connection after some connection retries. The time between the network card failure and the detected network loss is called \textit{temporal lag}
 \begin{equation}
 	P(B \; | \; A) = \mathcal{T}_\Delta (B \; | \; A) = \mathcal{T}_\Delta (b - a)
 \end{equation}
@@ -160,16 +160,16 @@ Based on the result of the \ac{ICE} algorithm, a \ac{KDE} determines the distrib
 \label{sec:energyDistance}
 The energy distance is inspired by gravitational potential energy from physics and was recently proposed by Rizzo \cite{Rizzo2016}. Like two objects attracting each other in a gravitational field, the samples of two distributions affect each other depending on their ``distance''. If both sample sets were produced by equivalent distributions their potential energy is zero. To the best of our knowledge the energy distance has not yet been used for event correlation.
 
-To compute the empirical energy distance let \(A\) be a sample set with \(m\) samples and \(B\) a sample set with size \(n\). The empirical energy distance is defined as
+To compute the empirical energy distance let \(\pmb{S}_A\) and \(\pmb{S}_B\) be given. The empirical energy distance is defined as
 \begin{align}
 \begin{split}
-	& \text{Cor}(A, B) = \dfrac{2}{m \cdot n} \sum_{i = 1}^m \sum_{j = 1}^n \left\| a_i - b_j \right\| \\
+	& \text{Cor}(\pmb{S}_A, \pmb{S}_B) = \dfrac{2}{m \cdot n} \sum_{i = 1}^m \sum_{j = 1}^n \left\| a_i - b_j \right\| \\
 	& - \dfrac{1}{m^2} \sum_{i = 1}^m \sum_{j = 1}^m \left\| a_i - a_j \right\| - \dfrac{1}{n^2} \sum_{i = 1}^n \sum_{j = 1}^n \left\| b_i - b_j \right\| ~.
 \end{split}
 \end{align}
 
 An important property of the energy distance is that no pair-wise mapping between \(A\) and \(B\) is required to calculate the empirical energy distance. This allows computing the correlation score without knowing event assignments. 
-Consequently, only event pairs with a low energy distance can be analyzed more detailed, e.g., by determining the time lag, which lowers the computational cost significantly.
+Consequently, only event pairs with a low energy distance can be analyzed in more detail, e.g., by determining the time lag, which lowers the computational cost significantly.
 
 Based on the energy distance, a hypothesis test is done to check whether two events are uncorrelated (\(H_0\)). Therefore, \(A\) and \(B\) are combined into a single sample set, randomly permuted and then split again into \(A^\pi\) and \(B^\pi\). The test statistic is defined as
 \begin{equation}
@@ -188,10 +188,10 @@ where \(h\) is the number of repetitions.
 
 
 
-\subsection{Iterative Closest Events (ICE)}
+\subsection{Iterative Closest Events}
 \label{sec:ice}
 
-We call the algorithm to match two event sequence \acf{ICE} algorithm as it is an adaptation of the \acf{ICP} algorithm \cite{Besl1992}. \ac{ICP} is a widely-used in computer vision for point set registration, i.e., given two point clouds, \ac{ICP} searches for a rigid transformation of one point cloud to the other one. 
+We call the algorithm to match two event sequences \acf{ICE} as it is an adaptation of the \acf{ICP} algorithm \cite{Besl1992}. \ac{ICP} is widely-used in computer vision for point set registration, i.e., given two point clouds, \ac{ICP} searches for a rigid transformation of one point cloud to the other one. 
 
 Given two datasets called \textit{data} and \textit{reference}, the \ac{ICP} algorithm searches for a transformation that minimizes a given cost function. This optimal transformation is calculated iteratively using the following steps \cite{Besl1992} until convergence is reached:
 
@@ -236,9 +236,9 @@ using the least squares formulas.
 
 
 
-Naively implemented, these two steps run in \(\mathcal{O}(m \cdot n)\) as all pair-wise distances have to be calculated, where $O(.)$ is the big-o in Landau notation. However, several techniques exist to improve the \textit{data-reference} assignment using \(k-d\) trees or caching \cite{Pomerleau2015}. Furthermore, it can be proven that the number of iterations is also limited by \(\mathcal{O}(m \cdot n)\) as the input samples are one-dimensional \cite{Ezra2008}.
+Naively implemented, these two steps run in \(\mathcal{O}(m \cdot n)\) as all pair-wise distances have to be calculated, where $\mathcal{O}(.)$ is the big-o in Landau notation. However, several techniques exist to improve the \textit{data-reference} assignment using \(k-d\) trees or caching \cite{Pomerleau2015}. Furthermore, it can be proven that the number of iterations is also limited by \(\mathcal{O}(m \cdot n)\) as the input samples are one-dimensional \cite{Ezra2008}.
 
-\ac{ICE} calculates one translation for all \textit{data} points. As a consequence, outliers can influence the optimization process. To counter the effects of additional points in \(\pmb{S}_A\), a random sampling of \textit{data} is done after the assignment step. We used the quite simple approach of plain outlier removal using \(z\)-scores---a measure of the deviation from the expectation value in standard deviations--and thresholding.
+\ac{ICE} calculates one translation for all \textit{data} points. As a consequence, outliers can influence the optimization process. To counter the effects of additional points in \(\pmb{S}_A\), a random sampling of \textit{data} is done after the assignment step. We used the quite simple approach of plain outlier removal using \(z\)-scores---a measure of the deviation from the expectation value in standard deviations---and thresholding.
 However, more sophisticated methods for outlier removal exist, e.g. \cite{Hontani2012}, \cite{Phillips2007}.
 
 
@@ -257,7 +257,7 @@ Based on the final assignments $\alpha_i(t^*)$ and the final transformation $t^*
 
 \begin{equation}
 	\label{eq:solutionICP}
- f_{\text{Lag}}(t) = \tfrac{1}{m} \sum_{i=1}^m K\left( \frac{a_i + t - b_{\alpha_i(t^*)}}{ h} \right) \enspace ,
+ f_{\text{Lag}}(t^*) = \tfrac{1}{m} \sum_{i=1}^m K\left( \frac{a_i - b_{\alpha_i(t^*)}}{ h} \right) \enspace ,
 	\end{equation}
 with Gaussian kernel function $K(\cdot)$ and bandwidth $h$ that is selected by Scott's rule-of-thumb~\cite{Scott1992}.
 
@@ -274,7 +274,7 @@ with Gaussian kernel function $K(\cdot)$ and bandwidth $h$ that is selected by S
 \section{Experiments} \label{sec:exp}
 This section is devoted to a performance evaluation based on synthetic and real data.
 The correlated event types are identified using the energy distance as described in Section \ref{sec:energyDistance}.
-Furthermore, all detected correlations are evaluated against the ground truth both visually and based on the normalized \ac{SID} measure \cite{Hanebeck2003}.
+Furthermore, all detected correlations are evaluated against the ground truth both visually and based on the normalized \ac{SID} measure \cite{Hanebeck2003}
 
 \begin{equation}
 	\text{SID}(f_{Lag}, f_{true}) = \frac{\int \left( f_{Lag} (t) - f_{true}(t) \right)^2 d t}{\int f_{Lag} (t)^2 \text{d} t + \int f_{true}(t)^2 \text{d} t}
@@ -383,10 +383,10 @@ Figure \ref{fig:66-65} also shows the estimated time lag by the \textit{lagEM} a
 	\label{fig:2-3}
 \end{figure}
 
-As Figure \ref{fig:2-3} shows, both algorithms are capable of detecting the rough distribution of the true time lag. However, \ac{ICE} yields a much lower distance (\ac{SID} $0.0194$) than \textit{lagEM} (\ac{SID}~=~$0.2494$).
+As Figure \ref{fig:2-3} shows, both algorithms are capable of detecting the rough distribution of the true time lag. However, \ac{ICE} yields a much lower distance (\ac{SID}~=~$0.0194$) than \textit{lagEM} (\ac{SID}~=~$0.2494$).
 
 
-\begin{table}[!ht]
+\begin{table}[!tb]
 	\caption{Excerpt of all event types in the Symantec log file with a short description and the number of occurrences.}
 	\label{tbl:symantecEvents}
 
@@ -415,28 +415,30 @@ Besides the quality of the estimation, the resource consumption---namely runtime
 	\begin{tabular}{c c c c c}
 		\multicolumn{2}{c}{\textbf{Scenario}} & \textbf{Algorithm} & \textbf{Runtime} & \textbf{Memory} \\
 		\hline
-		\multirow{4}{2mm}{\begin{sideways} Synthetic \hspace{1mm} \end{sideways}} & 1	& \ac{ICE}				&	~00:02.981	&	~~93.516927	\\
-			& & \textit{lagEM}		&	~26:45.805	&	115.217656	\\
+		\multirow{4}{2mm}{\begin{sideways} Synthetic \hspace{1mm} \end{sideways}}
+		&	1	& \ac{ICE}				&	~00:02.981	&	~~93.516927	\\
+		& 		& \textit{lagEM}		&	~26:45.805	&	115.217656	\\
 		\\[-1ex]
-		&2	& \ac{ICE}				&	~00:12.749	&	~~94.756510	\\
-		&	& \textit{lagEM}		&	258:32.001	&	~~95.985677	\\
+		&	2	& \ac{ICE}				&	~00:12.749	&	~~94.756510	\\
+		&		& \textit{lagEM}		&	258:32.001	&	~~95.985677	\\
 		\hline
 		\\[-1ex]
-		\multirow{4}{2mm}{\begin{sideways} Symantec Log \hspace{2mm} \end{sideways}} &2--3 & \ac{ICE}				&	~00:01.815	&	169.492188 \\
-		&	&	\textit{lagEM}		&	~00:00.297	&	169.085938 \\[-1ex]
+		\multirow{4}{2mm}{\begin{sideways} Symantec Log \hspace{2mm} \end{sideways}}
+		&  2--3 & \ac{ICE}				&	~00:01.815	&	169.492188 \\
+		&		& \textit{lagEM}		&	~00:00.297	&	169.085938 \\[-1ex]
 		\\
-		&66--65 & \ac{ICE}			&	~00:00.711	&	178.468750 \\
-		&	&	\textit{lagEM}		&	~00:01.342	&	178.078125 \\[-1ex]
+		& 66--65 & \ac{ICE}			&	~00:00.711	&	178.468750 \\
+		&		& \textit{lagEM}		&	~00:01.342	&	178.078125 \\[-1ex]
 		\\
-		&7--66 & \ac{ICE}			&	~00:04.394	&	176.121094 \\
-		&	&	\textit{lagEM}		&	~00:18.022	&	176.394531
+		& 7--66 & \ac{ICE}			&	~00:04.394	&	176.121094 \\
+		&		& \textit{lagEM}		&	~00:18.022	&	176.394531
 	\end{tabular}
 
 \end{table}
 
 
 
-As Table \ref{tbl:resources} shows, \textit{lagEM} has a longer runtime than \ac{ICE}. This is effect is especially visible for longer sequences. Concerning memory consumption, both algorithms are very similar and almost constant for all scenarios.
+As Table \ref{tbl:resources} shows, \textit{lagEM} has a longer runtime than \ac{ICE}. This effect is especially visible for longer sequences. Concerning memory consumption, both algorithms are very similar and almost constant for all scenarios.
 
 
 
