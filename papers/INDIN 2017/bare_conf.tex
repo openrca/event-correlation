@@ -215,7 +215,7 @@ Given two datasets called \textit{data} and \textit{reference}, the \ac{ICP} alg
 
 In the following, we will apply the \ac{ICP} concept for matching two event sequences:
 
-Let \textit{data} be an event sequence \(\pmb{S}_A\) of type \(A\) and \textit{reference} be the event sequence \(\pmb{S}_B\) of type \(B\). 
+Let \(data\) be an event sequence \(\pmb{S}_A\) of type \(A\) and \(reference\) be the event sequence \(\pmb{S}_B\) of type \(B\). 
 We aim at finding the time translation between these two event sequences as it represents the ``mean'' time lag.
 Hence, the objective is to find a translation $t \in \mathbb{R}$ that minimizes 
 \begin{equation}
@@ -229,7 +229,7 @@ The \ac{ICE} algorithm starts with an initial guess $t^{(0)}$ for the translatio
  \item \emph{Assignment Step}\\
 For each point in \(\pmb{S}_A\) the corresponding point in \(\pmb{S}_B\) with minimal squared Euclidean distance has to be found under incorporation of the current translation $t^{(l)}$, i.e., 
 \begin{equation}
-\alpha_i(t^{(l)})= \arg\,\min\limits_j \; (a_i+t^{(l)}-b_j)^2 \enspace .
+\alpha_i\big(t^{(l)}\big)= \arg\,\min\limits_j \; \big(a_i+t^{(l)}-b_j\big)^2 \enspace .
 \end{equation}
 This calculation is usually based on computing all pairwise distances and selecting the smallest one. It is important to note that several points in \(\pmb{S}_A\) can be assigned to the same point in \(\pmb{S}_B\) and that some points in \(\pmb{S}_B\) can remain unpaired.
 
@@ -238,7 +238,7 @@ This calculation is usually based on computing all pairwise distances and select
 \item \emph{Translation Step}\\
 With the pairwise correlations given, the optimal translation can be calculated by solving the optimization problem
 \begin{equation}
-t^{(l+1)}= \arg\,\min\limits_{t} \; \dfrac{1}{m} \sum_{i = 1}^{m} \left( a_i + t - b_{\alpha_i(t^{(l)})} \right)^2 \enspace , \\
+t^{(l+1)}= \arg\,\min\limits_{t} \; \dfrac{1}{m} \sum_{i = 1}^{m} \left( a_i + t - b_{\alpha_i\left(t^{(l)}\right)} \right)^2 \enspace , \\
 \end{equation}
 using the least squares formulas.
  
@@ -268,9 +268,10 @@ Based on the final assignments $\alpha_i(t^*)$ and the final transformation $t^*
 
 \begin{equation}
 	\label{eq:solutionICP}
- f_{\text{Lag}}(t^*) = \tfrac{1}{m} \sum_{i=1}^m K\left( \frac{a_i - b_{\alpha_i(t^*)}}{ h} \right) \enspace ,
+ %f_{\text{Lag}}(t^*) = \tfrac{1}{m} \sum_{i=1}^m K\left( \frac{a_i - b_{\alpha_i(t^*)}}{ h} \right) \enspace ,
+ f_{\text{Lag}}(t) = \tfrac{1}{m} \sum_{i=1}^m K\hspace{-1mm}\left( \frac{t - \delta_i(t^*)}{ h} \right) \enspace ,
 	\end{equation}
-with Gaussian kernel function $K(\cdot)$ and bandwidth $h$ that is selected by Scott's rule-of-thumb~\cite{Scott1992}.
+with $\delta_i(t^*) = a_i + t^* - b_{\alpha_i(t^*)}$, Gaussian kernel function $K(\cdot)$, and bandwidth $h$ that is selected by Scott's rule-of-thumb~\cite{Scott1992}.
 
 
 
