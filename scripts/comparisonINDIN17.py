@@ -1,11 +1,16 @@
 import matplotlib.pyplot as plt
 
 from core.distribution import NormalDistribution, KdeDistribution, ExponentialDistribution, UniformDistribution
-from core.performance import EnergyDistance, SquaredIntegratedDistance
+from core.performance import SquaredIntegratedDistance
 from visualization import plotDistributions, CORRECT, ICE, LAGEM, LP
 
+
+def meanDist(value1, value2, std):
+    return abs(value1 - value2) / std
+
+
 # en = EnergyDistance()
-en = SquaredIntegratedDistance();
+en = SquaredIntegratedDistance()
 
 # Scenario 1
 lagEM = NormalDistribution(65.4711352108, 13.0084410317)
@@ -88,10 +93,21 @@ lp = KdeDistribution(
      96.07413041084885, 96.78465263496747, 96.9139371601301, 97.13293544918702, 102.1937467046746], None)
 correct = NormalDistribution(77.01, 6.664)
 
+resCorrect = [77.01, 6.664]
+resICP = en.compute(correct.getRandom(len(ice.samples)), ice.samples)
+resLagEM = en.compute(correct.getRandom(len(ice.samples)), lagEM.getRandom(len(ice.samples)))
+resLP = en.compute(correct.getRandom(len(lp.samples)), lp.samples)
+
 print("Scenario 1")
-print("\tICP {}".format(en.compute(correct.getRandom(len(ice.samples)), ice.samples)))
-print("\tlagEM {}".format(en.compute(correct.getRandom(len(ice.samples)), lagEM.getRandom(len(ice.samples)))))
-print("\tLP {}".format(en.compute(correct.getRandom(len(lp.samples)), lp.samples)))
+print("\tICP {}, {}, {}".format(meanDist(ice.samples.mean(), resCorrect[0], resCorrect[1]),
+                                meanDist(ice.samples.std(), resCorrect[1], resCorrect[1]),
+                                resICP))
+print("\tlagEM {}, {}, {}".format(meanDist(65.4711352108, resCorrect[0], resCorrect[1]),
+                                  meanDist(lagEM.getStd(), resCorrect[1], resCorrect[1]),
+                                  resLagEM))
+print("\tLP {}, {}, {}".format(meanDist(lp.samples.mean(), resCorrect[0], resCorrect[1]),
+                               meanDist(lp.samples.std(), resCorrect[1], resCorrect[1]),
+                               resLP))
 plotDistributions({
     CORRECT: correct,
     ICE: ice,
@@ -310,14 +326,26 @@ lp = KdeDistribution(
      73.60426686434039], None)
 correct = ExponentialDistribution(10.0, 25.0)
 
+samples = correct.getRandom(len(ice.samples))
+resCorrect = [samples.mean(), samples.std()]
+resICP = en.compute(correct.getRandom(len(ice.samples)), ice.samples)
+resLagEM = en.compute(correct.getRandom(len(ice.samples)), lagEM.getRandom(len(ice.samples)))
+resLP = en.compute(correct.getRandom(len(lp.samples)), lp.samples)
+
 print("Scenario 2 - A B")
-print("\tICP {}".format(en.compute(correct.getRandom(len(ice.samples)), ice.samples)))
-print("\tlagEM {}".format(en.compute(correct.getRandom(len(ice.samples)), lagEM.getRandom(len(ice.samples)))))
-print("\tLP {}".format(en.compute(correct.getRandom(len(lp.samples)), lp.samples)))
+print("\tICP {}, {}, {}".format(meanDist(ice.samples.mean(), resCorrect[0], resCorrect[1]),
+                                meanDist(ice.samples.std(), resCorrect[1], resCorrect[1]),
+                                resICP))
+print("\tlagEM {}, {}, {}".format(meanDist(20.984125131811542, resCorrect[0], resCorrect[1]),
+                                  meanDist(lagEM.getStd(), resCorrect[1], resCorrect[1]),
+                                  resLagEM))
+print("\tLP {}, {}, {}".format(meanDist(lp.samples.mean(), resCorrect[0], resCorrect[1]),
+                               meanDist(lp.samples.std(), resCorrect[1], resCorrect[1]),
+                               resLP))
 plotDistributions({
     CORRECT: correct,
-    ICE: ice,
-    # LP: lp,
+    # ICE: ice,
+    LP: lp,
     LAGEM: lagEM
 }, '2-AB')
 
@@ -518,16 +546,56 @@ lp = KdeDistribution(
      23.670525045295335, 23.744664832217495], None)
 correct = UniformDistribution(15.0, 25.0)
 
+samples = correct.getRandom(len(ice.samples))
+resCorrect = [samples.mean(), samples.std()]
+resICP = en.compute(correct.getRandom(len(ice.samples)), ice.samples)
+resLagEM = en.compute(correct.getRandom(len(ice.samples)), lagEM.getRandom(len(ice.samples)))
+resLP = en.compute(correct.getRandom(len(lp.samples)), lp.samples)
+
 print("Scenario 2 - C D")
-print("\tICP {}".format(en.compute(correct.getRandom(len(ice.samples)), ice.samples)))
-print("\tlagEM {}".format(en.compute(correct.getRandom(len(ice.samples)), lagEM.getRandom(len(ice.samples)))))
-print("\tLP {}".format(en.compute(correct.getRandom(len(lp.samples)), lp.samples)))
+print("\tICP {}, {}, {}".format(meanDist(ice.samples.mean(), resCorrect[0], resCorrect[1]),
+                                meanDist(ice.samples.std(), resCorrect[1], resCorrect[1]),
+                                resICP))
+print("\tlagEM {}, {}, {}".format(meanDist(20.08482715452885, resCorrect[0], resCorrect[1]),
+                                  meanDist(lagEM.getStd(), resCorrect[1], resCorrect[1]),
+                                  resLagEM))
+print("\tLP {}, {}, {}".format(meanDist(lp.samples.mean(), resCorrect[0], resCorrect[1]),
+                               meanDist(lp.samples.std(), resCorrect[1], resCorrect[1]),
+                               resLP))
+plotDistributions({
+    CORRECT: correct,
+    # ICE: ice,
+    LP: lp,
+    LAGEM: lagEM
+}, '2-CD')
+
+# Symantec 2-3
+correct = KdeDistribution([6019.63, 6022.82, 6041.13, 6042.45, 6059.41, 6063.53, 6102.49], None)
+ice = KdeDistribution([6019.63, 6020.83, 6022.82, 6041.13, 6042.45, 6059.41, 6063.53, 6102.49], None)
+lp = KdeDistribution([6019.63, 6022.82, 6041.13, 6045.68, 6059.41, 6063.53, 6102.49], None)
+lagEM = NormalDistribution(6046.53625, 26.4066426005)
+
+resCorrect = [correct.samples.mean(), correct.samples.std()]
+resICP = en.compute(correct.getRandom(len(ice.samples)), ice.samples)
+resLagEM = en.compute(correct.getRandom(len(ice.samples)), lagEM.getRandom(len(ice.samples)))
+resLP = en.compute(correct.getRandom(len(lp.samples)), lp.samples)
+
+print("Scenario 3 - Symantec 2-3")
+print("\tICP {}, {}, {}".format(meanDist(ice.samples.mean(), resCorrect[0], resCorrect[1]),
+                                meanDist(ice.samples.std(), resCorrect[1], resCorrect[1]),
+                                resICP))
+print("\tlagEM {}, {}, {}".format(meanDist(6046.53625, resCorrect[0], resCorrect[1]),
+                                  meanDist(lagEM.getStd(), resCorrect[1], resCorrect[1]),
+                                  resLagEM))
+print("\tLP {}, {}, {}".format(meanDist(lp.samples.mean(), resCorrect[0], resCorrect[1]),
+                               meanDist(lp.samples.std(), resCorrect[1], resCorrect[1]),
+                               resLP))
 plotDistributions({
     CORRECT: correct,
     ICE: ice,
-    # LP: lp,
+    LP: lp,
     LAGEM: lagEM
-}, '2-CD')
+}, '2-3')
 
 # Symantec 66-65
 correct = KdeDistribution(
@@ -541,14 +609,25 @@ lp = KdeDistribution(
      35.98, 35.98, 35.98, 35.99, 35.99, 35.99, 36.19, 36.52, 36.52, 36.59, 37.78])
 lagEM = NormalDistribution(19.125, 12.9365)
 
-print("Symantec 66-65")
-print("\tICP {}".format(en.compute(correct.samples, ice.samples)))
-print("\tlagEM {}".format(en.compute(correct.samples, lagEM.getRandom(len(correct.samples)))))
-print("\tLP {}".format(en.compute(correct.samples, lp.samples)))
+resCorrect = [correct.samples.mean(), correct.samples.std()]
+resICP = en.compute(correct.getRandom(len(ice.samples)), ice.samples)
+resLagEM = en.compute(correct.getRandom(len(ice.samples)), lagEM.getRandom(len(ice.samples)))
+resLP = en.compute(correct.getRandom(len(lp.samples)), lp.samples)
+
+print("Scenario 4 - Symantec 66-65")
+print("\tICP {}, {}, {}".format(meanDist(ice.samples.mean(), resCorrect[0], resCorrect[1]),
+                                meanDist(ice.samples.std(), resCorrect[1], resCorrect[1]),
+                                resICP))
+print("\tlagEM {}, {}, {}".format(meanDist(19.125, resCorrect[0], resCorrect[1]),
+                                  meanDist(lagEM.getStd(), resCorrect[1], resCorrect[1]),
+                                  resLagEM))
+print("\tLP {}, {}, {}".format(meanDist(lp.samples.mean(), resCorrect[0], resCorrect[1]),
+                               meanDist(lp.samples.std(), resCorrect[1], resCorrect[1]),
+                               resLP))
 plotDistributions({
     CORRECT: correct,
-    ICE: ice,
-    # LP: lp,
+    # ICE: ice,
+    LP: lp,
     LAGEM: lagEM
 }, '66-65')
 
@@ -561,36 +640,30 @@ ice = KdeDistribution(
      28.58, 42.85, 50.37, 50.39, 53.65, 65.67, 68.27, 69.32, 72.66, 89.09, 89.52, 90.64, 91.26, 91.57, 93.74,
      94.02, 94.49, 96.35, 96.94, 280.82], None)
 lp = KdeDistribution(
-    [15.08, 16.63, 17.62, 19.78, 28.58, 42.85, 50.37, 50.39, 53.65, 54.13, 54.66, 59.36, 65.67, 68.27, 72.66, 87.61,
-     89.09, 90.64, 91.57, 93.74, 94.49, 96.35, 280.82], None)
+    [15.08, 16.63, 17.62, 19.78, 28.58, 42.85, 50.37, 50.39, 53.65, 54.13, 54.66, 59.36, 65.67, 68.27, 72.66,
+     87.61, 89.09, 90.64, 91.57, 93.74, 94.49, 96.35, 280.82], None)
 lagEM = NormalDistribution(2.3066, 59.0427)
 
-print("Symantec 7-66")
-print("\tICP {}".format(en.compute(correct.samples, ice.samples)))
-print("\tlagEM {}".format(en.compute(correct.samples, lagEM.getRandom(len(correct.samples)))))
-print("\tLP {}".format(en.compute(correct.samples, lp.samples)))
+resCorrect = [correct.samples.mean(), correct.samples.std()]
+resICP = en.compute(correct.getRandom(len(ice.samples)), ice.samples)
+resLagEM = en.compute(correct.getRandom(len(ice.samples)), lagEM.getRandom(len(ice.samples)))
+resLP = en.compute(correct.getRandom(len(lp.samples)), lp.samples)
+
+print("Scenario 5 - Symantec 7-66")
+print("\tICP {}, {}, {}".format(meanDist(ice.samples.mean(), resCorrect[0], resCorrect[1]),
+                                meanDist(ice.samples.std(), resCorrect[1], resCorrect[1]),
+                                resICP))
+print("\tlagEM {}, {}, {}".format(meanDist(2.3066, resCorrect[0], resCorrect[1]),
+                                  meanDist(lagEM.getStd(), resCorrect[1], resCorrect[1]),
+                                  resLagEM))
+print("\tLP {}, {}, {}".format(meanDist(lp.samples.mean(), resCorrect[0], resCorrect[1]),
+                               meanDist(lp.samples.std(), resCorrect[1], resCorrect[1]),
+                               resLP))
 plotDistributions({
     CORRECT: correct,
-    ICE: ice,
-    # LP: lp,
+    # ICE: ice,
+    LP: lp,
     LAGEM: lagEM
 }, '7-66')
-
-# Symantec 2-3
-correct = KdeDistribution([6019.63, 6022.82, 6041.13, 6042.45, 6059.41, 6063.53, 6102.49], None)
-ice = KdeDistribution([6019.63, 6020.83, 6022.82, 6041.13, 6042.45, 6059.41, 6063.53, 6102.49], None)
-lp = KdeDistribution([6019.63, 6041.13, 6059.41, 6063.53, 6102.49], None)
-lagEM = NormalDistribution(6046.53625, 26.4066426005)
-
-print("Symantec 2-3")
-print("\tICP {}".format(en.compute(correct.samples, ice.samples)))
-print("\tlagEM {}".format(en.compute(correct.samples, lagEM.getRandom(len(correct.samples)))))
-print("\tLP {}".format(en.compute(correct.samples, lp.samples)))
-plotDistributions({
-    CORRECT: correct,
-    ICE: ice,
-    # LP: lp,
-    LAGEM: lagEM
-}, '2-3')
 
 plt.show()
