@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <Python.h>

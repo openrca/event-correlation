@@ -7,7 +7,7 @@ import logging
 import os
 import sys
 
-from PySide.QtGui import QApplication
+from PySide2.QtWidgets import QApplication, QLabel
 
 import provider
 from algorithms import lpMatcher, lagEM, munkresMatcher, ice

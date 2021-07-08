@@ -256,7 +256,4 @@ class SquaredIntegratedDistance(Metric):
         norm1 = scipy.integrate.quad(lambda x: distA.getPDFValue(x) ** 2, lower, upper)[0]
         norm2 = scipy.integrate.quad(lambda x: distB.getPDFValue(x) ** 2, lower, upper)[0]
 
-        points = np.linspace(lower, upper, 1000)
-        dist = distA.getPDFValue(points) - distB.getPDFValue(points)
-
-        return (y / (norm1 + norm2), abs(dist.mean()), dist.std())
+        return y / (norm1 + norm2)
