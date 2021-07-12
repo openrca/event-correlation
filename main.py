@@ -28,6 +28,7 @@ parser.add_argument("-r", "--response", action="store", type=str, required=False
                     help="Match only given trigger and response")
 parser.add_argument("-d", "--distributions", action="store", type=str, required=False,
                     help="Path to file containing true empirical distributions")
+parser.add_argument("-o", "--output", action="store", type=str, required=False, help="Path to file for storing sequence data")
 
 args = parser.parse_args()
 logging.info("Arguments: {}".format(args))
@@ -41,6 +42,8 @@ response = args.response
 if (trigger is None and response is not None):
     logging.fatal('No trigger defined. Please add a trigger or remove response. {}'.format(parser.format_help()))
     exit()
+
+output = os.path.toAbsolutePath(args.output) if args.output else None
 
 seq = None
 if (args.method == provider.GENERATE):
@@ -118,6 +121,10 @@ for rule in calculatedRules:
         samples = rule.distributionResponse.samples if (hasattr(rule.distributionResponse, 'samples')) else\
             rule.distributionResponse.getRandom(len(empiricalDist.samples))
         rule.data["Distance to Empirical"] = EnergyDistance().compute(samples, empiricalDist.samples)
+
+if output:
+    seq.store(output)
+    logging.info("Output saved to: %s" % output)
 
 app = QApplication(sys.argv)
 v = Visualizer()
