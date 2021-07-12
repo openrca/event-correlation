@@ -131,7 +131,7 @@ class MutualInformationPerformance(Performance):
 
     def getValueByDistribution(self, dist):
         borders = dist.getCompleteInterval()
-        res, _ = scipy.integrate.quad(self.__calculateMutualInformation, borders[0], borders[1], args=(dist))
+        res, _ = scipy.integrate.quad(self.__calculateMutualInformation, -np.inf, np.inf, args=(dist), limit=1000)
         return res
 
     def __calculateMutualInformation(self, x, dist):
