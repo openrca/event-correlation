@@ -99,7 +99,7 @@ class BayesianNetwork:
 
         network = []
         for node in self.graph.nodes():
-            nodes = [node] + self.graph.predecessors(node)
+            nodes = [node] + list(self.graph.predecessors(node))
             n = len(nodes)
             count = 0
 
