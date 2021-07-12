@@ -4,9 +4,10 @@ import math
 import os
 import sys
 
-from PySide.QtCore import Signal, QPoint
-from PySide.QtGui import QMainWindow, QWidget, QVBoxLayout, QGraphicsScene, QGraphicsView, QAction, QFileDialog, \
-    QMessageBox, QApplication
+from PySide2.QtCore import Signal, QPoint, Qt
+from PySide2.QtWidgets import (
+    QAction, QApplication, QFileDialog, QGraphicsScene, QGraphicsView, QMainWindow, QMessageBox,
+    QVBoxLayout, QWidget)
 
 import core
 from core.rule import Rule
@@ -140,7 +141,7 @@ class Visualizer(QMainWindow):
         widget.setLayout(layout)
 
         self.__view = QGraphicsView()
-        layout.addWidget(self.__view, 0, 0)
+        layout.addWidget(self.__view, 0, Qt.AlignCenter)
 
         self.__sequenceWidget = SequenceWidget(self)
         self.__view.setScene(self.__sequenceWidget)

@@ -2,9 +2,10 @@ import math
 
 import networkx as nx
 import numpy as np
-from PySide.QtCore import QPoint, Signal, Qt
-from PySide.QtGui import QGraphicsScene, QGraphicsView, QHBoxLayout, QWidget, QSizePolicy, QVBoxLayout, QSlider
-from PySide.QtGui import QPushButton
+from PySide2.QtCore import QPoint, Qt, Signal
+from PySide2.QtWidgets import (
+    QGraphicsScene, QGraphicsView, QHBoxLayout, QPushButton, QSizePolicy, QSlider, QVBoxLayout,
+    QWidget)
 
 from core.bayesianNetwork import BayesianNetwork
 from core.event import Event
@@ -73,7 +74,7 @@ class DependenciesView(QWidget):
         policyRight = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         policyRight.setHorizontalStretch(1)
         self.__details.setSizePolicy(policyRight)
-        layout.addWidget(self.__details, 0, 2)
+        layout.addWidget(self.__details, 0, Qt.AlignRight)
 
     def setData(self, root, sequence):
         self.__mutualInformation = np.zeros(len(sequence.calculatedRules))

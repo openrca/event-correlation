@@ -2,8 +2,9 @@ import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
-from PySide.QtCore import QPoint, QRectF
-from PySide.QtGui import QBrush, QColor, QFont, QFontMetrics, QGraphicsItem, QPainter, QPainterPath, QPen
+from PySide2.QtCore import QPoint, QRectF
+from PySide2.QtGui import QBrush, QColor, QFont, QFontMetrics, QPainter, QPainterPath, QPen
+from PySide2.QtWidgets import QGraphicsItem
 
 from core.distribution import KdeDistribution, NormalDistribution, SingularKernel
 

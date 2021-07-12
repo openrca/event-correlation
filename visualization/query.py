@@ -1,8 +1,6 @@
 import json
 
-from PySide.QtGui import QPushButton, QLineEdit, QTextEdit
-from PySide.QtGui import QVBoxLayout, QLabel
-from PySide.QtGui import QWidget
+from PySide2.QtWidgets import QLabel, QLineEdit, QPushButton, QTextEdit, QVBoxLayout, QWidget
 
 from core.bayesianNetwork import Evidence
 

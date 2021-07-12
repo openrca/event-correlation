@@ -1,9 +1,8 @@
-from PySide.QtCore import Qt
-from PySide.QtCore import Signal
-from PySide.QtGui import QAbstractItemView, QPushButton
-from PySide.QtGui import QTableWidgetItem, QHeaderView
-from PySide.QtGui import QVBoxLayout, QLabel, QTableWidget
-from PySide.QtGui import QWidget
+from PySide2.QtCore import Qt
+from PySide2.QtCore import Signal
+from PySide2.QtWidgets import (
+    QAbstractItemView, QHeaderView, QLabel, QPushButton, QTableWidget, QTableWidgetItem,
+    QVBoxLayout, QWidget)
 
 
 class Settings(QWidget):
@@ -49,7 +48,7 @@ class Settings(QWidget):
         self.table.setSelectionMode(QAbstractItemView.NoSelection)
         self.table.resizeColumnsToContents()
         self.table.setHorizontalHeaderLabels(["Event", "HighLight", "Hide"])
-        self.table.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
     def __handleItemClicked(self, row, column):
         if (column == 0):

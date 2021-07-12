@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from PySide import QtGui, QtCore
-from PySide.QtGui import QTableWidget, QTableWidgetItem, QWidget, QPushButton, QLabel
-from PySide.QtGui import QVBoxLayout
+from PySide2 import QtCore
+from PySide2.QtWidgets import (
+    QLabel, QPushButton, QSizePolicy, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
@@ -27,7 +27,7 @@ class DetailsCanvas(FigureCanvas):
             self.__axRight = self._figure.add_subplot(111)
             self.__axLeft = None
 
-        FigureCanvas.setSizePolicy(self, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        FigureCanvas.setSizePolicy(self, QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding))
         FigureCanvas.updateGeometry(self)
 
     def setData(self, sequence, rule):
