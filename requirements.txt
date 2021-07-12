@@ -1,0 +1,11 @@
+aniso8601==9.0.1
+graphviz==0.16
+matplotlib==3.4.2
+networkx==2.6.1
+numpy==1.21.0
+ProbPy==1.1
+pydot==1.4.2
+PyQt5==5.15.4
+PySide2==5.15.2
+python-igraph==0.9.6
+scipy==1.7.0
