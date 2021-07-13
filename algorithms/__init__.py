@@ -1,5 +1,4 @@
 import abc
-from itertools import combinations
 import logging
 
 import numpy as np
@@ -40,11 +39,12 @@ class Matcher(abc.ABC):
         eventTypes = self.__cleanUpEventTypes(sequence)
         result = []
 
-        for trigger, response in combinations(eventTypes, 2):
-            # TODO decide A -> B or B -> A
-            rule = self.__matchIfReasonable(sequence, trigger, response, alpha, **kwargs)
-            if (rule is not None):
-                result.append(rule)
+        for trigger in eventTypes:
+            for response in eventTypes:
+                # TODO decide A -> B or B -> A
+                rule = self.__matchIfReasonable(sequence, trigger, response, alpha, **kwargs)
+                if (rule is not None):
+                    result.append(rule)
         return self.__cleanUpResult(result)
 
     def matchTransitive(self, sequence, start, alpha=0.05, **kwargs):
